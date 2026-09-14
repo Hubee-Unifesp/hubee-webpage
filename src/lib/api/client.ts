@@ -1,9 +1,9 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-if (!API_URL) {
-  throw new Error(
+if (!API_URL && typeof window !== "undefined") {
+  console.error(
     "NEXT_PUBLIC_API_URL não está definida. Verifique seu arquivo .env.local."
   );
 }
