@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-import { Button } from "@/components/ui/button"; //importa botao
 import {
   Card,
   CardHeader,
@@ -14,15 +14,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function Home() {
+export default function VersaoEscuraPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-8">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#181000] p-8 text-[#fffbed]">
       <div className="flex items-center justify-center gap-3">
-        <Button variant="hubee_800">Btn hubee_800</Button>
-        {/*botao variação escura*/}
+        <Button variant="hubee_50">Btn hubee_50</Button>
 
-        <Button variant="hubee_800" size="icon" aria-label="Submit">
-          {/*botao variação escura p cima*/}
+        <Button variant="hubee_50" size="icon" aria-label="Submit">
           <ArrowUpIcon className="h-4 w-4" />
         </Button>
       </div>
@@ -72,9 +70,8 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      <Link href="/versao-escura">
-        <Button variant="hubee_800">Ver versão em fundo escuro</Button>
-        {/*botao link p viariacao escura*/}
+      <Link href="/">
+        <Button variant="hubee_50">Voltar para a versão clara</Button>
       </Link>
     </main>
   );

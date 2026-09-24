@@ -57,7 +57,7 @@
   --color-hubee-500: #fcb201;
   --color-hubee-600: #c98d00;
   --color-hubee-700: #966800;
-  --color-hubee-800: #634400;
+  --color-hubee-800: #302100;
   --color-hubee-900: #181000;
 
   --color-hubee-neutral-25: #fffdf6;
@@ -144,7 +144,12 @@
   html {
     @apply font-sans;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-heading;
   }
 }
