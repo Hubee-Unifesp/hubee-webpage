@@ -11,7 +11,7 @@ import {
   UserIcon,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button"; //importa botao
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,
@@ -20,10 +20,8 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import {
   Select,
   SelectContent,
@@ -34,25 +32,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-
 import { Checkbox } from "@/components/ui/checkbox";
-
 import {
   Field,
   FieldContent,
   FieldDescription,
   FieldLabel,
 } from "@/components/ui/field";
-
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
 import { Textarea } from "@/components/ui/textarea";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,7 +54,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function Home() {
+export default function VersaoEscuraPage() {
   const [isSwitchOn, setIsSwitchOn] = useState(false);
 
   const items = [
@@ -73,18 +66,17 @@ export default function Home() {
   ];
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-8">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-hubee-800 p-8 text-[#fffbed]">
       <div className="fixed top-4 right-4 z-50">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="hubee_800">My Account</Button>
+            <Button variant="hubee_50">My Account</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem className="font-bold">
               <UserIcon strokeWidth={2.5} />
               Profile
             </DropdownMenuItem>
-
             <DropdownMenuItem>
               <CreditCardIcon />
               Billing
@@ -103,11 +95,8 @@ export default function Home() {
       </div>
 
       <div className="flex items-center justify-center gap-3">
-        <Button variant="hubee_800">Btn hubee_800</Button>
-        {/*botao variação escura*/}
-
-        <Button variant="hubee_800" size="icon" aria-label="Submit">
-          {/*botao variação escura p cima*/}
+        <Button variant="hubee_50">Btn hubee_50</Button>
+        <Button variant="hubee_50" size="icon" aria-label="Submit">
           <ArrowUpIcon className="h-4 w-4" />
         </Button>
       </div>
@@ -154,7 +143,6 @@ export default function Home() {
             <Button variant="link">Sign Up</Button>
           </CardAction>
         </CardHeader>
-
         <CardContent>
           <form>
             <div className="flex flex-col gap-6">
@@ -190,7 +178,7 @@ export default function Home() {
       </Card>
 
       <Field className="w-full max-w-sm font-bold">
-        <FieldLabel htmlFor="textarea-message font-bold ">Message</FieldLabel>
+        <FieldLabel htmlFor="textarea-message">Message</FieldLabel>
         <FieldDescription>Enter your message below.</FieldDescription>
         <Textarea id="textarea-message" placeholder="Type your message here." />
       </Field>
@@ -215,7 +203,7 @@ export default function Home() {
       <div className="flex items-center gap-3">
         <Switch
           id="mode-switch"
-          thumbClassName="bg-hubee-50 data-checked:bg-hubee-neutral-25"
+          thumbClassName="bg-hubee-800 data-checked:bg-hubee-500"
           checked={isSwitchOn}
           onCheckedChange={setIsSwitchOn}
           aria-label="Alternar modo"
@@ -226,6 +214,7 @@ export default function Home() {
           id="terms-checkbox-desc"
           name="terms-checkbox-desc"
           defaultChecked
+          className="border-white bg-white data-unchecked:border-white data-unchecked:bg-white data-checked:border-white data-checked:bg-white data-checked:text-hubee-50"
         />
         <FieldContent>
           <FieldLabel htmlFor="terms-checkbox-desc">
@@ -234,9 +223,8 @@ export default function Home() {
         </FieldContent>
       </div>
 
-      <Link href="/versao-escura">
-        <Button variant="hubee_800">Ver versão em fundo escuro</Button>
-        {/*botao link p viariacao escura*/}
+      <Link href="/">
+        <Button variant="hubee_50">Voltar para a versão clara</Button>
       </Link>
     </main>
   );

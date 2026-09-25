@@ -4,7 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 if (!API_URL && typeof window !== "undefined") {
   console.error(
-    "NEXT_PUBLIC_API_URL não está definida. Verifique seu arquivo .env.local."
+    "NEXT_PUBLIC_API_URL não está definida. Verifique seu arquivo .env.local.",
   );
 }
 
@@ -22,7 +22,7 @@ apiClient.interceptors.response.use(
     if (error.response) {
       console.error(
         `[API] ${error.response.status} - ${error.config?.url}`,
-        error.response.data
+        error.response.data,
       );
     } else if (error.request) {
       console.error("[API] Sem resposta do servidor:", error.config?.url);
@@ -30,5 +30,5 @@ apiClient.interceptors.response.use(
       console.error("[API] Erro na configuração da requisição:", error.message);
     }
     return Promise.reject(error);
-  }
+  },
 );
