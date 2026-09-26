@@ -50,10 +50,9 @@ A aplicação estará disponível em [http://localhost:3000](http://localhost:30
 
 ## Scripts disponíveis
 
-| Comando | Descrição |
-| --- | --- |
-| `npm run dev` | Inicia o servidor de desenvolvimento |
-| `npm run build` | Gera a versão otimizada para produção |
+| Comando         | Descrição                                 |
+| --------------- | ----------------------------------------- |
+| `npm run dev`   | Inicia o servidor de desenvolvimento      |
+| `npm run build` | Gera a versão otimizada para produção     |
 | `npm run start` | Executa a versão de produção após o build |
-| `npm run lint` | Analisa o código com o ESLint |
-
+| `npm run lint`  | Analisa o código com o ESLint             |
