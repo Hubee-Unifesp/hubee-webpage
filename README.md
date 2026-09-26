@@ -2,7 +2,9 @@
 
 Página web da **Hubee**, desenvolvida com Next.js, React, TypeScript e Tailwind CSS.
 
-> O projeto está em desenvolvimento. A página inicial ainda utiliza parte da estrutura padrão criada pelo Next.js.
+> O projeto está em desenvolvimento. A home possui header funcional, seções provisórias e um mock de usuário logado.
+
+O mock em `/login` é temporário. Consulte o [plano de remoção ao integrar a autenticação real](src/app/login/README.md).
 
 ## Identidade Visual
 
