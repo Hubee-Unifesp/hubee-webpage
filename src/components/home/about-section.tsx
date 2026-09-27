@@ -70,7 +70,7 @@ export function AboutSection({ organizerHref }: { organizerHref: string }) {
 
       <Button
         variant="hubee_750"
-        className="mt-16 h-12 px-6 text-base font-semibold md:mt-32"
+        className="mt-16 h-12 px-6 text-base font-semibold md:mt-32 hover:text-hubee-400 focus-visible:ring-hubee-400"
         asChild
       >
         <Link href="#eventos">Explorar eventos</Link>
@@ -79,7 +79,7 @@ export function AboutSection({ organizerHref }: { organizerHref: string }) {
         Vai organizar um evento?{" "}
         <Link
           href={organizerHref}
-          className="font-semibold underline underline-offset-4 hover:text-hubee-800 dark:hover:text-hubee-100"
+          className="font-semibold text-hubee-700 underline underline-offset-4 rounded-sm outline-none hover:text-hubee-400 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:text-hubee-400 dark:hover:text-hubee-50 dark:focus-visible:ring-hubee-50"
         >
           Crie e venda seus ingressos no Hubee
         </Link>
