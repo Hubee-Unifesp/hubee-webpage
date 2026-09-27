@@ -7,17 +7,19 @@ A home (`/`) usa o estado de visitante e `/login` apresenta o mock de usuário l
 ```
 
 - `role`: `guest` (padrão), `user` ou `organizer`. Forneça o valor da sessão real. Essa propriedade controla apenas a apresentação, não a autorização.
-- `fixed`: `true` por padrão, ocupa toda a largura da janela e fica fixo no topo. Reserve 64px no conteúdo em telas menores que 768px e 80px nas demais.
+- `fixed`: `false` por padrão: o conjunto formado pelo botão de tema (à esquerda) e a header em formato de pílula (centralizada, até 832px de largura) fica no topo da página e sai de vista ao rolar. Com `true`, ele acompanha a rolagem; nesse caso reserve 80px no conteúdo em telas menores que 768px e 96px nas demais.
 - `homeHref`: caminho da home para os links de início, eventos e logo (padrão `/`).
 - `logoutHref`: destino opcional de “Sair” para a simulação.
 - `className`: estilos adicionais para o container.
 
-Em telas menores que 768px, a navegação principal fica oculta: o header mostra o logo, o botão de tema e as ações da conta (carrinho, notificações e usuário) ou “Entrar” para visitantes. O logo leva ao início e “Meus Eventos” continua no menu do usuário.
+No tema claro a pílula é escura (`hubee-800`) com hover amarelo (`hubee-400`); no tema escuro ela é amarela (`hubee-400`) com hover claro (`hubee-50`). O link da rota ativa usa a mesma cor do hover.
+
+Em telas menores que 768px, a navegação principal fica oculta: a pílula acompanha a largura das seções da home (margens de 16px, ou 32px a partir de 640px) e mostra o logo, o botão de tema e as ações da conta (carrinho, notificações e usuário) ou “Entrar” para visitantes. O logo leva ao início e “Meus Eventos” continua no menu do usuário.
 O texto LOGO segue o placeholder da referência e pode ser substituído pela marca final.
 
-O link “Eventos” aponta para `/#eventos`, a seção da home reservada para a futura listagem com scroll infinito. O espaçamento da âncora considera a altura do header fixo.
+O link “Eventos” aponta para `/#eventos`, a seção da home reservada para a futura listagem com scroll infinito.
 
-Os destinos `/meus-eventos`, `/carrinho`, `/notificacoes` e `/perfil` são contratos de navegação para integração: essas páginas ainda não existem no projeto.
+Os destinos `/meus-ingressos`, `/meus-eventos`, `/carrinho`, `/notificacoes` e `/perfil` são contratos de navegação para integração: essas páginas ainda não existem no projeto.
 
 A rota `/login` exibe uma cópia da home com usuário simulado (`role="user"`). Não há autenticação, sessão ou acesso a dados reais. “Início” e “Eventos” navegam dentro dessa versão; “Sair” no menu do usuário retorna à home de visitante.
 
@@ -30,13 +32,13 @@ header/
 ├── index.ts                    # API pública do módulo
 ├── header.tsx                  # Composição do header e integração com a rota
 ├── types.ts                    # Contratos do header e dos itens de navegação
+├── theme-toggle.tsx            # Botão de sol/lua (fora da pílula no desktop, dentro no mobile)
 ├── navigation/
 │   ├── navigation.config.ts    # Links, visibilidade por perfil e regra de rota ativa
 │   └── main-navigation.tsx     # Navegação principal (oculta no mobile)
 └── actions/
     ├── actions.config.ts       # Destinos de login, atalhos e itens da conta
     ├── header-actions.tsx      # Organização das ações à direita
-    ├── theme-toggle.tsx        # Botão de sol/lua
     └── user-menu.tsx           # Menu da conta e saída do mock
 ```
 

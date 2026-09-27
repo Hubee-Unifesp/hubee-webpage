@@ -1,11 +1,11 @@
 import { Header, type HeaderRole } from "@/components/layout/header";
 
 const sectionClassName =
-  "flex min-h-[60vh] scroll-mt-20 items-center justify-center rounded-2xl border border-dashed border-hubee-800/25 md:scroll-mt-24 dark:border-hubee-50/25";
+  "flex min-h-[60vh] items-center justify-center rounded-2xl border border-dashed border-hubee-800/25 dark:border-hubee-50/25";
 
 export function HomeContent({ role = "guest", homeHref = "/" }: { role?: HeaderRole; homeHref?: string }) {
   return (
-    <div id="inicio" className="min-h-screen bg-hubee-50 pt-16 text-hubee-800 md:pt-20 dark:bg-hubee-800 dark:text-hubee-50">
+    <div id="inicio" className="min-h-screen bg-hubee-50 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50">
       <Header role={role} homeHref={homeHref} logoutHref={role !== "guest" ? "/" : undefined} />
       <main className="space-y-8 px-4 py-8 sm:px-8" id="conteudo" aria-label="Página inicial Hubee">
         <section id="hero" aria-labelledby="hero-titulo" className={sectionClassName}>

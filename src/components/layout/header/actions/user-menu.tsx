@@ -14,8 +14,8 @@ export function UserMenu({ logoutHref }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="hubee_header" size="icon-lg" aria-label="Abrir menu do usuário">
-          <User aria-hidden="true" className="size-5" />
+        <Button type="button" variant="hubee_header" size="icon" aria-label="Abrir menu do usuário">
+          <User aria-hidden="true" className="size-[18px]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-52 bg-hubee-800 text-hubee-50 dark:bg-hubee-50 dark:text-hubee-800">

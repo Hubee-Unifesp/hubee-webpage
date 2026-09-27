@@ -5,9 +5,9 @@ import { isActiveRoute } from "./navigation.config";
 
 export function MainNavigation({ items, pathname }: NavigationProps) {
   return (
-    <nav className="hidden items-center justify-center gap-2 md:flex" aria-label="Navegação principal">
+    <nav className="hidden items-center justify-center gap-1 md:flex" aria-label="Navegação principal">
       {items.map(({ href, label }) => (
-        <Button key={href} variant="hubee_header" size="lg" className="font-bold" asChild>
+        <Button key={href} variant="hubee_header" size="default" className="px-2 font-medium" asChild>
           <Link href={href} aria-current={isActiveRoute(pathname, href) ? "page" : undefined}>
             {label}
           </Link>
