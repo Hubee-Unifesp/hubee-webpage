@@ -25,6 +25,9 @@ const buttonVariants = cva(
         //VARIAÇÃO BOTÃO ESCURO - HUBEE 800 com mudanca de cor ao passar o mouse(hubee900)
         hubee_800: "bg-hubee-800 text-white hover:bg-hubee-900",
 
+        //VARIAÇÃO BOTÃO MARROM - HUBEE 750 com mudanca de cor ao passar o mouse(hubee800)
+        hubee_750: "bg-hubee-750 text-hubee-50 hover:bg-hubee-800 dark:border-hubee-600/40",
+
         //VARIAÇÃO BOTÃO CLARO - HUBEE 50 com mudanca de cor ao passar o mouse(hubee100)
         hubee_50: "bg-hubee-50 text-[#302100] hover:bg-hubee-100",
 
