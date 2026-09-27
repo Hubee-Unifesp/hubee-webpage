@@ -1,3 +1,4 @@
+import { Footer } from "@/components/layout/footer";
 import { Header, type HeaderRole } from "@/components/layout/header";
 
 const sectionClassName =
@@ -19,6 +20,7 @@ export function HomeContent({ role = "guest", homeHref = "/" }: { role?: HeaderR
           <h2 id="institucional-titulo" className="text-2xl font-bold">Institucional</h2>
         </section>
       </main>
+      <Footer role={role} homeHref={homeHref} />
     </div>
   );
 }
