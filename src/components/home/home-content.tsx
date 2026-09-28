@@ -1,3 +1,4 @@
+import { Footer } from "@/components/layout/footer";
 import { Header, type HeaderRole } from "@/components/layout/header";
 import { AboutSection } from "./about-section";
 
@@ -18,6 +19,7 @@ export function HomeContent({ role = "guest", homeHref = "/" }: { role?: HeaderR
         </section>
         <AboutSection organizerHref={role === "guest" ? "/login" : "/meus-eventos"} />
       </main>
+      <Footer role={role} homeHref={homeHref} />
     </div>
   );
 }
