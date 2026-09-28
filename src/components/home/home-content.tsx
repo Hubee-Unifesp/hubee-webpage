@@ -1,6 +1,7 @@
 import { Footer } from "@/components/layout/footer";
 import { Header, type HeaderRole } from "@/components/layout/header";
 import { AboutSection } from "./about-section";
+import { EventListingSection } from "./events";
 
 const sectionClassName =
   "flex min-h-[60vh] items-center justify-center rounded-2xl border border-dashed border-hubee-800/25 dark:border-hubee-50/25";
@@ -13,10 +14,7 @@ export function HomeContent({ role = "guest", homeHref = "/" }: { role?: HeaderR
         <section id="hero" aria-labelledby="hero-titulo" className={sectionClassName}>
           <h1 id="hero-titulo" className="text-2xl font-bold">Hero</h1>
         </section>
-        <section id="eventos" aria-labelledby="eventos-titulo" className={sectionClassName}>
-          <h2 id="eventos-titulo" className="text-2xl font-bold">Eventos</h2>
-          {/* A futura listagem com scroll infinito será renderizada aqui. */}
-        </section>
+        <EventListingSection />
         <AboutSection organizerHref={role === "guest" ? "/login" : "/meus-eventos"} />
       </main>
       <Footer role={role} homeHref={homeHref} />
