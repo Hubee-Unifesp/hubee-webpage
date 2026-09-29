@@ -30,12 +30,58 @@ const heroFeatures: readonly HeroFeature[] = [
   },
 ];
 
+/* Componente que renderiza a geometria exata da pirâmide de hexágonos (Pointy-Topped) */
+function HoneycombCluster({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 525 1400"
+      className={className}
+      aria-hidden="true"
+    >
+      <defs>
+        {/* Hexágono perfeito com Raio = 100 */}
+        <polygon
+          id="hex"
+          points="0,-100 86.6,-50 86.6,50 0,100 -86.6,50 -86.6,-50"
+        />
+      </defs>
+      <g strokeWidth="6" strokeLinejoin="round" fillOpacity="0.15">
+        {/* Coluna 0 (Ponta da pirâmide, alinhada com a abelha) */}
+        <use href="#hex" x="90" y="700" />
+
+        {/* Coluna 1 */}
+        <use href="#hex" x="176.6" y="550" />
+        <use href="#hex" x="176.6" y="850" />
+
+        {/* Coluna 2 */}
+        <use href="#hex" x="263.2" y="400" />
+        <use href="#hex" x="263.2" y="700" />
+        <use href="#hex" x="263.2" y="1000" />
+
+        {/* Coluna 3 */}
+        <use href="#hex" x="349.8" y="250" />
+        <use href="#hex" x="349.8" y="550" />
+        <use href="#hex" x="349.8" y="850" />
+        <use href="#hex" x="349.8" y="1150" />
+
+        {/* Coluna 4 (Base cravada na direita, com sangria vertical) */}
+        <use href="#hex" x="436.4" y="100" />
+        <use href="#hex" x="436.4" y="400" />
+        <use href="#hex" x="436.4" y="700" />
+        <use href="#hex" x="436.4" y="1000" />
+        <use href="#hex" x="436.4" y="1300" />
+      </g>
+    </svg>
+  );
+}
+
 export function HeroSection({ createAccountHref }: { createAccountHref: string }) {
   return (
     <section
       id="hero"
       aria-labelledby="hero-titulo"
-      className="relative overflow-hidden rounded-2xl bg-hubee-100 px-6 py-12 dark:bg-hubee-750 sm:px-10 md:py-20"
+      className="relative isolate overflow-hidden rounded-2xl bg-hubee-100 px-6 py-12 dark:bg-hubee-750 sm:px-10 md:py-20"
     >
       <div className="relative grid gap-10 md:grid-cols-2 md:items-center">
         <div className="flex flex-col items-start text-left">
@@ -64,37 +110,47 @@ export function HeroSection({ createAccountHref }: { createAccountHref: string }
           >
             <Link href={createAccountHref}>Criar Conta</Link>
           </Button>
+
+          <ul className="relative mt-8 grid w-full gap-4 md:grid-cols-3">
+            {heroFeatures.map(({ title, description, icon: Icon }) => (
+              <li key={title}>
+                <Card className="h-full gap-0 overflow-hidden border border-hubee-400 bg-hubee-50 p-0 shadow-none ring-0 dark:border-hubee-600 dark:bg-hubee-800">
+                  <div className="flex items-center gap-3 bg-hubee-750 px-6 py-4 dark:bg-hubee-600">
+                    <Icon
+                      aria-hidden="true"
+                      strokeWidth={1.5}
+                      className="size-6 text-hubee-50"
+                    />
+                    <CardTitle className="font-sans text-lg font-semibold text-hubee-50">
+                      {title}
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="px-6 py-4 text-sm font-medium leading-snug text-hubee-neutral-300 dark:text-hubee-neutral-200">
+                    {description}
+                  </CardDescription>
+                </Card>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* TODO(GOL-61): substituir pelo asset real da ilustração da abelha,
-            pendente de exportação pelo design. */}
-        <div
-          aria-hidden="true"
-          className="flex items-center justify-center text-[8rem] md:justify-end md:text-[10rem]"
-        >
-          🐝
+        {/* Coluna direita: Abelha sobreposta ao cluster de hexágonos */}
+        <div className="relative flex min-h-[300px] w-full items-center justify-center md:min-h-full">
+          
+          {/* Cluster posicionado absolutamente na direita, vazando pelos topos */}
+          <HoneycombCluster
+            className="absolute -right-4 top-1/2 -z-10 hidden h-[700px] w-auto max-w-none -translate-y-1/2 fill-[#966800] stroke-[#966800] dark:fill-[#ffcb33] dark:stroke-[#ffcb33] md:block md:h-[1000px] lg:h-[1200px]"
+          />
+
+          {/* TODO(GOL-61): substituir pelo asset real da ilustração da abelha */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none relative z-10 flex transform items-center justify-center text-[10rem] drop-shadow-2xl transition-transform hover:scale-105 md:-ml-16 md:text-[18rem] lg:-ml-24"
+          >
+            🐝
+          </div>
         </div>
       </div>
-
-      <ul className="relative mt-12 grid gap-6 md:mt-16 md:grid-cols-3 lg:gap-8">
-        {heroFeatures.map(({ title, description, icon: Icon }) => (
-          <li key={title}>
-            <Card className="h-full gap-3 border border-hubee-400 bg-hubee-50 p-6 shadow-none ring-0 dark:border-hubee-600 dark:bg-hubee-800">
-              <Icon
-                aria-hidden="true"
-                strokeWidth={1.5}
-                className="size-8 text-hubee-750 dark:text-hubee-50"
-              />
-              <CardTitle className="mt-2 font-sans text-lg font-semibold text-hubee-750 dark:text-hubee-50">
-                {title}
-              </CardTitle>
-              <CardDescription className="text-sm font-medium leading-snug text-hubee-neutral-300 dark:text-hubee-neutral-200">
-                {description}
-              </CardDescription>
-            </Card>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }
