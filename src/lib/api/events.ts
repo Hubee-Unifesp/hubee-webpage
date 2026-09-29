@@ -42,10 +42,10 @@ export function soldRatio(event: EventSummary): number {
 export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
   const [events, organizations, venues] = await Promise.all([
     apiClient
-      .get<ApiEvent[]>("/eventos", { params: { status: "published" } })
+      .get<ApiEvent[]>("/events", { params: { status: "published" } })
       .then(({ data }) => data),
-    apiClient.get<ApiOrganization[]>("/organizacoes").then(({ data }) => data),
-    apiClient.get<ApiVenue[]>("/locais").then(({ data }) => data),
+    apiClient.get<ApiOrganization[]>("/organizations").then(({ data }) => data),
+    apiClient.get<ApiVenue[]>("/venues").then(({ data }) => data),
   ]);
 
   const upcoming = events.filter((event) => new Date(event.endDate) > now);
@@ -76,7 +76,7 @@ export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
 async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
   try {
     const { data } = await apiClient.get<ApiTicketType[]>(
-      `/eventos/${eventId}/tipos-ingresso`,
+      `/events/${eventId}/ticket-types`,
     );
     return data;
   } catch {
