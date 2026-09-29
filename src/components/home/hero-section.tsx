@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { CalendarPlus, Search, Settings2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -138,9 +139,16 @@ export function HeroSection({ createAccountHref }: { createAccountHref: string }
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none relative z-10 flex transform items-center justify-center text-[10rem] drop-shadow-2xl transition-transform hover:scale-105 md:-ml-16 md:text-[18rem] lg:-ml-24"
+            className="pointer-events-none relative z-10 flex transform items-center justify-center drop-shadow-2xl transition-transform hover:scale-105 md:-ml-16 lg:-ml-24"
           >
-            🐝
+            <Image
+              src="/abelha.png"
+              alt="Ilustração 3D de uma abelha"
+              width={600}
+              height={600}
+              className="h-auto w-[250px] md:w-[400px] lg:w-[500px]"
+              priority
+            />
           </div>
         </div>
       </div>
