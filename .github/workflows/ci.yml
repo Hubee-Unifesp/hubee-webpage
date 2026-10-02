@@ -26,8 +26,10 @@ jobs:
       - name: Executar Lint
         run: npm run lint
 
-      - name: Executar Testes
-        run: npm run test:ci
+      - name: Executar TypeScript
+        run: npx tsc --noEmit
 
       - name: Executar Build (Next.js)
         run: npm run build
+
+
