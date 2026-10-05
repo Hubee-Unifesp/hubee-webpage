@@ -9,7 +9,10 @@ export function HomeContent({ role = "guest", homeHref = "/" }: { role?: HeaderR
     <div id="inicio" className="min-h-screen bg-hubee-50 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50">
       <Header role={role} homeHref={homeHref} logoutHref={role !== "guest" ? "/" : undefined} />
       <main className="space-y-8 px-4 py-8 sm:px-8" id="conteudo" aria-label="Página inicial Hubee">
-        <HeroSection createAccountHref={role === "guest" ? "/login" : "/criar-evento"} />
+        <HeroSection
+          ctaLabel={role === "guest" ? "Criar Conta" : "Criar Evento"}
+          ctaHref={role === "guest" ? "/login" : "/criar-evento"}
+        />
         <EventListingSection />
         <AboutSection organizerHref={role === "guest" ? "/login" : "/meus-eventos"} />
       </main>
