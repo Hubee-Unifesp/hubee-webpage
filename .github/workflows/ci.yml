@@ -27,9 +27,8 @@ jobs:
         run: npm run lint
 
       - name: Executar TypeScript
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Executar Build (Next.js)
         run: npm run build
-
 
