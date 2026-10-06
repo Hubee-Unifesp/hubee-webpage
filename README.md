@@ -48,7 +48,7 @@ Inicie o ambiente de desenvolvimento:
 npm run dev
 ```
 
-A aplicação estará disponível em [http://localhost:3000](http://localhost:3000).
+A aplicação estará disponível em [http://localhost:3001](http://localhost:3001).
 
 ## Scripts disponíveis
 
