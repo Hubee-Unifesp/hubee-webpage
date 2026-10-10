@@ -12,8 +12,7 @@ export default function LoginPage() {
         setIsLoading(true);
         setError(null);
         setSuccessMessage(null);
-
-        // TODO(auth-api): trocar pela chamada real de autenticação.
+        
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         if (data.email === "erro@teste.com") {

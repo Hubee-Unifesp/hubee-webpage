@@ -46,12 +46,12 @@ export function AuthForms({ onSubmit, isLoading, error, successMessage }: AuthFo
     return(
         <section className="w-full max-w-2xl">
 			<header className="mb-6 space-y-2">
-				<h1 className="text-3xl lg:text-[48px] font-bold text-hubee-800">Login</h1>
-                <p className="text-[16px] text-hubee-750">Acesse sua conta agora mesmo!</p>
+				<h1 className="text-3xl font-bold text-hubee-800 dark:text-hubee-50 lg:text-[48px]">Login</h1>
+                <p className="text-base text-hubee-750 dark:text-hubee-50">Acesse sua conta agora mesmo!</p>
 			</header>
 
              {error && (
-                <p role="alert" className="mb-4 text-sm text-red-700 dark:text-red-300">
+                <p role="alert" className="mb-4 text-sm text-red-700 dark:text-red-30">
                     {error}
                 </p>
             )}
@@ -63,7 +63,7 @@ export function AuthForms({ onSubmit, isLoading, error, successMessage }: AuthFo
 
              <form noValidate className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
 				<div className="space-y-1">
-					<Label htmlFor="email" className="text-[16px] text-hubee-800">
+                    <Label htmlFor="email" className="text-[16px] text-hubee-800 dark:text-hubee-50">
 						E-mail
 					</Label>
 					<Input
@@ -73,7 +73,7 @@ export function AuthForms({ onSubmit, isLoading, error, successMessage }: AuthFo
                         aria-invalid={Boolean(errors.email)}
                         aria-describedby={errors.email ? "email-error" : undefined}
                         {...register("email")}
-                        className="h-9 border-hubee-neutral-50 bg-white text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:bg-hubee-900 dark:text-hubee-50"
+                        className="h-9 border-hubee-neutral-50 bg-white text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50 dark:placeholder:text-hubee-neutral-300"
                     />
                      {errors.email && (
                         <p id="email-error" className="text-xs text-red-700 dark:text-red-300">
@@ -83,7 +83,7 @@ export function AuthForms({ onSubmit, isLoading, error, successMessage }: AuthFo
 				</div>
 
                 <div className="space-y-1">
-					<Label htmlFor="password" className="text-[16px] text-hubee-800">
+                    <Label htmlFor="password" className="text-base text-hubee-800 dark:text-hubee-50">
 						Senha
 					</Label>
 					<div className="relative">
@@ -94,7 +94,7 @@ export function AuthForms({ onSubmit, isLoading, error, successMessage }: AuthFo
                             aria-invalid={Boolean(errors.password)}
                             aria-describedby={errors.password ? "password-error" : undefined}
                             {...register("password")}
-                            className="h-9 border-hubee-neutral-50 bg-white pr-10 text-hubee-800 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:bg-hubee-900 dark:text-hubee-50"
+                            className="h-9 border-hubee-neutral-50 bg-white pr-10 text-hubee-800 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50"
 						/>
                         <button
                             type="button"
@@ -110,7 +110,7 @@ export function AuthForms({ onSubmit, isLoading, error, successMessage }: AuthFo
                             )}
                         </button>
                     </div>
-                    <p className="text-xs text-hubee-750">Mínimo de 8 caracteres</p>
+                    <p className="text-xs text-hubee-750 dark:text-hubee-neutral-50">Mínimo de 8 caracteres</p>
                     {errors.password && (
                         <p id="password-error" className="text-xs text-red-700 dark:text-red-300">
                             {errors.password.message}
@@ -121,7 +121,7 @@ export function AuthForms({ onSubmit, isLoading, error, successMessage }: AuthFo
                 <div className="flex items-center justify-between gap-4 pt-1">
                     <Label
 						htmlFor="remember-me"
-						className="flex items-center gap-2 text-sm font-normal text-hubee-800"
+                        className="flex items-center gap-2 text-sm font-normal text-hubee-800 dark:text-hubee-50"
 					>
 						<Checkbox id="remember-me" name="remember-me" />
 						Lembre-me
