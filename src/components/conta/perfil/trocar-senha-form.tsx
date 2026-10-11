@@ -6,6 +6,8 @@ import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { Campo, submitButtonClassName } from "./campo";
 
+// TODO(auth-forms): usar PASSWORD_MIN_LENGTH de lib/validations/auth.schema.ts e o PasswordInput
+// de components/auth quando a tela de cadastro (#22) entrar.
 const TAMANHO_MINIMO = 8;
 
 interface Erros {
@@ -14,30 +16,51 @@ interface Erros {
   confirmar?: string;
 }
 
+interface Valores {
+  atual: string;
+  nova: string;
+  confirmar: string;
+}
+
+// Ordem dos campos na tela: o primeiro com erro recebe o foco ao enviar.
+const CAMPOS: ReadonlyArray<{ chave: keyof Erros; id: string }> = [
+  { chave: "atual", id: "senha-atual" },
+  { chave: "nova", id: "senha-nova" },
+  { chave: "confirmar", id: "senha-confirmar" },
+];
+
+function validar({ atual, nova, confirmar }: Valores): Erros {
+  const erros: Erros = {};
+  if (!atual) erros.atual = "Informe sua senha atual.";
+  if (nova.length < TAMANHO_MINIMO) erros.nova = `A nova senha deve ter pelo menos ${TAMANHO_MINIMO} caracteres.`;
+  else if (nova === atual) erros.nova = "A nova senha deve ser diferente da atual.";
+  if (confirmar !== nova) erros.confirmar = "As senhas não coincidem.";
+  return erros;
+}
+
 export function TrocarSenhaForm() {
   const toast = useToast();
   const [atual, setAtual] = useState("");
   const [nova, setNova] = useState("");
   const [confirmar, setConfirmar] = useState("");
-  const [erros, setErros] = useState<Erros>({});
+  // Depois do primeiro envio, os erros são recalculados a cada alteração e somem assim que o campo é corrigido.
+  const [submetido, setSubmetido] = useState(false);
+  const erros: Erros = submetido ? validar({ atual, nova, confirmar }) : {};
 
   function aoSalvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const novosErros: Erros = {};
-    if (!atual) novosErros.atual = "Informe sua senha atual.";
-    if (nova.length < TAMANHO_MINIMO) novosErros.nova = `A nova senha deve ter pelo menos ${TAMANHO_MINIMO} caracteres.`;
-    else if (nova === atual) novosErros.nova = "A nova senha deve ser diferente da atual.";
-    if (confirmar !== nova) novosErros.confirmar = "As senhas não coincidem.";
-    setErros(novosErros);
+    setSubmetido(true);
 
-    if (Object.keys(novosErros).length > 0) {
-      toast.error("Revise os campos destacados.");
+    const primeiroComErro = CAMPOS.find(({ chave }) => validar({ atual, nova, confirmar })[chave]);
+    if (primeiroComErro) {
+      document.getElementById(primeiroComErro.id)?.focus();
       return;
     }
     // TODO(profile-api): enviar a troca de senha para a API.
     setAtual("");
     setNova("");
     setConfirmar("");
+    setSubmetido(false);
     toast.success("Senha alterada com sucesso.");
   }
 

@@ -33,6 +33,7 @@ export function ExcluirContaCard() {
         onOpenChange={setAberto}
         title="Você deseja excluir sua conta permanentemente?"
         description="Esta ação não pode ser desfeita."
+        // Intencional: no Figma a confirmação de exclusão é amarela também no tema escuro.
         className="border-hubee-400 bg-hubee-200 text-hubee-750 dark:border-hubee-400 dark:bg-hubee-200 dark:text-hubee-750"
         footer={
           <>

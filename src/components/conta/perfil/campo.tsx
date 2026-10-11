@@ -30,7 +30,7 @@ export function Campo({ id, label, erro, className, ...props }: CampoProps) {
         {...props}
       />
       {erro && (
-        <p id={`${id}-erro`} role="alert" className="text-xs font-medium text-red-700 dark:text-red-300">
+        <p id={`${id}-erro`} className="text-xs font-medium text-red-700 dark:text-red-300">
           {erro}
         </p>
       )}

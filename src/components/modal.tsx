@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { Button } from "@/components/ui/button";
@@ -41,12 +41,23 @@ export function Modal({
   dismissible = true,
   className,
 }: ModalProps) {
+  // O modal é controlado (sem DialogTrigger), então o Radix não sabe para onde devolver o foco.
+  // Guardamos o elemento que estava focado ao abrir e o refocamos ao fechar.
+  const openerRef = useRef<HTMLElement | null>(null);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay />
         <DialogPrimitive.Content
           data-slot="modal"
+          onOpenAutoFocus={() => {
+            openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            openerRef.current?.focus();
+          }}
           // Sem descrição, desliga a associação para o Radix não emitir aviso no console.
           {...(description ? {} : { "aria-describedby": undefined })}
           onEscapeKeyDown={(event) => !dismissible && event.preventDefault()}

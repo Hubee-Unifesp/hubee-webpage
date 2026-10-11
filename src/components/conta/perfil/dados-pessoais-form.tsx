@@ -25,6 +25,27 @@ interface Erros {
   telefone?: string;
 }
 
+interface Valores {
+  nome: string;
+  email: string;
+  telefone: string;
+}
+
+// Ordem dos campos na tela: o primeiro com erro recebe o foco ao enviar.
+const CAMPOS: ReadonlyArray<{ chave: keyof Erros; id: string }> = [
+  { chave: "nome", id: "perfil-nome" },
+  { chave: "email", id: "perfil-email" },
+  { chave: "telefone", id: "perfil-telefone" },
+];
+
+function validar({ nome, email, telefone }: Valores): Erros {
+  const erros: Erros = {};
+  if (!nome.trim()) erros.nome = "Informe seu nome completo.";
+  if (!/^\S+@\S+\.\S+$/.test(email.trim())) erros.email = "Informe um e-mail válido.";
+  if (telefone && telefone.replace(/\D/g, "").length < 10) erros.telefone = "Informe o telefone com DDD.";
+  return erros;
+}
+
 interface DadosPessoaisFormProps {
   usuario: Usuario;
   /** Avisa se, depois de salvar, o perfil está completo. */
@@ -37,7 +58,9 @@ export function DadosPessoaisForm({ usuario, onSalvo }: DadosPessoaisFormProps) 
   const [email, setEmail] = useState(usuario.email);
   const [telefone, setTelefone] = useState(usuario.telefone ?? "");
   const [foto, setFoto] = useState<string | null>(usuario.avatarUrl ?? null);
-  const [erros, setErros] = useState<Erros>({});
+  // Depois do primeiro envio, os erros são recalculados a cada alteração e somem assim que o campo é corrigido.
+  const [submetido, setSubmetido] = useState(false);
+  const erros: Erros = submetido ? validar({ nome, email, telefone }) : {};
 
   // Libera a URL temporária da prévia quando a foto muda ou o componente sai da tela.
   useEffect(() => {
@@ -59,14 +82,11 @@ export function DadosPessoaisForm({ usuario, onSalvo }: DadosPessoaisFormProps) 
 
   function aoSalvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const novosErros: Erros = {};
-    if (!nome.trim()) novosErros.nome = "Informe seu nome completo.";
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) novosErros.email = "Informe um e-mail válido.";
-    if (telefone && telefone.replace(/\D/g, "").length < 10) novosErros.telefone = "Informe o telefone com DDD.";
-    setErros(novosErros);
+    setSubmetido(true);
 
-    if (Object.keys(novosErros).length > 0) {
-      toast.error("Revise os campos destacados.");
+    const primeiroComErro = CAMPOS.find(({ chave }) => validar({ nome, email, telefone })[chave]);
+    if (primeiroComErro) {
+      document.getElementById(primeiroComErro.id)?.focus();
       return;
     }
     // TODO(profile-api): enviar os dados e a foto para a API.
