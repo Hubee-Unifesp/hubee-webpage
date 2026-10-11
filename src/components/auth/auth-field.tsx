@@ -23,13 +23,15 @@ interface AuthFieldProps {
   label: string;
   error?: string;
   description?: ReactNode;
+  /** Classes extras do rótulo (ex.: texto menor nos cartões da conta). O padrão do login/cadastro não muda. */
+  labelClassName?: string;
   children: ReactNode;
 }
 
-export function AuthField({ id, label, error, description, children }: AuthFieldProps) {
+export function AuthField({ id, label, error, description, labelClassName, children }: AuthFieldProps) {
   return (
     <Field className="gap-1">
-      <FieldLabel htmlFor={id} className="text-base text-hubee-800 dark:text-hubee-50">
+      <FieldLabel htmlFor={id} className={cn("text-base text-hubee-800 dark:text-hubee-50", labelClassName)}>
         {label}
       </FieldLabel>
       {children}
