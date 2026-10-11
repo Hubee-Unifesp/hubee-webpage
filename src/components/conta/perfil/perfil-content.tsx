@@ -13,7 +13,7 @@ const CAMPOS_OBRIGATORIOS = ["perfil-nome", "perfil-email", "perfil-telefone"];
 
 /** Conteúdo da página Meu Perfil (só visual: nada é enviado à API ainda). */
 export function PerfilContent({ usuario }: { usuario: Usuario }) {
-  const [perfilCompleto, setPerfilCompleto] = useState(usuario.perfilCompleto);
+  const [profileComplete, setProfileComplete] = useState(usuario.profileComplete);
 
   function focarPrimeiroCampoVazio() {
     const campos = CAMPOS_OBRIGATORIOS.map((id) => document.getElementById(id) as HTMLInputElement | null);
@@ -24,7 +24,7 @@ export function PerfilContent({ usuario }: { usuario: Usuario }) {
     <div className="flex flex-col gap-4">
       <ContaPageTitle>Meu Perfil</ContaPageTitle>
 
-      {!perfilCompleto && (
+      {!profileComplete && (
         <section
           aria-labelledby="aviso-perfil-titulo"
           className="flex items-start gap-3 rounded-xl border border-hubee-400 bg-hubee-200 p-4 text-hubee-750"
@@ -47,7 +47,7 @@ export function PerfilContent({ usuario }: { usuario: Usuario }) {
         </section>
       )}
 
-      <DadosPessoaisForm usuario={usuario} onSalvo={setPerfilCompleto} />
+      <DadosPessoaisForm usuario={usuario} onSalvo={setProfileComplete} />
       <TrocarSenhaForm />
       <ExcluirContaCard />
     </div>

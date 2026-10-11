@@ -1,66 +1,50 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Upload } from "lucide-react";
+import { AuthField, AuthInput, fieldA11y } from "@/components/auth/auth-field";
 import { ContaCard } from "@/components/conta/conta-card";
 import { UserAvatar } from "@/components/layout/logged/user-avatar";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { personalDataSchema, type PersonalDataInputs } from "@/lib/validations/profile.schema";
 import type { Usuario } from "@/types/usuario";
-import { Campo, submitButtonClassName } from "./campo";
+import { fieldInputClassName, fieldLabelClassName, submitButtonClassName } from "./perfil-styles";
 
 const FORMATOS_FOTO = ["image/jpeg", "image/png"];
 
-function formatarTelefone(valor: string): string {
-  const d = valor.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 2) return d;
-  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
-  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
-  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-}
-
-interface Erros {
-  nome?: string;
-  email?: string;
-  telefone?: string;
-}
-
-interface Valores {
-  nome: string;
-  email: string;
-  telefone: string;
-}
-
-// Ordem dos campos na tela: o primeiro com erro recebe o foco ao enviar.
-const CAMPOS: ReadonlyArray<{ chave: keyof Erros; id: string }> = [
-  { chave: "nome", id: "perfil-nome" },
-  { chave: "email", id: "perfil-email" },
-  { chave: "telefone", id: "perfil-telefone" },
-];
-
-function validar({ nome, email, telefone }: Valores): Erros {
-  const erros: Erros = {};
-  if (!nome.trim()) erros.nome = "Informe seu nome completo.";
-  if (!/^\S+@\S+\.\S+$/.test(email.trim())) erros.email = "Informe um e-mail válido.";
-  if (telefone && telefone.replace(/\D/g, "").length < 10) erros.telefone = "Informe o telefone com DDD.";
-  return erros;
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
 interface DadosPessoaisFormProps {
   usuario: Usuario;
   /** Avisa se, depois de salvar, o perfil está completo. */
-  onSalvo: (perfilCompleto: boolean) => void;
+  onSalvo: (profileComplete: boolean) => void;
 }
 
 export function DadosPessoaisForm({ usuario, onSalvo }: DadosPessoaisFormProps) {
   const toast = useToast();
-  const [nome, setNome] = useState(usuario.nome);
-  const [email, setEmail] = useState(usuario.email);
-  const [telefone, setTelefone] = useState(usuario.telefone ?? "");
   const [foto, setFoto] = useState<string | null>(usuario.avatarUrl ?? null);
-  // Depois do primeiro envio, os erros são recalculados a cada alteração e somem assim que o campo é corrigido.
-  const [submetido, setSubmetido] = useState(false);
-  const erros: Erros = submetido ? validar({ nome, email, telefone }) : {};
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PersonalDataInputs>({
+    resolver: zodResolver(personalDataSchema),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    shouldFocusError: true,
+    defaultValues: { fullName: usuario.fullName, email: usuario.email, phone: usuario.phone ?? "" },
+  });
+  const fullName = useWatch({ control, name: "fullName" });
 
   // Libera a URL temporária da prévia quando a foto muda ou o componente sai da tela.
   useEffect(() => {
@@ -80,28 +64,20 @@ export function DadosPessoaisForm({ usuario, onSalvo }: DadosPessoaisFormProps) 
     setFoto(URL.createObjectURL(arquivo));
   }
 
-  function aoSalvar(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmetido(true);
-
-    const primeiroComErro = CAMPOS.find(({ chave }) => validar({ nome, email, telefone })[chave]);
-    if (primeiroComErro) {
-      document.getElementById(primeiroComErro.id)?.focus();
-      return;
-    }
+  function aoSalvar(dados: PersonalDataInputs) {
     // TODO(profile-api): enviar os dados e a foto para a API.
-    onSalvo(Boolean(nome.trim() && email.trim() && telefone));
+    onSalvo(Boolean(dados.fullName.trim() && dados.email.trim() && dados.phone));
     toast.success("Dados pessoais atualizados.");
   }
 
   return (
     <ContaCard title="Dados Pessoais" description="Atualize suas informações de contato">
-      <form onSubmit={aoSalvar} noValidate className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit(aoSalvar)} noValidate className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <span className="text-xs leading-none font-medium">Foto de Perfil</span>
           <div className="flex items-center gap-3">
             <UserAvatar
-              name={nome}
+              name={fullName}
               src={foto}
               className="size-16 bg-hubee-neutral-50 text-lg text-hubee-neutral-300 dark:bg-hubee-neutral-50 dark:text-hubee-neutral-300"
             />
@@ -123,34 +99,57 @@ export function DadosPessoaisForm({ usuario, onSalvo }: DadosPessoaisFormProps) 
           </div>
         </div>
 
-        <Campo
+        <AuthField
           id="perfil-nome"
           label="Nome Completo"
-          autoComplete="name"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          erro={erros.nome}
-        />
-        <Campo
-          id="perfil-email"
-          label="E-mail"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          erro={erros.email}
-        />
-        <Campo
+          labelClassName={fieldLabelClassName}
+          error={errors.fullName?.message}
+        >
+          <AuthInput
+            {...fieldA11y("perfil-nome", errors.fullName?.message)}
+            autoComplete="name"
+            className={fieldInputClassName}
+            {...register("fullName")}
+          />
+        </AuthField>
+
+        <AuthField id="perfil-email" label="E-mail" labelClassName={fieldLabelClassName} error={errors.email?.message}>
+          <AuthInput
+            {...fieldA11y("perfil-email", errors.email?.message)}
+            type="email"
+            autoComplete="email"
+            className={fieldInputClassName}
+            {...register("email")}
+          />
+        </AuthField>
+
+        <AuthField
           id="perfil-telefone"
           label="Telefone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="(00) 00000-0000"
-          value={telefone}
-          onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
-          erro={erros.telefone}
-        />
+          labelClassName={fieldLabelClassName}
+          error={errors.phone?.message}
+        >
+          {/* Controller: a máscara reescreve o valor a cada tecla, o que o `register` simples não faz. */}
+          <Controller
+            control={control}
+            name="phone"
+            render={({ field }) => (
+              <AuthInput
+                {...fieldA11y("perfil-telefone", errors.phone?.message)}
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="(00) 00000-0000"
+                className={fieldInputClassName}
+                name={field.name}
+                ref={field.ref}
+                value={field.value}
+                onBlur={field.onBlur}
+                onChange={(event) => field.onChange(formatPhone(event.target.value))}
+              />
+            )}
+          />
+        </AuthField>
 
         <Button type="submit" className={submitButtonClassName}>
           Salvar Alterações

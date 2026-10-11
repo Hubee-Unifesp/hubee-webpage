@@ -1,11 +1,12 @@
 export interface Usuario {
   id: string;
-  nome: string;
+  /** Mesmo nome do `fullName` do cadastro e da API. */
+  fullName: string;
   email: string;
-  telefone?: string;
+  phone?: string;
   /** URL da foto de perfil. Sem foto, a interface mostra as iniciais do nome. */
   avatarUrl?: string | null;
-  perfilCompleto: boolean;
+  profileComplete: boolean;
 }
 
 /** Dados da usuária autenticada usados pelo layout da área logada. */

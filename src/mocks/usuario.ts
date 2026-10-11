@@ -7,10 +7,10 @@ import type { UsuarioLogado } from "@/types/usuario";
 export const usuarioLogadoMock: UsuarioLogado = {
   usuario: {
     id: "usuario-mock-1",
-    nome: "Maria Silva",
+    fullName: "Maria Silva",
     email: "maria.silva@email.com",
     avatarUrl: null,
-    perfilCompleto: false,
+    profileComplete: false,
   },
   itensNoCarrinho: 2,
 };

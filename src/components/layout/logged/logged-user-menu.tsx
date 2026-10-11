@@ -23,14 +23,14 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
           type="button"
           variant="hubee_header"
           size="icon"
-          aria-label={`Abrir menu de ${usuario.nome}`}
+          aria-label={`Abrir menu de ${usuario.fullName}`}
         >
-          <UserAvatar name={usuario.nome} src={usuario.avatarUrl} />
+          <UserAvatar name={usuario.fullName} src={usuario.avatarUrl} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-56 bg-hubee-800 text-hubee-50 dark:bg-hubee-50 dark:text-hubee-800">
         <DropdownMenuLabel className="flex flex-col gap-0.5 font-normal text-hubee-50 dark:text-hubee-800">
-          <span className="truncate text-sm font-semibold">{usuario.nome}</span>
+          <span className="truncate text-sm font-semibold">{usuario.fullName}</span>
           <span className="truncate text-xs opacity-75">{usuario.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-hubee-50/20 dark:bg-hubee-800/20" />

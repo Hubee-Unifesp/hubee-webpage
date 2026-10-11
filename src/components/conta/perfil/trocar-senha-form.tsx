@@ -1,99 +1,83 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { AuthField, fieldA11y } from "@/components/auth/auth-field";
+import { PasswordInput } from "@/components/auth/password-input";
 import { ContaCard } from "@/components/conta/conta-card";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
-import { Campo, submitButtonClassName } from "./campo";
-
-// TODO(auth-forms): usar PASSWORD_MIN_LENGTH de lib/validations/auth.schema.ts e o PasswordInput
-// de components/auth quando a tela de cadastro (#22) entrar.
-const TAMANHO_MINIMO = 8;
-
-interface Erros {
-  atual?: string;
-  nova?: string;
-  confirmar?: string;
-}
-
-interface Valores {
-  atual: string;
-  nova: string;
-  confirmar: string;
-}
-
-// Ordem dos campos na tela: o primeiro com erro recebe o foco ao enviar.
-const CAMPOS: ReadonlyArray<{ chave: keyof Erros; id: string }> = [
-  { chave: "atual", id: "senha-atual" },
-  { chave: "nova", id: "senha-nova" },
-  { chave: "confirmar", id: "senha-confirmar" },
-];
-
-function validar({ atual, nova, confirmar }: Valores): Erros {
-  const erros: Erros = {};
-  if (!atual) erros.atual = "Informe sua senha atual.";
-  if (nova.length < TAMANHO_MINIMO) erros.nova = `A nova senha deve ter pelo menos ${TAMANHO_MINIMO} caracteres.`;
-  else if (nova === atual) erros.nova = "A nova senha deve ser diferente da atual.";
-  if (confirmar !== nova) erros.confirmar = "As senhas não coincidem.";
-  return erros;
-}
+import { PASSWORD_MIN_LENGTH } from "@/lib/validations/auth.schema";
+import { changePasswordSchema, type ChangePasswordInputs } from "@/lib/validations/profile.schema";
+import { fieldInputClassName, fieldLabelClassName, submitButtonClassName } from "./perfil-styles";
 
 export function TrocarSenhaForm() {
   const toast = useToast();
-  const [atual, setAtual] = useState("");
-  const [nova, setNova] = useState("");
-  const [confirmar, setConfirmar] = useState("");
-  // Depois do primeiro envio, os erros são recalculados a cada alteração e somem assim que o campo é corrigido.
-  const [submetido, setSubmetido] = useState(false);
-  const erros: Erros = submetido ? validar({ atual, nova, confirmar }) : {};
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ChangePasswordInputs>({
+    resolver: zodResolver(changePasswordSchema),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    shouldFocusError: true,
+    defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
+  });
 
-  function aoSalvar(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmetido(true);
-
-    const primeiroComErro = CAMPOS.find(({ chave }) => validar({ atual, nova, confirmar })[chave]);
-    if (primeiroComErro) {
-      document.getElementById(primeiroComErro.id)?.focus();
-      return;
-    }
+  function aoSalvar() {
     // TODO(profile-api): enviar a troca de senha para a API.
-    setAtual("");
-    setNova("");
-    setConfirmar("");
-    setSubmetido(false);
+    reset();
     toast.success("Senha alterada com sucesso.");
   }
 
   return (
     <ContaCard title="Trocar Senha" description="Para sua segurança, use uma senha forte">
-      <form onSubmit={aoSalvar} noValidate className="flex flex-col gap-5">
-        <Campo
+      <form onSubmit={handleSubmit(aoSalvar)} noValidate className="flex flex-col gap-5">
+        <AuthField
           id="senha-atual"
           label="Senha Atual"
-          type="password"
-          autoComplete="current-password"
-          value={atual}
-          onChange={(e) => setAtual(e.target.value)}
-          erro={erros.atual}
-        />
-        <Campo
+          labelClassName={fieldLabelClassName}
+          error={errors.currentPassword?.message}
+        >
+          <PasswordInput
+            {...fieldA11y("senha-atual", errors.currentPassword?.message)}
+            autoComplete="current-password"
+            className={fieldInputClassName}
+            {...register("currentPassword")}
+          />
+        </AuthField>
+
+        <AuthField
           id="senha-nova"
           label="Nova Senha"
-          type="password"
-          autoComplete="new-password"
-          value={nova}
-          onChange={(e) => setNova(e.target.value)}
-          erro={erros.nova}
-        />
-        <Campo
+          labelClassName={fieldLabelClassName}
+          error={errors.newPassword?.message}
+          description={`Mínimo de ${PASSWORD_MIN_LENGTH} caracteres`}
+        >
+          <PasswordInput
+            {...fieldA11y("senha-nova", errors.newPassword?.message)}
+            autoComplete="new-password"
+            className={fieldInputClassName}
+            {...register("newPassword")}
+          />
+        </AuthField>
+
+        <AuthField
           id="senha-confirmar"
           label="Confirmar Nova Senha"
-          type="password"
-          autoComplete="new-password"
-          value={confirmar}
-          onChange={(e) => setConfirmar(e.target.value)}
-          erro={erros.confirmar}
-        />
+          labelClassName={fieldLabelClassName}
+          error={errors.confirmPassword?.message}
+        >
+          <PasswordInput
+            {...fieldA11y("senha-confirmar", errors.confirmPassword?.message)}
+            autoComplete="new-password"
+            className={fieldInputClassName}
+            {...register("confirmPassword")}
+          />
+        </AuthField>
+
         <Button type="submit" className={submitButtonClassName}>
           Salvar Senha
         </Button>
