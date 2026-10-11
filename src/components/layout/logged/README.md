@@ -7,6 +7,9 @@ Estrutura visual da área logada. **Só visual**: os dados vêm de `src/mocks/us
 ```text
 app/(logado)/layout.tsx            # header + <main> + ToastProvider (todas as páginas logadas)
 ├── carrinho/page.tsx              # placeholder
+├── notificacoes/page.tsx          # placeholder
+├── meus-ingressos/page.tsx        # placeholder
+├── meus-eventos/page.tsx          # placeholder
 └── conta/
     ├── layout.tsx                 # lateral (desktop) e abas (mobile) da conta
     ├── pedidos/page.tsx           # lista de pedidos

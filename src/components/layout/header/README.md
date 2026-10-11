@@ -19,7 +19,7 @@ O texto LOGO segue o placeholder da referência e pode ser substituído pela mar
 
 O link “Eventos” aponta para `/#eventos`, a seção da home reservada para a futura listagem com scroll infinito.
 
-Os destinos `/meus-ingressos`, `/meus-eventos` e `/notificacoes` são contratos de navegação para integração: essas páginas ainda não existem no projeto. `/carrinho` e `/conta/perfil` já existem como placeholders na área logada (veja [`../logged/README.md`](../logged/README.md)).
+Os destinos `/meus-ingressos`, `/meus-eventos`, `/notificacoes`, `/carrinho` e `/conta/perfil` existem como páginas na área logada (placeholders, exceto `/conta/perfil`). Veja [`../logged/README.md`](../logged/README.md).
 
 A rota `/login` exibe uma cópia da home com usuário simulado (`role="user"`). Não há autenticação, sessão ou acesso a dados reais. “Início” e “Eventos” navegam dentro dessa versão; “Sair” no menu do usuário retorna à home de visitante.
 
