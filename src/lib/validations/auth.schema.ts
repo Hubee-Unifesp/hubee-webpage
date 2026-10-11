@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const PASSWORD_MIN_LENGTH = 6;
+export const PASSWORD_MIN_LENGTH = 6;
 
 const emailField = z
   .string()

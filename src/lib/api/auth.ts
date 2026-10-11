@@ -1,25 +1,44 @@
+import { apiClient } from './apiClient';
+import { LoginFormInputs, RegisterFormInputs, SignupIntent } from '../validations/auth.schema';
+
 export type User = {
   id: string;
   fullName: string;
   email: string;
   profileComplete: boolean;
-  signupIntent: 'BUY' | 'ORGANIZE';
+  signupIntent: SignupIntent;
 };
 
-// Funções preparadas para receber o cliente da API depois
-export const login = async (data: unknown) => {
-  console.log('Login chamado com:', data);
+type AuthResponse = {
+  user: User;
+  access_token: string;
 };
 
-export const register = async (data: unknown) => {
-  console.log('Register chamado com:', data);
+export const login = async (data: LoginFormInputs): Promise<AuthResponse> => {
+  const response = await apiClient.post<AuthResponse>('/auth/login', data);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('hubee_token', response.data.access_token);
+  }
+  return response.data;
 };
 
-export const getMe = async (): Promise<User | null> => {
-  console.log('A procurar dados do utilizador...');
-  return null; 
+export const register = async (data: RegisterFormInputs): Promise<AuthResponse> => {
+  const { confirmPassword, ...payload } = data;
+  
+  const response = await apiClient.post<AuthResponse>('/auth/register', payload);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('hubee_token', response.data.access_token);
+  }
+  return response.data;
 };
 
-export const logout = async () => {
-  console.log('Sessão terminada');
+export const getMe = async (): Promise<User> => {
+  const response = await apiClient.get<User>('/users/me');
+  return response.data;
+};
+
+export const logout = async (): Promise<void> => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('hubee_token');
+  }
 };

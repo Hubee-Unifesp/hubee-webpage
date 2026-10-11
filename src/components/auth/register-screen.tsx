@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AxiosError } from "axios";
 import type { RegisterFormInputs } from "@/lib/validations/auth.schema";
 import { RegisterForm } from "./register-form";
+import { register } from "@/lib/api/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,29 +14,49 @@ export function RegisterScreen() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { loginState } = useAuth();
+
   function clearMessages() {
     setError(null);
+    setEmailError(null);
     setSuccessMessage(null);
   }
 
-  // TODO(auth-api): substituir a simulação pela chamada de cadastro.
-  async function handleSubmit({ email }: RegisterFormInputs) {
+  async function handleSubmit(data: RegisterFormInputs) {
     setIsLoading(true);
     clearMessages();
-    setEmailError(null);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const response = await register(data);
 
-    const normalized = email.toLowerCase();
-    if (normalized === "existe@teste.com") {
-      setEmailError("Este e-mail já está cadastrado.");
-    } else if (normalized === "erro@teste.com") {
-      setError("Não foi possível criar sua conta. Tente novamente.");
-    } else {
-      setSuccessMessage("Cadastro simulado com sucesso.");
+      loginState(response.user);
+      setSuccessMessage("Cadastro efetuado com sucesso. Redirecionando...");
+
+      if (data.signupIntent === "ORGANIZE") {
+        router.push("/organizacoes/em-breve");
+      } else {
+        const redirectUrl = searchParams.get("redirect");
+        if (redirectUrl && redirectUrl.startsWith("/")) {
+          router.push(redirectUrl);
+        } else {
+          router.push("/");
+        }
+      }
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 409) {
+          setEmailError("Este e-mail já está cadastrado.");
+        } else {
+          setError(err.response?.data?.message || "Não foi possível criar sua conta. Tente novamente.");
+        }
+      } else {
+        setError("Ocorreu um erro inesperado. Tente novamente.");
+      }
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   }
 
   return (
