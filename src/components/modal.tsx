@@ -7,6 +7,24 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogDescription, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+type ModalTone = "default" | "warning";
+
+// Todas as cores ficam aqui dentro (e não no `className` de quem usa) para que a variante defina
+// tema claro e escuro juntos: sobrescrever só parte das cores deixava texto claro sobre fundo claro.
+const toneStyles: Record<ModalTone, { content: string; description: string; close: string }> = {
+  default: {
+    content: "border-hubee-400 bg-hubee-50 text-hubee-800 dark:border-hubee-500 dark:bg-hubee-750 dark:text-hubee-50",
+    description: "text-hubee-neutral-300 dark:text-hubee-100",
+    close: "hover:text-hubee-600 focus-visible:ring-hubee-800 dark:hover:text-hubee-200 dark:focus-visible:ring-hubee-400",
+  },
+  // Amarelo nos dois temas (Figma da confirmação de exclusão). Contraste do texto sobre o fundo: 7,3:1.
+  warning: {
+    content: "border-hubee-400 bg-hubee-200 text-hubee-750",
+    description: "text-hubee-750",
+    close: "hover:text-hubee-800 focus-visible:ring-hubee-800 dark:hover:text-hubee-800 dark:focus-visible:ring-hubee-800",
+  },
+};
+
 interface ModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -18,6 +36,8 @@ interface ModalProps {
   footer?: ReactNode;
   /** Quando `false`, o modal não fecha com Esc, clique fora ou no X (ex.: ação em andamento). */
   dismissible?: boolean;
+  /** `warning` é o modal amarelo de confirmação de ações destrutivas, igual nos dois temas. */
+  tone?: ModalTone;
   className?: string;
 }
 
@@ -39,11 +59,13 @@ export function Modal({
   children,
   footer,
   dismissible = true,
+  tone = "default",
   className,
 }: ModalProps) {
   // O modal é controlado (sem DialogTrigger), então o Radix não sabe para onde devolver o foco.
   // Guardamos o elemento que estava focado ao abrir e o refocamos ao fechar.
   const openerRef = useRef<HTMLElement | null>(null);
+  const styles = toneStyles[tone];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -64,14 +86,15 @@ export function Modal({
           onPointerDownOutside={(event) => !dismissible && event.preventDefault()}
           onInteractOutside={(event) => !dismissible && event.preventDefault()}
           className={cn(
-            "fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto rounded-xl border border-hubee-400 bg-hubee-50 p-6 text-hubee-800 shadow-lg outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none dark:border-hubee-500 dark:bg-hubee-750 dark:text-hubee-50",
+            "fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto rounded-xl border p-6 shadow-lg outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none",
+            styles.content,
             className,
           )}
         >
           <div className="flex flex-col gap-1 pr-8">
             <DialogTitle className="text-lg leading-snug font-semibold">{title}</DialogTitle>
             {description && (
-              <DialogDescription className="text-sm text-hubee-neutral-300 dark:text-hubee-100">
+              <DialogDescription className={cn("text-sm", styles.description)}>
                 {description}
               </DialogDescription>
             )}
@@ -88,7 +111,7 @@ export function Modal({
                 variant="hubee_header"
                 size="icon-sm"
                 aria-label="Fechar"
-                className="absolute top-3 right-3 text-current hover:text-hubee-600 focus-visible:ring-hubee-800 dark:hover:text-hubee-200 dark:focus-visible:ring-hubee-400"
+                className={cn("absolute top-3 right-3 text-current", styles.close)}
               >
                 <X aria-hidden="true" />
               </Button>
