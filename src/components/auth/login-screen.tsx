@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { AxiosError } from "axios";
 import type { LoginFormInputs } from "@/lib/validations/auth.schema";
 import { LoginForm } from "./login-form";
@@ -12,8 +12,6 @@ export function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { loginState } = useAuth();
 
@@ -36,12 +34,13 @@ export function LoginScreen() {
         const redirectUrl = searchParams.get("redirect");
         
         if (redirectUrl && redirectUrl.startsWith("/")) {
-          window.location.href = redirectUrl; // Força recarregamento real para a rota
+          window.location.href = redirectUrl;
         } else {
-          window.location.href = "/"; // Força recarregamento real para a home
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+          window.location.href = "/";
         }
       }, 1500);
-      
+
     } catch (err) {
       if (err instanceof AxiosError && err.response?.data?.message) {
         setError(err.response.data.message);

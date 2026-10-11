@@ -23,6 +23,7 @@ export const login = async (data: LoginFormInputs): Promise<AuthResponse> => {
 };
 
 export const register = async (data: RegisterFormInputs): Promise<AuthResponse> => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { confirmPassword, ...payload } = data;
   
   const response = await apiClient.post<AuthResponse>('/auth/register', payload);

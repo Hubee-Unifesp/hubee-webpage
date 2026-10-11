@@ -24,11 +24,10 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('hubee_token');
       
       const currentPath = window.location.pathname;
-      const searchParams = window.location.search;
       
       if (!currentPath.startsWith('/login') && !currentPath.startsWith('/register')) {
-        const fullPath = encodeURIComponent(`${currentPath}${searchParams}`);
-        window.location.href = `/login?redirect=${fullPath}`;
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.href = "/login";
       }
     }
     return Promise.reject(error);
