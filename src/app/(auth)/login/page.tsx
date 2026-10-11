@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { LoginScreen } from "@/components/auth/login-screen";
+import { Suspense } from "react";
+import { LoginScreen } from "@/components/auth/login-screen"; // Ajusta o caminho se necessário
 
 export const metadata: Metadata = {
-  title: "Entrar | Hubee",
-  description: "Acesse sua conta no Hubee.",
+  title: "Login | Hubee",
+  description: "Faça login para acessar sua conta no Hubee.",
 };
 
 export default function LoginPage() {
-  return <LoginScreen />;
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <LoginScreen />
+    </Suspense>
+  );
 }
