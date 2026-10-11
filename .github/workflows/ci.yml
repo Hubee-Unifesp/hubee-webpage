@@ -26,9 +26,8 @@ jobs:
       - name: Executar Lint
         run: npm run lint
 
-      - name: Executar TypeScript
-        run: npm run typecheck
+      - name: Executar Testes
+        run: npm run test:ci
 
       - name: Executar Build (Next.js)
         run: npm run build
-

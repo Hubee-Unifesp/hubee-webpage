@@ -1,157 +1,208 @@
 "use client";
 
-import { useEffect, type FormEvent } from "react";
 import Link from "next/link";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
-import { ArrowRight, Calendar, Clock, Ticket, type LucideIcon } from "lucide-react";
+import { useCallback, useId, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { Ticket, Calendar } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { PasswordInput } from "./password-input";
 import {
   PASSWORD_MIN_LENGTH,
-  registerSchema,
-  type RegisterFormInputs,
-  type SignupIntent,
-} from "@/lib/validations/auth.schema";
-import { AuthField, AuthInput, fieldA11y } from "./auth-field";
-import { AuthHeading, authLinkClassName } from "./auth-heading";
-import { AuthSubmitButton } from "./auth-submit-button";
-import { FormAlert } from "./form-alert";
-import { PasswordInput } from "./password-input";
+  REGISTER_FIELD_ORDER,
+  validateRegister,
+  type RegisterErrors,
+  type RegisterField,
+  type RegisterValues,
+} from "@/lib/validation/register";
 
-const intentOptions: readonly { value: SignupIntent; label: string; icon: LucideIcon }[] = [
-  { value: "BUY", label: "Quero comprar ingressos", icon: Ticket },
-  { value: "ORGANIZE", label: "Quero organizar eventos", icon: Calendar },
-];
-
-interface RegisterFormProps {
-  onSubmit: (data: RegisterFormInputs) => void | Promise<void>;
-  onEdit?: () => void;
-  isLoading: boolean;
-  error?: string | null;
-  emailError?: string | null;
-  successMessage?: string | null;
+export interface RegisterFormData {
+  name: string;
+  email: string;
+  password: string;
 }
 
-export function RegisterForm({ onSubmit, onEdit, isLoading, error, emailError, successMessage }: RegisterFormProps) {
-  const {
-    control,
-    register,
-    handleSubmit,
-    setError,
-    setFocus,
-    formState: { errors },
-  } = useForm<RegisterFormInputs>({
-    resolver: zodResolver(registerSchema),
-    mode: "onSubmit",
-    reValidateMode: "onChange",
-    shouldFocusError: true,
-    defaultValues: { signupIntent: "BUY", fullName: "", email: "", password: "", confirmPassword: "" },
+export interface RegisterFormProps {
+  perfil: "comprador" | "organizador";
+  onPerfilChange: (perfil: "comprador" | "organizador") => void;
+  onSubmit: (data: RegisterFormData) => void | Promise<void>;
+  isLoading?: boolean;
+  errors?: { email?: string; form?: string };
+}
+
+const emptyValues: RegisterValues = { name: "", email: "", password: "", confirmPassword: "" };
+
+export function RegisterForm({ 
+  perfil, 
+  onPerfilChange, 
+  onSubmit, 
+  isLoading = false, 
+  errors: externalErrors 
+}: RegisterFormProps) {
+  const baseId = useId();
+  const [values, setValues] = useState<RegisterValues>(emptyValues);
+  const [errors, setErrors] = useState<RegisterErrors>({});
+  const refs = useRef<Partial<Record<RegisterField, HTMLInputElement | null>>>({});
+
+  const idOf = (field: RegisterField) => `${baseId}-${field}`;
+  const errorIdOf = (field: RegisterField) => `${baseId}-${field}-error`;
+  
+  const setFieldRef = useCallback(
+    (field: RegisterField) => (element: HTMLInputElement | null) => {
+      refs.current[field] = element;
+    },
+    [],
+  );
+
+  const messageFor = (field: RegisterField) => {
+    if (field === "email") {
+      return errors.email ?? (values.email.trim() ? undefined : externalErrors?.email);
+    }
+    return errors[field];
+  };
+
+  const handleChange = (field: RegisterField) => (event: ChangeEvent<HTMLInputElement>) => {
+    const nextValues = { ...values, [field]: event.target.value };
+    setValues(nextValues);
+
+    const fresh = validateRegister(nextValues);
+    setErrors((current) => {
+      const next: RegisterErrors = {};
+      for (const key of Object.keys(current) as RegisterField[]) {
+        if (fresh[key]) next[key] = fresh[key];
+      }
+      return next;
+    });
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isLoading) return;
+
+    const found = validateRegister(values);
+    setErrors(found);
+
+    const firstInvalid = REGISTER_FIELD_ORDER.find((field) => found[field]);
+    if (firstInvalid) {
+      refs.current[firstInvalid]?.focus();
+      return;
+    }
+
+    void onSubmit({ 
+      name: values.name.trim(), 
+      email: values.email.trim(), 
+      password: values.password 
+    });
+  };
+
+  const fieldProps = (field: RegisterField) => ({
+    id: idOf(field),
+    name: field,
+    value: values[field],
+    onChange: handleChange(field),
+    disabled: isLoading,
+    "aria-invalid": messageFor(field) ? true : undefined,
+    "aria-describedby": messageFor(field) ? errorIdOf(field) : undefined,
+    ref: setFieldRef(field),
   });
 
-  const signupIntent = useWatch({ control, name: "signupIntent" });
-  const isOrganizer = signupIntent === "ORGANIZE";
-
-  useEffect(() => {
-    if (!emailError) return;
-    setError("email", { type: "server", message: emailError });
-    setFocus("email");
-  }, [emailError, setError, setFocus]);
-
-  const submit = isOrganizer ? (event: FormEvent) => event.preventDefault() : handleSubmit(onSubmit);
-
   return (
-    <section className="w-full max-w-2xl">
-      <AuthHeading title="Criar conta" description="Escolha seu perfil e preencha os dados abaixo." />
-
-      {error && <FormAlert variant="error">{error}</FormAlert>}
-      {successMessage && <FormAlert variant="success">{successMessage}</FormAlert>}
-
-      <form noValidate className="space-y-4" onSubmit={submit} onChange={onEdit}>
-        <fieldset className="space-y-2">
-          <legend className="mb-2 text-base font-medium text-hubee-800 dark:text-hubee-50">Qual é o seu objetivo?</legend>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {intentOptions.map(({ value, label, icon: Icon }) => (
-              <label
-                key={value}
-                className="flex cursor-pointer flex-col items-start gap-2 rounded-xl border border-hubee-neutral-50 bg-white p-4 text-sm font-semibold text-hubee-800 transition-colors hover:bg-hubee-100 has-checked:border-hubee-500 has-checked:bg-hubee-100 has-checked:ring-1 has-checked:ring-hubee-500 has-focus-visible:ring-3 has-focus-visible:ring-hubee-500/50 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-800 dark:has-checked:bg-hubee-800"
-              >
-                <input type="radio" value={value} className="peer sr-only" {...register("signupIntent")} />
-                <Icon aria-hidden="true" className="size-5 text-hubee-neutral-300 peer-checked:text-hubee-600 dark:peer-checked:text-hubee-400" />
-                {label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        {isOrganizer && (
-          <div role="status" className="rounded-xl border border-hubee-500/40 bg-hubee-100 p-4 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50">
-            <p className="flex items-center gap-2 font-semibold">
-              <Clock aria-hidden="true" className="size-4" />
-              Em breve
-            </p>
-            <p className="mt-1 text-sm text-hubee-750 dark:text-hubee-100">
-              A área de criação de eventos e o portal para organizadores ainda não estão disponíveis. Enquanto isso,
-              você pode criar uma conta para comprar ingressos.
-            </p>
-            <Link href="/" className={`mt-3 inline-flex items-center gap-1 text-sm ${authLinkClassName}`}>
-              Explorar os eventos <ArrowRight aria-hidden="true" className="size-4" />
-            </Link>
-          </div>
-        )}
-
-        <div hidden={isOrganizer} className="space-y-4">
-          <AuthField id="register-name" label="Nome completo" error={errors.fullName?.message}>
-            <AuthInput
-              {...fieldA11y("register-name", errors.fullName?.message)}
-              type="text"
-              autoComplete="name"
-              placeholder="Digite seu nome completo"
-              {...register("fullName")}
-            />
-          </AuthField>
-
-          <AuthField id="register-email" label="E-mail" error={errors.email?.message}>
-            <AuthInput
-              {...fieldA11y("register-email", errors.email?.message)}
-              type="email"
-              autoComplete="email"
-              placeholder="exemplo@email.com"
-              {...register("email")}
-            />
-          </AuthField>
-
-          <AuthField
-            id="register-password"
-            label="Senha"
-            error={errors.password?.message}
-            description={`Mínimo de ${PASSWORD_MIN_LENGTH} caracteres`}
-          >
-            <PasswordInput
-              {...fieldA11y("register-password", errors.password?.message)}
-              autoComplete="new-password"
-              {...register("password")}
-            />
-          </AuthField>
-
-          <AuthField id="register-confirm-password" label="Confirmação de senha" error={errors.confirmPassword?.message}>
-            <PasswordInput
-              {...fieldA11y("register-confirm-password", errors.confirmPassword?.message)}
-              autoComplete="new-password"
-              {...register("confirmPassword")}
-            />
-          </AuthField>
-
-          <AuthSubmitButton isLoading={isLoading} loadingLabel="Criando conta...">
-            Criar conta
-          </AuthSubmitButton>
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+      {externalErrors?.form && (
+        <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {externalErrors.form}
         </div>
-      </form>
+      )}
 
-      <p className="mt-6 text-sm text-hubee-750 dark:text-hubee-neutral-50">
-        Já tem uma conta Hubee?
-        <Link href="/login" className={`mt-2 block ${authLinkClassName}`}>
+      {/* Seleção de Perfil */}
+      <div className="space-y-3">
+        <span className="text-xs font-semibold uppercase text-muted-foreground">
+          Qual é o seu objetivo?
+        </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button
+            type="button"
+            onClick={() => onPerfilChange("comprador")}
+            className={cn(
+              "flex flex-col items-start p-4 border rounded-xl transition-all",
+              perfil === "comprador"
+                ? "border-yellow-500 bg-yellow-500/10 ring-1 ring-yellow-500"
+                : "border-input hover:bg-accent hover:text-accent-foreground"
+            )}
+          >
+            <Ticket 
+              className={cn("h-5 w-5 mb-2", perfil === "comprador" ? "text-yellow-500" : "text-muted-foreground")} 
+            />
+            <span className="font-semibold text-sm">Quero comprar ingressos</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onPerfilChange("organizador")}
+            className={cn(
+              "flex flex-col items-start p-4 border rounded-xl transition-all",
+              perfil === "organizador"
+                ? "border-yellow-500 bg-yellow-500/10 ring-1 ring-yellow-500"
+                : "border-input hover:bg-accent hover:text-accent-foreground"
+            )}
+          >
+            <Calendar 
+              className={cn("h-5 w-5 mb-2", perfil === "organizador" ? "text-yellow-500" : "text-muted-foreground")} 
+            />
+            <span className="font-semibold text-sm">Quero organizar eventos</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Campos do Formulário */}
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor={idOf("name")}>Nome completo</FieldLabel>
+          <Input {...fieldProps("name")} type="text" autoComplete="name" placeholder="Digite seu nome completo" />
+          <FieldError id={errorIdOf("name")}>{messageFor("name")}</FieldError>
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor={idOf("email")}>E-mail</FieldLabel>
+          <Input {...fieldProps("email")} type="email" autoComplete="email" placeholder="exemplo@email.com" />
+          <FieldError id={errorIdOf("email")}>{messageFor("email")}</FieldError>
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor={idOf("password")}>Senha</FieldLabel>
+          <PasswordInput {...fieldProps("password")} autoComplete="new-password" placeholder="••••••••" />
+          <FieldDescription>Mínimo de {PASSWORD_MIN_LENGTH} caracteres.</FieldDescription>
+          <FieldError id={errorIdOf("password")}>{messageFor("password")}</FieldError>
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor={idOf("confirmPassword")}>Confirmação de senha</FieldLabel>
+          <PasswordInput {...fieldProps("confirmPassword")} autoComplete="new-password" placeholder="••••••••" />
+          <FieldError id={errorIdOf("confirmPassword")}>{messageFor("confirmPassword")}</FieldError>
+        </Field>
+      </FieldGroup>
+
+      <Button 
+        type="submit" 
+        size="lg" 
+        disabled={isLoading} 
+        aria-busy={isLoading} 
+        className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold mt-2"
+      >
+        {isLoading ? "Criando conta..." : "Criar conta"}
+      </Button>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Já tem uma conta?{" "}
+        <Link
+          href="/login"
+          className="font-medium underline underline-offset-4 text-foreground hover:text-yellow-500 transition-colors"
+        >
           Fazer login
         </Link>
       </p>
-    </section>
+    </form>
   );
 }
