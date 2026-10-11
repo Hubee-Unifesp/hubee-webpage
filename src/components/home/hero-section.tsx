@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CalendarPlus, Search, Settings2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Honeycomb, type HoneycombCell } from "@/components/ui/honeycomb";
 
 interface HeroFeature {
   title: string;
@@ -31,41 +32,13 @@ const heroFeatures: readonly HeroFeature[] = [
   },
 ];
 
-/* Pirâmide de hexágonos decorativa, usando os tokens de cor do design system */
-function HoneycombCluster({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 525 1400"
-      className={className}
-      aria-hidden="true"
-    >
-      <defs>
-        <polygon
-          id="hex"
-          points="0,-100 86.6,-50 86.6,50 0,100 -86.6,50 -86.6,-50"
-        />
-      </defs>
-      <g strokeWidth="6" strokeLinejoin="round" fillOpacity="0.15">
-        <use href="#hex" x="90" y="700" />
-        <use href="#hex" x="176.6" y="550" />
-        <use href="#hex" x="176.6" y="850" />
-        <use href="#hex" x="263.2" y="400" />
-        <use href="#hex" x="263.2" y="700" />
-        <use href="#hex" x="263.2" y="1000" />
-        <use href="#hex" x="349.8" y="250" />
-        <use href="#hex" x="349.8" y="550" />
-        <use href="#hex" x="349.8" y="850" />
-        <use href="#hex" x="349.8" y="1150" />
-        <use href="#hex" x="436.4" y="100" />
-        <use href="#hex" x="436.4" y="400" />
-        <use href="#hex" x="436.4" y="700" />
-        <use href="#hex" x="436.4" y="1000" />
-        <use href="#hex" x="436.4" y="1300" />
-      </g>
-    </svg>
-  );
-}
+const heroHoneycombCells: readonly HoneycombCell[] = [
+  [0, 4],
+  [1, 3], [1, 5],
+  [2, 2], [2, 4], [2, 6],
+  [3, 1], [3, 3], [3, 5], [3, 7],
+  [4, 0], [4, 2], [4, 4], [4, 6], [4, 8],
+];
 
 export function HeroSection({
   ctaLabel,
@@ -111,8 +84,10 @@ export function HeroSection({
 
         {/* Ilustração: escondida no mobile, visível a partir de md (pedido da revisão) */}
         <div className="relative hidden min-h-[300px] w-full items-center justify-center md:flex md:min-h-full">
-          <HoneycombCluster
-            className="absolute -right-4 top-1/2 -z-10 h-[700px] w-auto max-w-none -translate-y-1/2 fill-hubee-700 stroke-hubee-700 dark:fill-hubee-400 dark:stroke-hubee-400 md:h-[1000px] lg:h-[1200px]"
+          <Honeycomb
+            cells={heroHoneycombCells}
+            orientation="pointy"
+            className="absolute -right-4 top-1/2 -z-10 h-[700px] w-auto max-w-none -translate-y-1/2 fill-hubee-700/15 stroke-hubee-700 stroke-4 dark:fill-hubee-400/15 dark:stroke-hubee-400 md:h-[1000px] lg:h-[1200px]"
           />
           <div
             aria-hidden="true"
