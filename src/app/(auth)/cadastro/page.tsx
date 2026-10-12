@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { RegisterScreen } from "@/components/auth/register-screen";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function CadastroPage() {
-  return <RegisterScreen />;
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <RegisterScreen />
+    </Suspense>
+  );
 }

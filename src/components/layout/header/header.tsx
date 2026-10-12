@@ -8,16 +8,20 @@ import { MainNavigation } from "./navigation/main-navigation";
 import { getNavigationItems } from "./navigation/navigation.config";
 import { ThemeToggle } from "./theme-toggle";
 import type { HeaderProps } from "./types";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Header({
-  role = "guest",
   className,
   fixed = false,
   homeHref = "/",
-  logoutHref,
-}: HeaderProps) {
+}: Omit<HeaderProps, 'role' | 'logoutHref'>) {
   const pathname = usePathname();
-  const items = getNavigationItems(role, homeHref);
+  const { user, logoutState } = useAuth();
+  const currentRole = user 
+    ? (user.signupIntent === 'ORGANIZE' ? 'organizer' : 'user') 
+    : 'guest';
+
+  const items = getNavigationItems(currentRole, homeHref);
 
   return (
     <div
@@ -41,7 +45,12 @@ export function Header({
         <MainNavigation items={items} pathname={pathname} />
         <div className="flex items-center gap-0.5">
           <ThemeToggle className="md:hidden" />
-          <HeaderActions signedIn={role !== "guest"} logoutHref={logoutHref} />
+          <HeaderActions 
+            signedIn={!!user} 
+            // Mostramos o primeiro nome do utilizador se estiver logado
+            userName={user?.fullName?.split(" ")[0]} 
+            onLogout={logoutState} 
+          />
         </div>
       </header>
     </div>

@@ -1,16 +1,16 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MIN_LENGTH = 6;
 
 export const emailField = z
   .string()
   .trim()
-  .min(1, { error: "Informe seu e-mail." })
-  .pipe(z.email({ error: "Informe um e-mail válido." }));
+  .min(1, { message: "Informe seu e-mail." })
+  .email({ message: "Informe um e-mail válido." });
 
 export const loginSchema = z.object({
   email: emailField,
-  password: z.string().min(1, { error: "Informe sua senha." }),
+  password: z.string().min(1, { message: "Informe sua senha." }),
 });
 
 export const signupIntents = ["BUY", "ORGANIZE"] as const;
@@ -18,22 +18,28 @@ export const signupIntents = ["BUY", "ORGANIZE"] as const;
 export const registerSchema = z
   .object({
     signupIntent: z.enum(signupIntents),
-    fullName: z.string().trim().min(1, { error: "Informe seu nome." }),
+    fullName: z.string().trim().min(1, { message: "Informe seu nome." }),
     email: emailField,
     password: z
       .string()
-      .min(1, { error: "Informe uma senha." })
-      .min(PASSWORD_MIN_LENGTH, { error: `A senha deve ter no mínimo ${PASSWORD_MIN_LENGTH} caracteres.` }),
-    confirmPassword: z.string().min(1, { error: "Confirme sua senha." }),
+      .min(1, { message: "Informe sua senha." })
+      .min(PASSWORD_MIN_LENGTH, { message: `A senha deve ter no mínimo ${PASSWORD_MIN_LENGTH} caracteres.` }),
+    confirmPassword: z.string().min(1, { message: "Confirme sua senha." }),
   })
-  .refine((data) => !data.confirmPassword || data.confirmPassword === data.password, {
+  .refine((data) => data.confirmPassword === data.password, {
     path: ["confirmPassword"],
-    error: "As senhas não conferem.",
-    when: ({ value }) => {
-      const { password, confirmPassword } = value as Partial<Record<"password" | "confirmPassword", unknown>>;
-      return typeof password === "string" && typeof confirmPassword === "string";
+    message: "As senhas não conferem.",
+  })
+  .refine(
+    (data) => {
+      // Validação para exigir pelo menos nome e sobrenome
+      return data.fullName.trim().split(/\s+/).length >= 2;
     },
-  });
+    {
+      path: ["fullName"],
+      message: "Deves inserir o teu nome e apelido.",
+    }
+  );
 
 export type SignupIntent = (typeof signupIntents)[number];
 export type LoginFormInputs = z.infer<typeof loginSchema>;
