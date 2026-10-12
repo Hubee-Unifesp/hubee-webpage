@@ -9,7 +9,8 @@
     "lint": "eslint --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "prepare": "husky",
-    "test:ci": "echo \"Aviso: Nenhum teste configurado ainda\" && exit 0"
+    "test": "vitest",
+    "test:ci": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -37,6 +38,7 @@
     "eslint-config-next": "16.3.4",
     "husky": "^9.1.7",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }

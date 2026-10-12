@@ -29,6 +29,9 @@ jobs:
       - name: Executar TypeScript
         run: npm run typecheck
 
+      - name: Executar testes
+        run: npm run test:ci
+
       - name: Executar Build (Next.js)
         run: npm run build
 
