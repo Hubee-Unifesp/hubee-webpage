@@ -3,11 +3,14 @@ import { ArrowLeft } from "lucide-react";
 import { ContaCard, ContaPageTitle } from "@/components/conta/conta-card";
 import { formatPrice } from "@/components/home/events/format";
 import type { Pedido } from "@/types/pedido";
+import { formatOrderDate } from "./format";
 import { IngressoCard } from "./ingresso-card";
 import { StatusBadge } from "./status-pedido";
 
+const mutedClassName = "text-sm text-hubee-neutral-300 dark:text-hubee-200";
+
 /** Detalhe do pedido: resumo da compra e ingressos. */
-export function PedidoDetalhe({ pedido }: { pedido: Pedido }) {
+export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; participante: string }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-3">
@@ -21,21 +24,31 @@ export function PedidoDetalhe({ pedido }: { pedido: Pedido }) {
         <ContaPageTitle>Pedido #{pedido.numero}</ContaPageTitle>
         <StatusBadge status={pedido.status} />
       </div>
+      <p className="-mt-3 text-xs text-hubee-neutral-300 dark:text-hubee-200">
+        Pedido feito em {formatOrderDate(pedido.criadoEm)}
+      </p>
 
       <ContaCard title="Detalhes da Compra">
-        <ul className="flex flex-col gap-3">
-          {pedido.itens.map((item) => (
-            <li key={item.id} className="flex items-start justify-between gap-4 text-xs">
-              <div>
-                <p className="font-medium">
-                  {item.descricao} × {item.quantidade}
-                </p>
-                <p className="text-hubee-neutral-300 dark:text-hubee-200">{pedido.evento.nome}</p>
-              </div>
-              <p className="font-medium">{formatPrice(item.valorUnitario * item.quantidade)}</p>
-            </li>
-          ))}
-        </ul>
+        {pedido.itens.length > 0 ? (
+          <ul className="flex flex-col gap-3">
+            {pedido.itens.map((item) => (
+              <li key={item.id} className="flex items-start justify-between gap-4 text-xs">
+                <div>
+                  <p className="font-medium">
+                    {item.descricao} × {item.quantidade}
+                  </p>
+                  {pedido.evento && <p className="text-hubee-neutral-300 dark:text-hubee-200">{pedido.evento.nome}</p>}
+                </div>
+                <p className="font-medium">{formatPrice(item.valorUnitario * item.quantidade)}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          // A API não guarda os itens do pedido: só dá para listá-los a partir dos ingressos emitidos.
+          <p className={mutedClassName}>
+            Os itens aparecem aqui depois que o pagamento do pedido é confirmado e os ingressos são emitidos.
+          </p>
+        )}
         <div className="mt-4 flex items-center justify-between border-t border-hubee-200 pt-4 dark:border-hubee-50/15">
           <p className="text-sm font-semibold">Total</p>
           <p className="text-base font-bold text-hubee-600 dark:text-hubee-400">{formatPrice(pedido.total)}</p>
@@ -47,14 +60,16 @@ export function PedidoDetalhe({ pedido }: { pedido: Pedido }) {
           <ul className="flex flex-col gap-4">
             {pedido.ingressos.map((ingresso) => (
               <li key={ingresso.id}>
-                <IngressoCard ingresso={ingresso} evento={pedido.evento} />
+                <IngressoCard ingresso={ingresso} evento={pedido.evento} participante={participante} />
               </li>
             ))}
           </ul>
         ) : (
           // Estado não desenhado no Figma: ingressos só existem para pedidos pagos.
-          <p className="text-sm text-hubee-neutral-300 dark:text-hubee-200">
-            Os ingressos ficam disponíveis aqui quando o pagamento do pedido é confirmado.
+          <p className={mutedClassName}>
+            {pedido.status === "pago"
+              ? "Os ingressos deste pedido ainda não foram emitidos. Volte em instantes."
+              : "Os ingressos ficam disponíveis aqui quando o pagamento do pedido é confirmado."}
           </p>
         )}
       </ContaCard>
