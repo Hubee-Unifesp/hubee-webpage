@@ -108,14 +108,18 @@ function toPedido(
 }
 
 function toItens(tickets: readonly ApiTicket[], ticketTypes: readonly ApiTicketType[]): ItemPedido[] {
-  const quantities = Map.groupBy(tickets, (ticket) => ticket.ticketTypeId);
+  // Sem Map.groupBy: ele só existe a partir do Node 21 e do Safari 17.4, e a CI roda no Node 20.
+  const quantities = new Map<string, number>();
+  for (const { ticketTypeId } of tickets) {
+    quantities.set(ticketTypeId, (quantities.get(ticketTypeId) ?? 0) + 1);
+  }
 
-  return [...quantities].map(([ticketTypeId, group]) => {
+  return [...quantities].map(([ticketTypeId, quantidade]) => {
     const type = ticketTypes.find((candidate) => candidate.id === ticketTypeId);
     return {
       id: ticketTypeId,
       descricao: ticketTypeLabel(type),
-      quantidade: group.length,
+      quantidade,
       valorUnitario: type ? Number(type.price) : 0,
     };
   });
