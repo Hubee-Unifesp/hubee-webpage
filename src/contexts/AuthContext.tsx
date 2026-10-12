@@ -11,6 +11,8 @@ type AuthContextType = {
   isLoading: boolean;
   /** `true` quando não foi possível carregar a sessão (API fora do ar), diferente de não estar logado. */
   hasError: boolean;
+  /** `true` depois do logout, até a navegação para a home terminar (evita redirecionar ao login). */
+  sessionEnded: boolean;
   loginState: (userData: User) => void;
   /** Atualiza o usuário em memória depois de editar o perfil, sem nova chamada à API. */
   updateUserState: (userData: User) => void;
@@ -25,11 +27,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const router = useRouter();
 
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
     setHasError(false);
+    setSessionEnded(false);
     try {
       // Sem token não há sessão: evita um GET que só devolveria 401.
       setUser(getToken() ? await getMe() : null);
@@ -51,18 +55,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser]);
 
   const loginState = (userData: User) => {
+    setSessionEnded(false);
     setUser(userData);
   };
 
   const logoutState = async () => {
     await apiLogout();
+    setSessionEnded(true);
     setUser(null);
     router.push('/');
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, hasError, loginState, updateUserState: setUser, refreshUser, logoutState }}
+      value={{ user, isLoading, hasError, sessionEnded, loginState, updateUserState: setUser, refreshUser, logoutState }}
     >
       {children}
     </AuthContext.Provider>

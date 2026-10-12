@@ -27,14 +27,15 @@ export function SessionHeader() {
  * e volta para a página pedida depois. Falha de rede não derruba a sessão; cada página mostra seu erro.
  */
 export function RequireSession({ children }: { children: ReactNode }) {
-  const { user, isLoading, hasError } = useAuth();
+  const { user, isLoading, hasError, sessionEnded } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const unauthenticated = !isLoading && !user && !hasError;
+  const unauthenticated = !isLoading && !user && !hasError && !sessionEnded;
 
   useEffect(() => {
     if (unauthenticated) router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
   }, [unauthenticated, router, pathname]);
 
-  return unauthenticated ? null : children;
+  // Depois do logout a página está de saída (a navegação para a home já começou): não mostra nem redireciona.
+  return unauthenticated || sessionEnded ? null : children;
 }

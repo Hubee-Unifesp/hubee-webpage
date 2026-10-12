@@ -9,40 +9,56 @@ import { ContaCard } from "@/components/conta/conta-card";
 import { UserAvatar } from "@/components/layout/logged/user-avatar";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { mapMessagesToFields, parseApiError } from "@/lib/api/errors";
+import { updateMe } from "@/lib/api/users";
 import { personalDataSchema, type PersonalDataInputs } from "@/lib/validations/profile.schema";
 import type { Usuario } from "@/types/usuario";
 import { fieldInputClassName, fieldLabelClassName, submitButtonClassName } from "./perfil-styles";
 
 const FORMATOS_FOTO = ["image/jpeg", "image/png"];
 
+/** Campos do formulário que a API pode recusar, na ordem em que o texto da mensagem é testado. */
+const CAMPOS_DA_API = {
+  email: /e-?mail/i,
+  phone: /telefone/i,
+  fullName: /nome/i,
+} satisfies Record<keyof PersonalDataInputs, RegExp>;
+
+function onlyDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
 function formatPhone(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
+  const digits = onlyDigits(value).slice(0, 11);
   if (digits.length <= 2) return digits;
   if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
-interface DadosPessoaisFormProps {
-  usuario: Usuario;
-  /** Avisa se, depois de salvar, o perfil está completo. */
-  onSalvo: (profileComplete: boolean) => void;
+function toFormValues(usuario: Usuario): PersonalDataInputs {
+  return { fullName: usuario.fullName, email: usuario.email, phone: formatPhone(usuario.phone ?? "") };
 }
 
-export function DadosPessoaisForm({ usuario, onSalvo }: DadosPessoaisFormProps) {
+export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
   const toast = useToast();
+  const { updateUserState } = useAuth();
+  // TODO(profile-api): a API ainda não tem endpoint de foto; a prévia vale só enquanto a página está aberta.
   const [foto, setFoto] = useState<string | null>(usuario.avatarUrl ?? null);
   const {
     control,
     register,
     handleSubmit,
-    formState: { errors },
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
   } = useForm<PersonalDataInputs>({
     resolver: zodResolver(personalDataSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
     shouldFocusError: true,
-    defaultValues: { fullName: usuario.fullName, email: usuario.email, phone: usuario.phone ?? "" },
+    defaultValues: toFormValues(usuario),
   });
   const fullName = useWatch({ control, name: "fullName" });
 
@@ -64,15 +80,42 @@ export function DadosPessoaisForm({ usuario, onSalvo }: DadosPessoaisFormProps) 
     setFoto(URL.createObjectURL(arquivo));
   }
 
-  function aoSalvar(dados: PersonalDataInputs) {
-    // TODO(profile-api): enviar os dados e a foto para a API.
-    onSalvo(Boolean(dados.fullName.trim() && dados.email.trim() && dados.phone));
-    toast.success("Dados pessoais atualizados.");
+  async function aoSalvar(dados: PersonalDataInputs) {
+    try {
+      const atualizado = await updateMe({
+        fullName: dados.fullName.trim(),
+        email: dados.email.trim(),
+        // A API só aceita dígitos e recusa texto vazio; `null` apaga o telefone.
+        phone: onlyDigits(dados.phone) || null,
+      });
+      updateUserState(atualizado);
+      reset(toFormValues(atualizado));
+      toast.success("Dados pessoais atualizados.");
+    } catch (error) {
+      // Em qualquer erro o formulário não é resetado: o que a pessoa digitou continua nos campos.
+      const { status, messages } = parseApiError(error);
+
+      if (status === 409) {
+        setError("email", { type: "server", message: "Este e-mail já está em uso." }, { shouldFocus: true });
+        return;
+      }
+
+      if (status === 400) {
+        const { fields, rest } = mapMessagesToFields(messages, CAMPOS_DA_API);
+        const campos = Object.entries(fields) as [keyof PersonalDataInputs, string][];
+        campos.forEach(([campo, message], index) =>
+          setError(campo, { type: "server", message }, { shouldFocus: index === 0 }),
+        );
+        if (campos.length > 0 && rest.length === 0) return;
+      }
+
+      toast.error("Não foi possível salvar seus dados. Tente novamente.");
+    }
   }
 
   return (
     <ContaCard title="Dados Pessoais" description="Atualize suas informações de contato">
-      <form onSubmit={handleSubmit(aoSalvar)} noValidate className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit(aoSalvar)} noValidate aria-busy={isSubmitting} className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <span className="text-xs leading-none font-medium">Foto de Perfil</span>
           <div className="flex items-center gap-3">
@@ -151,8 +194,8 @@ export function DadosPessoaisForm({ usuario, onSalvo }: DadosPessoaisFormProps) 
           />
         </AuthField>
 
-        <Button type="submit" className={submitButtonClassName}>
-          Salvar Alterações
+        <Button type="submit" disabled={isSubmitting} className={submitButtonClassName}>
+          {isSubmitting ? "Salvando..." : "Salvar Alterações"}
         </Button>
       </form>
     </ContaCard>
