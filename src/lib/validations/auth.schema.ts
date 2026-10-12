@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const PASSWORD_MIN_LENGTH = 8;
 
-const emailField = z
+export const emailField = z
   .string()
   .trim()
   .min(1, { error: "Informe seu e-mail." })

@@ -13,6 +13,6 @@ export const accountActions: readonly IconNavigationItem[] = [
 ];
 
 export const userMenuItems: readonly IconNavigationItem[] = [
-  { href: "/perfil", label: "Meu perfil", icon: User },
+  { href: "/conta/perfil", label: "Meu perfil", icon: User },
   { href: "/meus-eventos", label: "Meus Eventos", icon: CalendarDays },
 ];
