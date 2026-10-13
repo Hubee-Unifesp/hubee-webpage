@@ -1,15 +1,9 @@
 import type { ReactNode } from "react";
 import { ToastProvider } from "@/components/toast";
-import { LoggedHeader } from "@/components/layout/logged";
-import { usuarioLogadoMock } from "@/mocks/usuario";
+import { RequireSession, SessionHeader } from "@/components/layout/logged/logged-session";
 
-/**
- * Layout compartilhado da área logada: header, conteúdo e toasts.
- * TODO(auth-api): trocar o mock pelos dados da sessão e proteger as rotas.
- */
+/** Layout compartilhado da área logada: header com a sessão, conteúdo protegido e toasts. */
 export default function LogadoLayout({ children }: { children: ReactNode }) {
-  const { usuario, itensNoCarrinho } = usuarioLogadoMock;
-
   return (
     <ToastProvider>
       <div className="min-h-screen bg-hubee-50 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50">
@@ -19,9 +13,9 @@ export default function LogadoLayout({ children }: { children: ReactNode }) {
         >
           Pular para o conteúdo
         </a>
-        <LoggedHeader usuario={usuario} itensNoCarrinho={itensNoCarrinho} />
+        <SessionHeader />
         <main id="conteudo" className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-8 md:px-6">
-          {children}
+          <RequireSession>{children}</RequireSession>
         </main>
       </div>
     </ToastProvider>

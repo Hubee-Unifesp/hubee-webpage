@@ -110,7 +110,7 @@ function toEventSummary(
   };
 }
 
-function toCategory(value: string | null): EventCategory {
+export function toCategory(value: string | null): EventCategory {
   const text = (value ?? "")
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")

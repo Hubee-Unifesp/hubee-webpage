@@ -74,11 +74,11 @@ Variáveis `NEXT_PUBLIC_*` só são lidas quando o servidor inicia: reinicie o `
 | `/notificacoes`       | Notificações                                       | Placeholder            |
 | `/meus-ingressos`     | Meus ingressos                                     | Placeholder            |
 | `/meus-eventos`       | Meus eventos                                       | Placeholder            |
-| `/conta/pedidos`      | Lista de pedidos com filtro por status             | Visual, dados mockados |
-| `/conta/pedidos/[id]` | Detalhe do pedido e ingressos (ids de teste: 1 a 4) | Visual, dados mockados |
-| `/conta/perfil`       | Dados pessoais, troca de senha e exclusão de conta | Visual, dados mockados |
+| `/conta/pedidos`      | Lista de pedidos com filtro por status             | Integrada com a API    |
+| `/conta/pedidos/[id]` | Detalhe do pedido, itens e ingressos               | Integrada com a API    |
+| `/conta/perfil`       | Dados pessoais, troca de senha e exclusão de conta | Integrada com a API    |
 
-As páginas da área logada ficam em `src/app/(logado)/` e compartilham o mesmo layout (header, navegação e toasts). Ainda não há sessão nem proteção de rotas: qualquer uma pode ser aberta direto. Detalhes em [Layout da área logada](src/components/layout/logged/README.md).
+As páginas da área logada ficam em `src/app/(logado)/` e compartilham o mesmo layout (header, navegação e toasts). Elas exigem sessão: sem token válido, a pessoa vai para `/login` e volta para a página pedida depois. Detalhes em [Layout da área logada](src/components/layout/logged/README.md).
 
 ## Estrutura do projeto
 
@@ -92,20 +92,19 @@ src/
 │   ├── ui/              # Componentes base (shadcn/ui)
 │   └── ...              # modal, toast, skeleton e estado vazio compartilhados
 ├── lib/                 # Cliente da API e utilitários
-├── mocks/               # Dados fictícios (usuária e pedidos)
 └── types/               # Tipos compartilhados
 ```
 
-Os mocks têm marcações `TODO(...-api)` indicando onde trocar pelos dados reais ao integrar com a API.
-
 ## Scripts disponíveis
 
-| Comando         | Descrição                                 |
-| --------------- | ----------------------------------------- |
-| `npm run dev`   | Inicia o servidor de desenvolvimento      |
-| `npm run build` | Gera a versão otimizada para produção     |
-| `npm run start` | Executa a versão de produção após o build |
-| `npm run lint`  | Analisa o código com o ESLint             |
+| Comando           | Descrição                                 |
+| ----------------- | ----------------------------------------- |
+| `npm run dev`     | Inicia o servidor de desenvolvimento      |
+| `npm run build`   | Gera a versão otimizada para produção     |
+| `npm run start`   | Executa a versão de produção após o build |
+| `npm run lint`    | Analisa o código com o ESLint             |
+| `npm test`        | Roda os testes (Vitest) em modo watch     |
+| `npm run test:ci` | Roda os testes uma vez, como na CI        |
 
 ## Padrão de commits
 

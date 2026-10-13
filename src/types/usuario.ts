@@ -3,7 +3,8 @@ export interface Usuario {
   /** Mesmo nome do `fullName` do cadastro e da API. */
   fullName: string;
   email: string;
-  phone?: string;
+  /** Só dígitos, como a API devolve. `null` quando não informado. */
+  phone?: string | null;
   /** URL da foto de perfil. Sem foto, a interface mostra as iniciais do nome. */
   avatarUrl?: string | null;
   profileComplete: boolean;

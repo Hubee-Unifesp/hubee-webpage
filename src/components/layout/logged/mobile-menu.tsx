@@ -8,6 +8,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { isActiveRoute, type NavigationItem } from "@/components/layout/header";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { accountNavItems, cartHref, formatCartLabel, notificationsHref } from "./account-nav.config";
 
@@ -25,6 +26,7 @@ interface MobileMenuProps {
 export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { logoutState } = useAuth();
   const close = () => setOpen(false);
 
   // Se a janela passar do breakpoint de desktop, o botão some: fecha o menu para não prender o foco.
@@ -140,8 +142,14 @@ export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
                   </li>
                 ))}
                 <li>
-                  {/* TODO(auth-api): encerrar a sessão. Por enquanto o item é só visual. */}
-                  <button type="button" className={cn(itemClassName, "cursor-pointer")}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      void logoutState();
+                    }}
+                    className={cn(itemClassName, "cursor-pointer")}
+                  >
                     <LogOut aria-hidden="true" />
                     Sair
                   </button>

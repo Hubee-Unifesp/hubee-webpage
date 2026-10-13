@@ -11,11 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Usuario } from "@/types/usuario";
 import { accountNavItems } from "./account-nav.config";
 import { UserAvatar } from "./user-avatar";
 
 export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
+  const { logoutState } = useAuth();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -43,8 +46,7 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator className="bg-hubee-50/20 dark:bg-hubee-800/20" />
-        {/* TODO(auth-api): encerrar a sessão. Por enquanto o item é só visual. */}
-        <DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => void logoutState()}>
           <LogOut aria-hidden="true" />
           Sair
         </DropdownMenuItem>
