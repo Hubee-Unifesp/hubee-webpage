@@ -4,14 +4,14 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { User, getMe, logout as apiLogout } from '@/lib/api/auth';
 import { parseApiError } from '@/lib/api/errors';
 import { clearSession, getToken } from '@/lib/session';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   /** `true` quando não foi possível carregar a sessão (API fora do ar), diferente de não estar logado. */
   hasError: boolean;
-  /** `true` depois do logout, até a navegação para a home terminar (evita redirecionar ao login). */
+  /** `true` depois do logout, até a rota mudar (evita redirecionar ao login enquanto a ida para a home acontece). */
   sessionEnded: boolean;
   loginState: (userData: User) => void;
   /** Atualiza o usuário em memória depois de editar o perfil, sem nova chamada à API. */
@@ -29,6 +29,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hasError, setHasError] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+
+  // O logout só vale para a página de onde a pessoa saiu. Se a rota mudou (ida para a home, ou o Voltar do
+  // navegador de volta para uma página logada), a sessão encerrada deixa de "segurar" a tela em branco e
+  // o RequireSession volta a mandar para o login. Ajuste durante a renderização, sem useEffect.
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setSessionEnded(false);
+  }
 
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
