@@ -22,6 +22,8 @@ export interface ItemPedido {
   quantidade: number;
   /** Valor unitário em reais. */
   valorUnitario: number;
+  /** Nome do evento do tipo de ingresso; `null` quando o evento não carregou. */
+  eventoNome: string | null;
 }
 
 export interface IngressoPedido {
@@ -29,6 +31,8 @@ export interface IngressoPedido {
   tipo: string;
   codigo: string;
   status: StatusIngresso;
+  /** Cada ingresso aponta para o próprio evento: um pedido pode ter ingressos de eventos diferentes. */
+  evento: EventoPedido | null;
 }
 
 export interface Pedido {
@@ -38,8 +42,11 @@ export interface Pedido {
   status: StatusPedido;
   /** Data da compra, em ISO 8601 (UTC). */
   criadoEm: string;
-  /** `null` quando o pedido não tem ingressos emitidos: a API só liga pedido a evento pelos ingressos. */
-  evento: EventoPedido | null;
+  /**
+   * Eventos distintos dos ingressos, na ordem em que aparecem. Vazio quando o pedido não tem ingressos
+   * emitidos: a API só liga pedido a evento pelos ingressos.
+   */
+  eventos: EventoPedido[];
   /** Vazio quando não há ingressos: a API não guarda os itens do pedido. */
   itens: ItemPedido[];
   /** Total em reais. */

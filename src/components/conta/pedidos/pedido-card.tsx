@@ -11,7 +11,9 @@ import { StatusBadge } from "./status-pedido";
 
 /** Cartão de pedido da lista "Meus pedidos". */
 export function PedidoCard({ pedido }: { pedido: Pedido }) {
-  const { evento } = pedido;
+  // Um pedido pode ter ingressos de mais de um evento: o cartão mostra o primeiro e conta os outros.
+  const [evento = null] = pedido.eventos;
+  const outrosEventos = pedido.eventos.length - 1;
   const href = `/conta/pedidos/${pedido.id}`;
   const dataCompra = `Pedido feito em ${formatOrderDate(pedido.criadoEm)}`;
 
@@ -47,6 +49,11 @@ export function PedidoCard({ pedido }: { pedido: Pedido }) {
           <p className="line-clamp-2 text-xs font-medium text-hubee-800">
             {evento.local && `${evento.local} · `}
             {formatEventDate(evento.dataInicio, evento.dataFim)}
+          </p>
+        )}
+        {outrosEventos > 0 && (
+          <p className="text-xs font-medium text-hubee-800">
+            + {outrosEventos} {outrosEventos === 1 ? "outro evento" : "outros eventos"}
           </p>
         )}
         <p className="text-xs">{dataCompra}</p>

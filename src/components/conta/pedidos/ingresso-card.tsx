@@ -1,6 +1,6 @@
 import { QrCode } from "lucide-react";
 import { formatEventDate } from "@/components/home/events/format";
-import type { EventoPedido, IngressoPedido, StatusIngresso } from "@/types/pedido";
+import type { IngressoPedido, StatusIngresso } from "@/types/pedido";
 
 const statusIngressoLabel: Partial<Record<StatusIngresso, string>> = {
   usado: "Ingresso já utilizado",
@@ -9,13 +9,12 @@ const statusIngressoLabel: Partial<Record<StatusIngresso, string>> = {
 
 interface IngressoCardProps {
   ingresso: IngressoPedido;
-  /** `null` quando os dados do evento não puderam ser carregados. */
-  evento: EventoPedido | null;
   participante: string;
 }
 
 /** Ingresso emitido: dados do participante, código e QR code (placeholder até haver biblioteca de QR). */
-export function IngressoCard({ ingresso, evento, participante }: IngressoCardProps) {
+export function IngressoCard({ ingresso, participante }: IngressoCardProps) {
+  const { evento } = ingresso;
   const statusLabel = statusIngressoLabel[ingresso.status];
 
   return (

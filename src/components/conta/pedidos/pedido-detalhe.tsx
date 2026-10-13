@@ -37,7 +37,7 @@ export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; partic
                   <p className="font-medium">
                     {item.descricao} × {item.quantidade}
                   </p>
-                  {pedido.evento && <p className="text-hubee-neutral-300 dark:text-hubee-200">{pedido.evento.nome}</p>}
+                  {item.eventoNome && <p className="text-hubee-neutral-300 dark:text-hubee-200">{item.eventoNome}</p>}
                 </div>
                 <p className="font-medium">{formatPrice(item.valorUnitario * item.quantidade)}</p>
               </li>
@@ -60,7 +60,7 @@ export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; partic
           <ul className="flex flex-col gap-4">
             {pedido.ingressos.map((ingresso) => (
               <li key={ingresso.id}>
-                <IngressoCard ingresso={ingresso} evento={pedido.evento} participante={participante} />
+                <IngressoCard ingresso={ingresso} participante={participante} />
               </li>
             ))}
           </ul>

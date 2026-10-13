@@ -95,32 +95,40 @@ function toPedido(
     numero: order.id.slice(0, 8).toUpperCase(),
     status: order.status,
     criadoEm: order.createdAt,
-    evento: events.get(tickets[0]?.eventId) ?? null,
-    itens: toItens(tickets, ticketTypes),
+    eventos: [...new Set(tickets.map((ticket) => events.get(ticket.eventId)).filter((evento) => evento !== undefined))],
+    itens: toItens(tickets, ticketTypes, events),
     total: Number(order.totalAmount),
     ingressos: tickets.map((ticket) => ({
       id: ticket.id,
       tipo: ticketTypeLabel(ticketTypes.find((type) => type.id === ticket.ticketTypeId)),
       codigo: ticket.qrCode,
       status: ticket.status,
+      evento: events.get(ticket.eventId) ?? null,
     })),
   };
 }
 
-function toItens(tickets: readonly ApiTicket[], ticketTypes: readonly ApiTicketType[]): ItemPedido[] {
+function toItens(
+  tickets: readonly ApiTicket[],
+  ticketTypes: readonly ApiTicketType[],
+  events: ReadonlyMap<string, EventoPedido>,
+): ItemPedido[] {
   // Sem Map.groupBy: ele só existe a partir do Node 21 e do Safari 17.4, e a CI roda no Node 20.
-  const quantities = new Map<string, number>();
-  for (const { ticketTypeId } of tickets) {
-    quantities.set(ticketTypeId, (quantities.get(ticketTypeId) ?? 0) + 1);
+  // O tipo de ingresso pertence a um evento só, então o evento do item é o do primeiro ingresso do grupo.
+  const groups = new Map<string, { quantidade: number; eventId: string }>();
+  for (const { ticketTypeId, eventId } of tickets) {
+    const group = groups.get(ticketTypeId) ?? { quantidade: 0, eventId };
+    groups.set(ticketTypeId, { ...group, quantidade: group.quantidade + 1 });
   }
 
-  return [...quantities].map(([ticketTypeId, quantidade]) => {
+  return [...groups].map(([ticketTypeId, { quantidade, eventId }]) => {
     const type = ticketTypes.find((candidate) => candidate.id === ticketTypeId);
     return {
       id: ticketTypeId,
       descricao: ticketTypeLabel(type),
       quantidade,
       valorUnitario: type ? Number(type.price) : 0,
+      eventoNome: events.get(eventId)?.nome ?? null,
     };
   });
 }
