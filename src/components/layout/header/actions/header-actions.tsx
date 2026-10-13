@@ -5,10 +5,11 @@ import { UserMenu } from "./user-menu";
 
 interface HeaderActionsProps {
   signedIn: boolean;
-  logoutHref?: string;
+  userName?: string;
+  onLogout?: () => void;
 }
 
-export function HeaderActions({ signedIn, logoutHref }: HeaderActionsProps) {
+export function HeaderActions({ signedIn, userName, onLogout }: HeaderActionsProps) {
   return (
     <div className="flex items-center gap-0.5">
       {signedIn ? (
@@ -20,7 +21,7 @@ export function HeaderActions({ signedIn, logoutHref }: HeaderActionsProps) {
               </Link>
             </Button>
           ))}
-          <UserMenu logoutHref={logoutHref} />
+          <UserMenu userName={userName} onLogout={onLogout} />
         </>
       ) : (
         <Button variant="hubee_header" size="default" className="border-current font-semibold" asChild>

@@ -2,7 +2,7 @@
 
 Página web da **Hubee**, desenvolvida com Next.js, React, TypeScript e Tailwind CSS.
 
-> O projeto está em desenvolvimento. A home possui header funcional, seções provisórias e um mock de usuário logado.
+> O projeto está em desenvolvimento. A home possui header funcional e seções provisórias, e a área logada (conta e carrinho) já tem layout e telas **só visuais**, com dados fictícios.
 
 O mock em `/login` é temporário. Consulte o [plano de remoção ao integrar a autenticação real](src/app/login/README.md).
 
@@ -48,7 +48,55 @@ Inicie o ambiente de desenvolvimento:
 npm run dev
 ```
 
-A aplicação estará disponível em [http://localhost:3000](http://localhost:3000).
+A aplicação estará disponível em [http://localhost:3001](http://localhost:3001).
+
+## Variáveis de ambiente
+
+Copie o arquivo de exemplo e ajuste a URL da API (`hubee-api`):
+
+```bash
+cp .env.example .env.local
+```
+
+| Variável              | Descrição                                                                   |
+| --------------------- | --------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL` | URL base da `hubee-api`. A home busca os eventos nela, direto do navegador. |
+
+Variáveis `NEXT_PUBLIC_*` só são lidas quando o servidor inicia: reinicie o `npm run dev` depois de alterar o `.env.local`. Se a API estiver apontando para `localhost:3000`, rode o Next em outra porta (`npm run dev -- -p 3001`), pois essa é a porta padrão dele.
+
+## Páginas
+
+| Rota                  | Descrição                                          | Estado                 |
+| --------------------- | -------------------------------------------------- | ---------------------- |
+| `/`                   | Home com eventos                                   | Integrada com a API    |
+| `/login`              | Mock temporário de usuário logado                  | Provisória             |
+| `/carrinho`           | Carrinho                                           | Placeholder            |
+| `/notificacoes`       | Notificações                                       | Placeholder            |
+| `/meus-ingressos`     | Meus ingressos                                     | Placeholder            |
+| `/meus-eventos`       | Meus eventos                                       | Placeholder            |
+| `/conta/pedidos`      | Lista de pedidos com filtro por status             | Visual, dados mockados |
+| `/conta/pedidos/[id]` | Detalhe do pedido e ingressos (ids de teste: 1 a 4) | Visual, dados mockados |
+| `/conta/perfil`       | Dados pessoais, troca de senha e exclusão de conta | Visual, dados mockados |
+
+As páginas da área logada ficam em `src/app/(logado)/` e compartilham o mesmo layout (header, navegação e toasts). Ainda não há sessão nem proteção de rotas: qualquer uma pode ser aberta direto. Detalhes em [Layout da área logada](src/components/layout/logged/README.md).
+
+## Estrutura do projeto
+
+```text
+src/
+├── app/                 # Rotas (App Router); (logado)/ é a área logada
+├── components/
+│   ├── conta/           # Telas da conta: pedidos e perfil
+│   ├── home/            # Seções e eventos da home
+│   ├── layout/          # Header (home) e layout logado
+│   ├── ui/              # Componentes base (shadcn/ui)
+│   └── ...              # modal, toast, skeleton e estado vazio compartilhados
+├── lib/                 # Cliente da API e utilitários
+├── mocks/               # Dados fictícios (usuária e pedidos)
+└── types/               # Tipos compartilhados
+```
+
+Os mocks têm marcações `TODO(...-api)` indicando onde trocar pelos dados reais ao integrar com a API.
 
 ## Scripts disponíveis
 
@@ -58,3 +106,13 @@ A aplicação estará disponível em [http://localhost:3000](http://localhost:30
 | `npm run build` | Gera a versão otimizada para produção     |
 | `npm run start` | Executa a versão de produção após o build |
 | `npm run lint`  | Analisa o código com o ESLint             |
+
+## Padrão de commits
+
+Os commits seguem o formato `tipo(GOL-N): assunto`, validado pelo commitlint, por exemplo:
+
+```text
+feat(GOL-42): adiciona validacao de login
+```
+
+O hook de `pre-push` roda `npm run lint` (sem avisos permitidos): rode-o antes de enviar a branch.

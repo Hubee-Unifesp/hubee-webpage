@@ -11,12 +11,12 @@ const contaItemsByRole: Record<FooterRole, readonly FooterLinkItem[]> = {
   user: [
     { href: "/meus-ingressos", label: "Meus Ingressos" },
     { href: "/carrinho", label: "Carrinho" },
-    { href: "/perfil", label: "Meu perfil" },
+    { href: "/conta/perfil", label: "Meu perfil" },
   ],
   organizer: [
     { href: "/meus-ingressos", label: "Meus Ingressos" },
     { href: "/carrinho", label: "Carrinho" },
-    { href: "/perfil", label: "Meu perfil" },
+    { href: "/conta/perfil", label: "Meu perfil" },
   ],
 };
 
