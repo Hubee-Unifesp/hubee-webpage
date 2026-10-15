@@ -167,12 +167,15 @@ O hook do projeto exige exatamente o formato:
 - `docs(GOL-148): adiciona AGENTS.md com instrucoes de desenvolvimento`
 
 ### 6.3. Verificação Antes de Commit / Push
-Antes de abrir Pull Request, execute obrigatoriamente:
+Antes de comitar ou subir alterações, execute obrigatoriamente:
 ```bash
 npm run lint && npm run typecheck
 ```
-Se ambos passarem com zero erros, suba a branch e informe o desenvolvedor.
 
-### 6.4. Regra de Transição no YouTrack
+### 6.4. Proibição de Commits/Push sem Permissão
+- ⚠️ **NUNCA commite ou faça push sem autorização explícita do desenvolvedor.**
+- O agente deve apresentar o resumo das alterações de frontend, confirmar que `npm run lint` e `npm run typecheck` passaram sem erros, e aguardar a aprovação expressa do desenvolvedor antes de executar `git commit` ou `git push`.
+
+### 6.5. Regra de Transição no YouTrack
 - Ao iniciar a tarefa, transicione para `State In Progress`.
 - ⚠️ **REGRA OBRIGATÓRIA:** NUNCA mova o status para verificação (`To Verify`) automaticamente. O encerramento da task e a mudança de status devem ser **explicitamente confirmados pelo desenvolvedor responsável**.
