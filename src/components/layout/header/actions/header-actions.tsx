@@ -2,14 +2,17 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { accountActions, loginItem } from "./actions.config";
 import { UserMenu } from "./user-menu";
+import { LoggedUserMenu } from "@/components/layout/logged";
+import type { Usuario } from "@/types/usuario";
 
 interface HeaderActionsProps {
   signedIn: boolean;
+  user?: Usuario | null;
   userName?: string;
   onLogout?: () => void;
 }
 
-export function HeaderActions({ signedIn, userName, onLogout }: HeaderActionsProps) {
+export function HeaderActions({ signedIn, user, userName, onLogout }: HeaderActionsProps) {
   return (
     <div className="flex items-center gap-0.5">
       {signedIn ? (
@@ -21,7 +24,11 @@ export function HeaderActions({ signedIn, userName, onLogout }: HeaderActionsPro
               </Link>
             </Button>
           ))}
-          <UserMenu userName={userName} onLogout={onLogout} />
+          {user ? (
+            <LoggedUserMenu usuario={user} />
+          ) : (
+            <UserMenu userName={userName} onLogout={onLogout} />
+          )}
         </>
       ) : (
         <Button variant="hubee_header" size="default" className="border-current font-semibold" asChild>

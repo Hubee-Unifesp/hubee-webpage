@@ -48,7 +48,7 @@ export function Header({
           <ThemeToggle className="md:hidden" />
           <HeaderActions 
             signedIn={!!user} 
-            // Mostramos o primeiro nome do utilizador se estiver logado
+            user={user}
             userName={user?.fullName?.split(" ")[0]} 
             onLogout={logoutState} 
           />

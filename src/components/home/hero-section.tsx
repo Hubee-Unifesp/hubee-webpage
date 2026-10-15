@@ -91,14 +91,14 @@ export function HeroSection({
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none relative z-10 flex transform items-center justify-center drop-shadow-2xl transition-transform hover:scale-105 md:-ml-16 lg:-ml-24"
+            className="pointer-events-none relative z-10 flex transform items-center justify-center drop-shadow-2xl transition-transform hover:scale-105"
           >
             <Image
-              src="/abelha.png"
-              alt="Ilustração 3D de uma abelha"
-              width={600}
-              height={600}
-              className="h-auto w-[400px] lg:w-[500px]"
+              src="/logo/logo-icon/Logo.svg"
+              alt="Logotipo Hubee"
+              width={360}
+              height={490}
+              className="h-auto w-[240px] md:w-[280px] lg:w-[340px]"
               priority
             />
           </div>
