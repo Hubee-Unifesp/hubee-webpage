@@ -171,4 +171,8 @@ Antes de abrir Pull Request, execute obrigatoriamente:
 ```bash
 npm run lint && npm run typecheck
 ```
-Se ambos passarem com zero erros, suba a branch e abra o PR apontando para `develop`.
+Se ambos passarem com zero erros, suba a branch e informe o desenvolvedor.
+
+### 6.4. Regra de Transição no YouTrack
+- Ao iniciar a tarefa, transicione para `State In Progress`.
+- ⚠️ **REGRA OBRIGATÓRIA:** NUNCA mova o status para verificação (`To Verify`) automaticamente. O encerramento da task e a mudança de status devem ser **explicitamente confirmados pelo desenvolvedor responsável**.
