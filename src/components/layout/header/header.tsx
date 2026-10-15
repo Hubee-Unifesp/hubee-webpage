@@ -9,6 +9,7 @@ import { getNavigationItems } from "./navigation/navigation.config";
 import { ThemeToggle } from "./theme-toggle";
 import type { HeaderProps } from "./types";
 import { useAuth } from "@/contexts/AuthContext";
+import { ThemedHubeeLogo } from "@/components/brand";
 
 export function Header({
   className,
@@ -38,9 +39,9 @@ export function Header({
         <Link
           href={`${homeHref}#inicio`}
           aria-label="Hubee — página inicial"
-          className="rounded-md font-heading text-[26px] leading-none font-extrabold tracking-tighter outline-none hover:text-hubee-400 focus-visible:ring-3 focus-visible:ring-hubee-400 md:text-[28px] dark:hover:text-hubee-50 dark:focus-visible:ring-hubee-800"
+          className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:focus-visible:ring-hubee-800"
         >
-          LOGO
+          <ThemedHubeeLogo light="white" dark="dark_alt" className="h-8 md:h-9" priority />
         </Link>
         <MainNavigation items={items} pathname={pathname} />
         <div className="flex items-center gap-0.5">

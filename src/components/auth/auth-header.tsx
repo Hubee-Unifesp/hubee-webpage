@@ -1,16 +1,15 @@
 import Link from "next/link";
+import { HubeeLogo } from "@/components/brand";
 
 export function AuthHeader() {
   return (
     <Link
-        href="/"
-        aria-label="Hubee — página inicial"
-        className="inline-flex items-center gap-2 rounded-md text-sm outline-none focus-visible:ring-3 focus-visible:ring-hubee-400"
+      href="/"
+      aria-label="Hubee — página inicial"
+      className="inline-flex items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400"
     >
-        <span aria-hidden="true" className="flex size-8 items-center justify-center rounded-md bg-hubee-400 lg:size-6">
-        <span className="size-2 rounded-full bg-hubee-800" />
-      </span>
-      Logo
+      <HubeeLogo tone="white" priority className="h-8 md:h-9 block lg:hidden dark:lg:block" />
+      <HubeeLogo tone="dark" priority className="h-8 md:h-9 hidden lg:block dark:lg:hidden" />
     </Link>
   );
 }
