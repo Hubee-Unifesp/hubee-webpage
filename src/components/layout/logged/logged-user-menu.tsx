@@ -20,15 +20,20 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
   const { logoutState } = useAuth();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
           variant="hubee_header"
           size="icon"
           aria-label={`Abrir menu de ${usuario.fullName}`}
+          className="group cursor-pointer transition-transform hover:scale-105 active:scale-95"
         >
-          <UserAvatar name={usuario.fullName} src={usuario.avatarUrl} />
+          <UserAvatar
+            name={usuario.fullName}
+            src={usuario.avatarUrl}
+            className="cursor-pointer transition-all ring-2 ring-transparent group-hover:ring-hubee-400 group-hover:brightness-105 dark:group-hover:ring-hubee-200"
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-56 bg-hubee-800 text-hubee-50 dark:bg-hubee-50 dark:text-hubee-800">

@@ -33,7 +33,7 @@ const buttonVariants = cva(
 
         //VARIAÇÃO BOTÃO DA HEADER - herda a cor do texto e muda para hubee400 (claro) ou hubee50 (escuro) ao passar o mouse ou na rota ativa
         hubee_header:
-          "text-current hover:text-hubee-400 focus-visible:ring-hubee-400 aria-expanded:text-hubee-400 aria-[current=page]:text-hubee-400 dark:hover:text-hubee-50 dark:focus-visible:ring-hubee-800 dark:aria-expanded:text-hubee-50 dark:aria-[current=page]:text-hubee-50",
+          "cursor-pointer text-current hover:text-hubee-400 focus-visible:ring-hubee-400 aria-expanded:text-hubee-400 aria-[current=page]:text-hubee-400 dark:hover:text-hubee-50 dark:focus-visible:ring-hubee-800 dark:aria-expanded:text-hubee-50 dark:aria-[current=page]:text-hubee-50",
 
         link: "text-primary underline-offset-4 hover:underline",
       },
