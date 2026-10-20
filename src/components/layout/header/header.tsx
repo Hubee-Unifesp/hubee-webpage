@@ -17,7 +17,7 @@ export function Header({
   homeHref = "/",
 }: Omit<HeaderProps, 'role' | 'logoutHref'>) {
   const pathname = usePathname();
-  const { user, logoutState } = useAuth();
+  const { user } = useAuth();
   const currentRole = user 
     ? (user.signupIntent === 'ORGANIZE' ? 'organizer' : 'user') 
     : 'guest';
@@ -46,12 +46,7 @@ export function Header({
         <MainNavigation items={items} pathname={pathname} />
         <div className="flex items-center gap-0.5">
           <ThemeToggle className="md:hidden" />
-          <HeaderActions 
-            signedIn={!!user} 
-            user={user}
-            userName={user?.fullName?.split(" ")[0]} 
-            onLogout={logoutState} 
-          />
+          <HeaderActions user={user} />
         </div>
       </header>
     </div>

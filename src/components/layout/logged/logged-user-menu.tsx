@@ -20,7 +20,7 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
   const { logoutState } = useAuth();
 
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
