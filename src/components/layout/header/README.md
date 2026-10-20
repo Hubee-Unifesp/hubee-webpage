@@ -37,9 +37,8 @@ header/
 │   ├── navigation.config.ts    # Links, visibilidade por perfil e regra de rota ativa
 │   └── main-navigation.tsx     # Navegação principal (oculta no mobile)
 └── actions/
-    ├── actions.config.ts       # Destinos de login, atalhos e itens da conta
-    ├── header-actions.tsx      # Organização das ações à direita
-    └── user-menu.tsx           # Menu da conta e saída do mock
+    ├── actions.config.ts       # Destinos de login e atalhos da conta
+    └── header-actions.tsx      # Organização das ações à direita
 ```
 
 Importe o componente e seus tipos por `@/components/layout/header`. Os componentes internos não fazem parte da API pública. A fronteira de cliente fica em `header.tsx`; os módulos renderizados por ele pertencem à mesma árvore de cliente.
@@ -49,8 +48,8 @@ Importe o componente e seus tipos por `@/components/layout/header`. Os component
 - Adicione links principais em `navigation/navigation.config.ts`. Esses links aparecem apenas no desktop.
 - Use `roles` quando um item só deve aparecer para determinados perfis. Omitir `roles` deixa o link visível para todos; isso controla apresentação, não autorização.
 - Para seções da home, use `#nome-da-secao`. O destino será combinado com `homeHref`, preservando o mock em `/login`.
-- Adicione atalhos com ícones e itens do menu de conta em `actions/actions.config.ts`. “Entrar” também tem um destino único nesse arquivo.
-- Mantenha comportamento de tema em `theme-toggle.tsx`, comportamento da conta em `user-menu.tsx` e a navegação principal em `navigation/main-navigation.tsx`.
+- Adicione atalhos com ícones da conta em `actions/actions.config.ts`. “Entrar” também tem um destino único nesse arquivo.
+- Mantenha comportamento de tema em `theme-toggle.tsx`, comportamento da conta em `LoggedUserMenu` e a navegação principal em `navigation/main-navigation.tsx`.
 - O tema claro/escuro é global: `ThemeProvider` (`src/components/theme-provider.tsx`, ligado em `src/app/layout.tsx`) aplica a classe `.dark` no `<html>` e expõe `useTheme()`. O tema começa claro e não é salvo entre visitas. Estilize as duas versões com a variante `dark:` do Tailwind e as cores `hubee-*` de `globals.css`.
 - Botões e links clicáveis usam o `Button` de `@/components/ui/button` com a variante `hubee_header`, que herda a cor do texto e aplica o hover e o foco da header. Ao aumentar a quantidade de links, revise o espaço disponível no desktop e o breakpoint de 768px.
 
