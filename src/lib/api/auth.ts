@@ -2,6 +2,13 @@ import { apiClient } from './apiClient';
 import { clearSession, saveSession } from '../session';
 import { LoginFormInputs, RegisterFormInputs, SignupIntent } from '../validations/auth.schema';
 
+export type UserOrganization = {
+  orgId: string;
+  name: string;
+  role: 'admin' | 'member';
+  permission: 'full' | 'read_only';
+};
+
 export type User = {
   id: string;
   fullName: string;
@@ -9,6 +16,7 @@ export type User = {
   phone?: string | null;
   profileComplete: boolean;
   signupIntent: SignupIntent;
+  organizations?: UserOrganization[];
 };
 
 type AuthResponse = {
