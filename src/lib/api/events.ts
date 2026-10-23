@@ -1,12 +1,25 @@
+import { apiClient as authClient } from "./apiClient";
 import { apiClient } from "./client";
+import type { UserOrganization } from "./auth";
+import {
+  calculateSoldPercentage,
+  deriveOrganizerRole,
+  toOrganizacoesVinculadas,
+  type EventoOrganizador,
+  type OrganizacaoVinculada,
+} from "@/types/organizacao";
 import type {
   ApiEvent,
+  ApiEventListItem,
+  ApiEventPage,
   ApiOrganization,
+  ApiOrganizationUser,
   ApiTicketType,
   ApiVenue,
   CategorySummary,
   EventCategory,
   EventSummary,
+  GetOrganizerEventsParams,
   HomeEvents,
 } from "./events.types";
 
@@ -39,15 +52,166 @@ export function soldRatio(event: EventSummary): number {
   return event.capacity > 0 ? event.ticketsSold / event.capacity : 0;
 }
 
+export interface OrganizerSessionUser {
+  id: string;
+  signupIntent?: string;
+  organizations?: readonly UserOrganization[];
+}
+
+/**
+ * Resolve as organizações vinculadas à usuária logada.
+ * - Pós-GOL-144: usa `user.organizations` retornado em `GET /auth/me`.
+ * - Pré-GOL-144 (fallback em `origin/develop`): consulta `GET /organizations` e tenta
+ *   `GET /organizations/:orgId/users`; caso retorne 403 e `signupIntent` seja de organizador
+ *   (`"ORGANIZE"`), vincula as organizações existentes com papel `administrador`.
+ */
+export async function resolveUserOrganizations(
+  user: OrganizerSessionUser | null,
+): Promise<OrganizacaoVinculada[]> {
+  if (!user) return [];
+
+  if (Array.isArray(user.organizations)) {
+    return toOrganizacoesVinculadas(user.organizations);
+  }
+
+  let organizations: ApiOrganization[] = [];
+  try {
+    const { data } = await apiClient.get<ApiOrganization[]>("/organizations");
+    organizations = data;
+  } catch {
+    return [];
+  }
+
+  if (organizations.length === 0) return [];
+
+  let anyMembersEndpointSucceeded = false;
+  const matched: OrganizacaoVinculada[] = [];
+
+  await Promise.all(
+    organizations.map(async (org) => {
+      try {
+        const { data: members } = await authClient.get<ApiOrganizationUser[]>(
+          `/organizations/${org.id}/users`,
+          { skipAuthRedirect: true },
+        );
+        anyMembersEndpointSucceeded = true;
+        const membership = members.find(
+          (member) => member.userId === user.id && member.inviteStatus === "accepted",
+        );
+        if (membership) {
+          matched.push({
+            orgId: org.id,
+            nome: org.name,
+            role: membership.role,
+            permission: membership.permission,
+            papel: deriveOrganizerRole(membership.role, membership.permission),
+          });
+        }
+      } catch {
+        // Quando a rota /organizations/:id/users exigir ADMIN (pré-GOL-144), cai no fallback abaixo.
+      }
+    }),
+  );
+
+  if (anyMembersEndpointSucceeded) {
+    return matched;
+  }
+
+  if (user.signupIntent === "ORGANIZE" || user.signupIntent === "organizer") {
+    return organizations.map((org) => ({
+      orgId: org.id,
+      nome: org.name,
+      role: "admin",
+      permission: "full",
+      papel: "administrador",
+    }));
+  }
+
+  return [];
+}
+
+/**
+ * Busca os eventos de uma organização vinculada à usuária logada.
+ * Se `capacity` não vier no item de `/events`, soma `quantity` de `GET /events/:id/ticket-types`.
+ */
+export async function getOrganizerEvents(
+  params: GetOrganizerEventsParams,
+): Promise<EventoOrganizador[]> {
+  const { data } = await authClient.get<ApiEventPage | ApiEventListItem[]>("/events", {
+    params: { limit: 50, ...params },
+  });
+
+  const items = Array.isArray(data) ? data : data.data;
+
+  const enriched = await Promise.all(
+    items.map(async (item) => {
+      if (item.capacity !== undefined && item.capacity !== null) {
+        return toEventoOrganizador(item);
+      }
+      const ticketTypes = await getTicketTypes(item.id);
+      return toEventoOrganizador(item, ticketTypes);
+    }),
+  );
+
+  return enriched;
+}
+
+export function toEventoOrganizador(
+  item: ApiEventListItem,
+  ticketTypes: readonly ApiTicketType[] = [],
+): EventoOrganizador {
+  const ticketTypesCapacity = ticketTypes.reduce(
+    (sum, ticket) => sum + Math.max(0, Number(ticket.quantity ?? 0)),
+    0,
+  );
+  const capacidade =
+    item.capacity !== undefined && item.capacity !== null
+      ? Math.max(0, Number(item.capacity))
+      : ticketTypesCapacity;
+  const ingressosVendidos = Math.max(0, Number(item.ticketsSold ?? 0));
+
+  const cheapestTicket = ticketTypes
+    .map((ticket) => ({ ...ticket, price: Number(ticket.price) }))
+    .toSorted((a, b) => a.price - b.price)[0];
+
+  const precoMinimo =
+    item.minPrice !== null && item.minPrice !== undefined
+      ? Number(item.minPrice)
+      : (cheapestTicket?.price ?? null);
+  const loteMinimo = item.minPriceBatch ?? cheapestTicket?.batch ?? null;
+
+  const local =
+    item.venueName && item.venueCity
+      ? `${item.venueName} · ${item.venueCity}`
+      : (item.venueName ?? item.venueCity ?? "Local a definir");
+
+  return {
+    id: item.id,
+    nome: item.name,
+    descricao: item.description ?? "",
+    categoria: toCategory(item.category),
+    status: item.status ?? "draft",
+    dataInicio: item.startDate,
+    dataFim: item.endDate,
+    local,
+    precoMinimo,
+    loteMinimo,
+    capacidade,
+    ingressosVendidos,
+    percentualVendido: calculateSoldPercentage(ingressosVendidos, capacidade),
+  };
+}
+
 export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
-  const [events, organizations, venues] = await Promise.all([
+  const [eventsPayload, organizations, venues] = await Promise.all([
     apiClient
-      .get<ApiEvent[]>("/events", { params: { status: "published" } })
+      .get<ApiEvent[] | ApiEventPage>("/events", { params: { status: "published" } })
       .then(({ data }) => data),
     apiClient.get<ApiOrganization[]>("/organizations").then(({ data }) => data),
     apiClient.get<ApiVenue[]>("/venues").then(({ data }) => data),
   ]);
 
+  const events = Array.isArray(eventsPayload) ? eventsPayload : eventsPayload.data;
   const upcoming = events.filter((event) => new Date(event.endDate) > now);
   const ticketTypes = await Promise.all(
     upcoming.map((event) => getTicketTypes(event.id)),
