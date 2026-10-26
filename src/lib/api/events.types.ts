@@ -67,3 +67,54 @@ export interface ApiTicketType {
   batch: string;
   price: number | string;
 }
+
+/** Classificação indicativa aceita pela API (`eventAgeRating`). */
+export type AgeRating = "L" | "10" | "12" | "14" | "16" | "18";
+
+/** Endereço completo do local (`AddressResponseDto`). */
+export interface EventAddress {
+  street: string;
+  number: string;
+  complement: string | null;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+export interface EventVenue {
+  id: string;
+  name: string;
+  address: EventAddress | null;
+}
+
+export interface EventOrganizer {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
+/** Lote de ingresso (`TicketTypeResponseDto`); `soldOut` é derivado no front. */
+export interface EventTicketType {
+  id: string;
+  batch: string;
+  price: number;
+  soldOut: boolean;
+}
+
+/** Modelo da página de detalhes: `GET /events/:id` com local, organização e lotes resolvidos. */
+export interface EventDetails {
+  id: string;
+  title: string;
+  /** Linha de apoio exibida acima do título (campo `edition` da API). */
+  tagline: string | null;
+  description: string | null;
+  category: EventCategory;
+  ageRating: AgeRating | null;
+  startDate: string;
+  endDate: string;
+  photoUrl: string | null;
+  venue: EventVenue | null;
+  organizer: EventOrganizer | null;
+  ticketTypes: EventTicketType[];
+}
