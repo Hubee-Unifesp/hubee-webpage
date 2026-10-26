@@ -10,7 +10,7 @@ import { Dialog, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from 
 import { isActiveRoute, type NavigationItem } from "@/components/layout/header";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { accountNavItems, cartHref, formatCartLabel, notificationsHref } from "./account-nav.config";
+import { cartHref, formatCartLabel, getAccountNavItems, notificationsHref } from "./account-nav.config";
 import { ThemedHubeeLogo } from "@/components/brand";
 
 const itemClassName =
@@ -27,7 +27,7 @@ interface MobileMenuProps {
 export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const { logoutState } = useAuth();
+  const { logoutState, isOrganizer } = useAuth();
   const close = () => setOpen(false);
 
   // Se a janela passar do breakpoint de desktop, o botão some: fecha o menu para não prender o foco.
@@ -129,7 +129,7 @@ export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
             <div>
               <p className={groupLabelClassName}>Conta</p>
               <ul className="flex flex-col gap-0.5">
-                {accountNavItems.map(({ href, label, icon: Icon }) => (
+                {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
                   <li key={href}>
                     <Link
                       href={href}

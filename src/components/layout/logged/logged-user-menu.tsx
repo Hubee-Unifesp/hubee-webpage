@@ -13,11 +13,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Usuario } from "@/types/usuario";
-import { accountNavItems } from "./account-nav.config";
+import { getAccountNavItems } from "./account-nav.config";
 import { UserAvatar } from "./user-avatar";
 
 export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
-  const { logoutState } = useAuth();
+  const { logoutState, isOrganizer } = useAuth();
 
   return (
     <DropdownMenu>
@@ -42,7 +42,7 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
           <span className="truncate text-xs opacity-75">{usuario.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-hubee-50/20 dark:bg-hubee-800/20" />
-        {accountNavItems.map(({ href, label, icon: Icon }) => (
+        {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
           <DropdownMenuItem key={href} asChild>
             <Link href={href}>
               <Icon aria-hidden="true" />
