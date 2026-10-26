@@ -6,6 +6,7 @@ export function PerfilSkeleton() {
     <div role="status" aria-live="polite" className="flex flex-col gap-4">
       <span className="sr-only">Carregando seu perfil…</span>
       <Skeleton className="h-96 w-full rounded-xl" />
+      <Skeleton className="h-48 w-full rounded-xl" />
       <Skeleton className="h-72 w-full rounded-xl" />
       <Skeleton className="h-32 w-full rounded-xl" />
     </div>
