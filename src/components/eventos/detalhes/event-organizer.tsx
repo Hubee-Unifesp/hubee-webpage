@@ -4,7 +4,7 @@ import { organizerHref } from "@/components/home/events/links";
 import type { EventOrganizer as EventOrganizerData } from "@/lib/api/events";
 import { organizerInitial } from "./format";
 
-/** Bloco "Quem faz acontecer": organização realizadora e link para o perfil. */
+/** Bloco "Quem faz acontecer": organização realizadora e link para os eventos da organização. */
 export function EventOrganizer({ organizer }: { organizer: EventOrganizerData }) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -24,7 +24,7 @@ export function EventOrganizer({ organizer }: { organizer: EventOrganizerData })
       </div>
 
       <Link
-        href={organizerHref(organizer.id)}
+        href={organizerHref(organizer.name)}
         className="inline-flex shrink-0 items-center gap-1 rounded-sm text-xs font-semibold text-hubee-800 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-hubee-400 dark:text-hubee-50"
       >
         Ver perfil

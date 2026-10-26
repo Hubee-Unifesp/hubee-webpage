@@ -1,11 +1,16 @@
 import { apiClient } from "./client";
+import { parseApiError } from "./errors";
 import type {
-  ApiEvent,
-  ApiOrganization,
+  AgeRating,
+  ApiEventDetail,
+  ApiEventListItem,
+  ApiEventPage,
+  ApiEventSummary,
   ApiTicketType,
-  ApiVenue,
   CategorySummary,
   EventCategory,
+  EventDetails,
+  EventSearchFilters,
   EventSummary,
   HomeEvents,
 } from "./events.types";
@@ -23,6 +28,8 @@ const CATEGORY_ORDER: readonly EventCategory[] = [
   "outros",
 ];
 
+const AGE_RATINGS: readonly AgeRating[] = ["L", "10", "12", "14", "16", "18"];
+
 const SAO_PAULO_OFFSET_MS = -3 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -30,6 +37,7 @@ export function isSoldOut(event: EventSummary): boolean {
   return (
     event.capacity !== null &&
     event.ticketsSold !== null &&
+    event.capacity > 0 &&
     event.ticketsSold >= event.capacity
   );
 }
@@ -39,33 +47,127 @@ export function soldRatio(event: EventSummary): number {
   return event.capacity > 0 ? event.ticketsSold / event.capacity : 0;
 }
 
+export function toDateParam(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Monta os query params enviados para `GET /events`.
+ * Nota: `category` no banco é texto livre (ex.: "festa", "Festas", "Música") e a API
+ * compara com `ilike` sem curingas. Por isso não enviamos `category` na query string
+ * e filtramos localmente após normalizar com `toCategory`.
+ */
+export function buildEventQueryParams(
+  filters: EventSearchFilters,
+): Record<string, string | number> {
+  const params: Record<string, string | number> = { limit: 100 };
+  const search = filters.search?.trim();
+  const city = filters.city?.trim();
+
+  if (search) {
+    params.search = search;
+  }
+  if (city) {
+    params.city = city;
+  }
+  if (filters.startDate) {
+    const startParam = toDateParam(filters.startDate);
+    const endParam = filters.endDate
+      ? toDateParam(filters.endDate)
+      : startParam;
+    params.startDate = startParam;
+    params.endDate = endParam;
+  }
+
+  return params;
+}
+
+const normalizeSearch = (text: string) =>
+  text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+
+/**
+ * Busca eventos publicados filtrados via `GET /events` com query parameters (GOL-135).
+ * Suporta busca textual (nome, descrição ou agremiação), categorias, cidade e intervalo de datas.
+ */
+export async function searchEvents(
+  filters: EventSearchFilters,
+  fallbackSummaries: readonly EventSummary[] = [],
+): Promise<EventSummary[]> {
+  const params = buildEventQueryParams(filters);
+  const { data } = await apiClient.get<ApiEventPage>("/events", { params });
+
+  const fallbackById = new Map(
+    fallbackSummaries.map((summary) => [summary.id, summary]),
+  );
+
+  let mapped = (data.data ?? []).map((item) =>
+    toListItemSummary(item, fallbackById.get(item.id)),
+  );
+
+  const searchTerm = filters.search?.trim()
+    ? normalizeSearch(filters.search.trim())
+    : "";
+
+  // Caso o usuário tenha pesquisado pelo nome da agremiação/local (que não consta em events.name/description),
+  // complementamos com os eventos cujos filtros de data/cidade/categoria batem e cujo organizador/local corresponde.
+  if (searchTerm && fallbackSummaries.length > 0) {
+    const existingIds = new Set(mapped.map((item) => item.id));
+    const extraMatches = fallbackSummaries.filter((event) => {
+      if (existingIds.has(event.id)) return false;
+      const matchesOrgOrVenue =
+        normalizeSearch(event.organizerName).includes(searchTerm) ||
+        normalizeSearch(event.venueName).includes(searchTerm);
+      if (!matchesOrgOrVenue) return false;
+      if (
+        filters.city &&
+        !normalizeSearch(event.venueName).includes(
+          normalizeSearch(filters.city),
+        )
+      ) {
+        return false;
+      }
+      if (filters.startDate) {
+        const startDay = new Date(
+          filters.startDate.getFullYear(),
+          filters.startDate.getMonth(),
+          filters.startDate.getDate(),
+        ).getTime();
+        const endDateObj = filters.endDate ?? filters.startDate;
+        const endDay = new Date(
+          endDateObj.getFullYear(),
+          endDateObj.getMonth(),
+          endDateObj.getDate(),
+          23,
+          59,
+          59,
+          999,
+        ).getTime();
+        const eventStart = new Date(event.startDate).getTime();
+        const eventEnd = new Date(event.endDate).getTime();
+        if (eventEnd < startDay || eventStart > endDay) return false;
+      }
+      return true;
+    });
+    mapped = [...mapped, ...extraMatches];
+  }
+
+  if (filters.categories && filters.categories.length > 0) {
+    mapped = mapped.filter((event) =>
+      filters.categories!.includes(event.category),
+    );
+  }
+
+  return mapped;
+}
+
 export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
-  const [events, organizations, venues] = await Promise.all([
-    apiClient
-      .get<ApiEvent[]>("/events", { params: { status: "published" } })
-      .then(({ data }) => data),
-    apiClient.get<ApiOrganization[]>("/organizations").then(({ data }) => data),
-    apiClient.get<ApiVenue[]>("/venues").then(({ data }) => data),
-  ]);
+  const { data } = await apiClient.get<ApiEventSummary[]>("/events/summary");
 
-  const upcoming = events.filter((event) => new Date(event.endDate) > now);
-  const ticketTypes = await Promise.all(
-    upcoming.map((event) => getTicketTypes(event.id)),
-  );
-
-  const organizerNames = new Map(
-    organizations.map(({ id, name }) => [id, name]),
-  );
-  const venueNames = new Map(
-    venues.map(({ id, name, address }) => [
-      id,
-      address ? `${name} · ${address.city}` : name,
-    ]),
-  );
-
-  const summaries = upcoming.map((event, index) =>
-    toEventSummary(event, ticketTypes[index], organizerNames, venueNames),
-  );
+  const upcoming = data.filter((event) => new Date(event.endDate) > now);
+  const summaries = upcoming.map(toEventSummary);
   const featuredIds = upcoming
     .filter((event) => event.featured)
     .map((event) => event.id);
@@ -73,40 +175,207 @@ export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
   return buildHomeEvents(summaries, featuredIds, now);
 }
 
-async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
+/**
+ * Busca os detalhes completos de um evento publicado via `GET /events/:id`.
+ * Consulta em paralelo `GET /events/summary` (de forma resiliente) para inferir lotes esgotados
+ * a partir de `capacity`, `ticketsSold` e `minPrice`, já que `ticket_types.quantity` na API
+ * representa a capacidade total do lote (default 0) e não o saldo restante.
+ * Retorna `null` quando o evento não existe, não está publicado (404) ou o ID é inválido (400).
+ */
+export async function getEventById(id: string): Promise<EventDetails | null> {
+  const trimmedId = id.trim();
+  if (!trimmedId) return null;
+
   try {
-    const { data } = await apiClient.get<ApiTicketType[]>(
-      `/events/${eventId}/ticket-types`,
+    const [detailResponse, summaryList] = await Promise.all([
+      apiClient.get<ApiEventDetail>(
+        `/events/${encodeURIComponent(trimmedId)}`,
+      ),
+      apiClient
+        .get<ApiEventSummary[]>("/events/summary")
+        .then((res) => (Array.isArray(res.data) ? res.data : []))
+        .catch(() => [] as ApiEventSummary[]),
+    ]);
+
+    const matchingSummary = summaryList.find(
+      (item) => item.id === detailResponse.data.id,
     );
-    return data;
-  } catch {
-    return [];
+    return toEventDetails(detailResponse.data, matchingSummary);
+  } catch (error) {
+    const { status } = parseApiError(error);
+    if (status === 404 || status === 400) {
+      return null;
+    }
+    throw error;
   }
 }
 
-function toEventSummary(
-  event: ApiEvent,
-  ticketTypes: ApiTicketType[],
-  organizerNames: Map<string, string>,
-  venueNames: Map<string, string>,
+/**
+ * Determina se um lote está esgotado.
+ * Em `ticket_types`, `quantity` representa a capacidade total do lote (default 0),
+ * e não o saldo restante:
+ * - Um lote com `quantity === 0` (criado sem `quantity`) NÃO é marcado como esgotado.
+ * - Se a API informar `soldOut` ou `ticketsSold` no próprio lote, usamos esse valor.
+ * - Caso contrário, usamos o resumo do evento (`GET /events/summary`): se o evento atingiu
+ *   a capacidade total (`ticketsSold >= capacity`) ou se o menor preço disponível (`minPrice`)
+ *   já é maior que o preço deste lote (`quantity > 0`), o lote está esgotado.
+ */
+export function isTicketTypeSoldOut(
+  ticket: ApiTicketType,
+  eventSummary?: Pick<ApiEventSummary, "capacity" | "ticketsSold" | "minPrice">,
+): boolean {
+  if (typeof ticket.soldOut === "boolean") {
+    return ticket.soldOut;
+  }
+
+  const batchCapacity =
+    ticket.quantity !== undefined ? Number(ticket.quantity) : 0;
+  if (batchCapacity <= 0) {
+    return false;
+  }
+
+  if (ticket.ticketsSold !== undefined) {
+    return Number(ticket.ticketsSold) >= batchCapacity;
+  }
+
+  if (eventSummary) {
+    const totalCapacity =
+      eventSummary.capacity !== null && eventSummary.capacity !== undefined
+        ? Number(eventSummary.capacity)
+        : 0;
+    const totalSold =
+      eventSummary.ticketsSold !== null &&
+      eventSummary.ticketsSold !== undefined
+        ? Number(eventSummary.ticketsSold)
+        : 0;
+
+    if (totalCapacity > 0 && totalSold >= totalCapacity) {
+      return true;
+    }
+
+    if (
+      eventSummary.minPrice !== null &&
+      eventSummary.minPrice !== undefined &&
+      Number(ticket.price) < Number(eventSummary.minPrice)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function toEventDetails(
+  event: ApiEventDetail,
+  eventSummary?: Pick<ApiEventSummary, "capacity" | "ticketsSold" | "minPrice">,
+): EventDetails {
+  return {
+    id: event.id,
+    title: event.name,
+    tagline: event.edition ?? null,
+    description: event.description ?? null,
+    category: toCategory(event.category),
+    ageRating: toAgeRating(event.ageRating),
+    startDate: event.startDate,
+    endDate: event.endDate,
+    photoUrl: event.photoUrl ?? null,
+    venue: event.venue
+      ? {
+          id: event.venue.id,
+          name: event.venue.name,
+          address: event.venue.address ?? null,
+        }
+      : null,
+    organizer: event.organization
+      ? {
+          id: event.organization.id,
+          name: event.organization.name,
+          description: event.organization.description ?? null,
+        }
+      : null,
+    ticketTypes: (event.ticketTypes ?? []).map((ticket) => ({
+      id: ticket.id,
+      batch: ticket.batch,
+      price: Number(ticket.price),
+      soldOut: isTicketTypeSoldOut(ticket, eventSummary),
+    })),
+  };
+}
+
+export function toAgeRating(value: string | null | undefined): AgeRating | null {
+  if (!value) return null;
+  const normalized = value.trim().toUpperCase();
+  return AGE_RATINGS.includes(normalized as AgeRating)
+    ? (normalized as AgeRating)
+    : null;
+}
+
+function toListItemSummary(
+  event: ApiEventListItem,
+  fallback?: EventSummary,
 ): EventSummary {
-  const cheapest = ticketTypes
-    .map((ticket) => ({ ...ticket, price: Number(ticket.price) }))
-    .toSorted((a, b) => a.price - b.price)[0];
+  const venueName =
+    event.venueName && event.venueCity
+      ? `${event.venueName} · ${event.venueCity}`
+      : (event.venueName || event.venueCity || fallback?.venueName || "");
 
   return {
     id: event.id,
     title: event.name,
     description: event.description ?? undefined,
     category: toCategory(event.category),
-    organizerName: organizerNames.get(event.organizerId) ?? "",
-    venueName: venueNames.get(event.venueId) ?? "",
+    organizerName: event.organizerName || fallback?.organizerName || "Organização Hubee",
+    venueName,
     startDate: event.startDate,
     endDate: event.endDate,
-    price: cheapest?.price ?? null,
-    batchLabel: cheapest?.batch,
-    capacity: null,
-    ticketsSold: null,
+    price:
+      event.minPrice !== null && event.minPrice !== undefined
+        ? Number(event.minPrice)
+        : (fallback?.price ?? null),
+    batchLabel: event.minPriceBatch ?? fallback?.batchLabel ?? undefined,
+    capacity:
+      event.capacity !== undefined
+        ? event.capacity !== null
+          ? Number(event.capacity)
+          : null
+        : (fallback?.capacity ?? null),
+    ticketsSold:
+      event.ticketsSold !== undefined
+        ? event.ticketsSold !== null
+          ? Number(event.ticketsSold)
+          : null
+        : (fallback?.ticketsSold ?? null),
+  };
+}
+
+function toEventSummary(event: ApiEventSummary): EventSummary {
+  const venueName =
+    event.venueName && event.venueCity
+      ? `${event.venueName} · ${event.venueCity}`
+      : (event.venueName || event.venueCity || "");
+
+  return {
+    id: event.id,
+    title: event.name,
+    description: event.description ?? undefined,
+    category: toCategory(event.category),
+    organizerName: event.organizerName,
+    venueName,
+    startDate: event.startDate,
+    endDate: event.endDate,
+    price:
+      event.minPrice !== null && event.minPrice !== undefined
+        ? Number(event.minPrice)
+        : null,
+    batchLabel: event.minPriceBatch ?? undefined,
+    capacity:
+      event.capacity !== null && event.capacity !== undefined
+        ? Number(event.capacity)
+        : null,
+    ticketsSold:
+      event.ticketsSold !== null && event.ticketsSold !== undefined
+        ? Number(event.ticketsSold)
+        : null,
   };
 }
 

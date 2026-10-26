@@ -51,6 +51,37 @@ export interface ApiEvent {
   featured: boolean;
 }
 
+/** Item retornado por `GET /events` (`EventListItemResponseDto`). */
+export interface ApiEventListItem extends ApiEvent {
+  venueName: string;
+  venueCity: string;
+  minPrice: number | string | null;
+  minPriceBatch: string | null;
+  organizerName?: string;
+  capacity?: number | null;
+  ticketsSold?: number | null;
+}
+
+/** Resposta paginada retornada por `GET /events` (`EventPageResponseDto`). */
+export interface ApiEventPage {
+  data: ApiEventListItem[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+/** Filtros aceitos por `searchEvents` para consulta em `GET /events` (GOL-135). */
+export interface EventSearchFilters {
+  search?: string;
+  categories?: EventCategory[];
+  city?: string | null;
+  startDate?: Date | null;
+  endDate?: Date | null;
+}
+
 export interface ApiOrganization {
   id: string;
   name: string;
@@ -66,6 +97,57 @@ export interface ApiTicketType {
   id: string;
   batch: string;
   price: number | string;
+  quantity?: number;
+  ticketsSold?: number;
+  soldOut?: boolean;
+}
+
+/** Contrato retornado por `GET /events/summary` (`EventSummaryResponseDto`). */
+export interface ApiEventSummary {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  startDate: string;
+  endDate: string;
+  featured: boolean;
+  organizerName: string;
+  venueName: string;
+  venueCity: string;
+  minPrice: number | string | null;
+  minPriceBatch: string | null;
+  capacity: number | null;
+  ticketsSold: number | null;
+}
+
+/** Contrato retornado por `GET /events/:id` (`EventDetailResponseDto`). */
+export interface ApiEventDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  ageRating: string | null;
+  organizerId: string;
+  venueId: string;
+  startDate: string;
+  endDate: string;
+  salesStartDate?: string | null;
+  status?: string;
+  category: string | null;
+  edition: string | null;
+  photoUrl: string | null;
+  featured: boolean;
+  venue: {
+    id: string;
+    name: string;
+    maxCapacity?: number;
+    address: EventAddress | null;
+  } | null;
+  organization: {
+    id: string;
+    name: string;
+    description: string | null;
+  } | null;
+  ticketTypes: ApiTicketType[];
 }
 
 /** Classificação indicativa aceita pela API (`eventAgeRating`). */
