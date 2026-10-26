@@ -23,10 +23,10 @@ A navegação da conta fica em `conta/layout.tsx` para que o carrinho use o mesm
 
 - `logged-header.tsx`: pílula do header. Reaproveita `ThemeToggle`, `MainNavigation` e `getNavigationItems` do header da home. Mostra carrinho com contador, notificações e o menu da usuária (avatar/iniciais).
 - `logged-session.tsx`: `SessionHeader` (header com o usuário da sessão) e `RequireSession` (sem sessão válida, vai para `/login?redirect=…`; falha de rede não derruba a sessão).
-- `logged-user-menu.tsx`: menu com Meus pedidos, Meu perfil e Sair.
+- `logged-user-menu.tsx`: menu com Meus pedidos, Meus eventos (só organizador), Meu perfil e Sair.
 - `mobile-menu.tsx`: menu lateral abaixo de 768px (Radix Dialog: Esc fecha, foco preso, fecha ao navegar).
 - `account-sidebar.tsx` / `account-tabs.tsx`: navegação da conta no desktop / mobile, com `aria-current="page"` no item ativo.
-- `account-nav.config.ts`: **fonte única** das seções da conta. Para adicionar uma seção, inclua-a aqui e crie a página.
+- `account-nav.config.ts`: **fonte única** das seções da conta. Itens com `organizerOnly` só aparecem para quem pertence a uma organização (`getAccountNavItems(isOrganizer)`). Para adicionar uma seção, inclua-a aqui e crie a página.
 
 ## Componentes compartilhados (em `src/components/`)
 
@@ -59,3 +59,7 @@ O pedido da API tem só valor, status e data. O evento e os itens vêm dos ingre
 - E-mail repetido (409) aparece no campo e-mail; senha atual incorreta (401) aparece no campo da senha atual, sem derrubar a sessão (`skipAuthRedirect` em `lib/api/apiClient.ts`).
 - A nova senha segue 8 a 72 caracteres (`NEW_PASSWORD_*` em `lib/validations/profile.schema.ts`).
 - O banner “Complete seu perfil” aparece quando `profileComplete` é `false` e leva a `/conta/completar-perfil`.
+
+### Permissões na interface
+
+`useAuth()` expõe `isOrganizer` (pertence a alguma organização) e `canCreateEvents` (`ADMIN` ou nível `write`/`manage`), calculados por `lib/permissions.ts` a partir de `user.role` e `user.organizations` (`GET /auth/me`). Marcar "organizar" no cadastro (`signupIntent`) não libera nada: só o vínculo com a organização. A resposta de login/cadastro não traz `organizations`, então o `loginState` busca o usuário completo em segundo plano. O card "Permissões e perfil" de `/conta/perfil` mostra esses dados.
