@@ -11,9 +11,13 @@ import { EventVenue } from "./event-venue";
 import { sectionTitleClassName } from "./section-card";
 import { TicketTypeList } from "./ticket-type-list";
 
-/** Página de detalhes do evento (protótipo GOL-138). */
+/** Página de detalhes do evento (GOL-140 / GOL-141). */
 export function EventDetailsContent({ event }: { event: EventDetails }) {
   const categoryLabel = categoryConfig[event.category].label;
+  const highlightedTicketId =
+    event.ticketTypes.length > 1
+      ? [...event.ticketTypes].reverse().find((ticket) => !ticket.soldOut)?.id
+      : undefined;
 
   return (
     <EventPageShell label={`Detalhes do evento ${event.title}`}>
@@ -53,7 +57,7 @@ export function EventDetailsContent({ event }: { event: EventDetails }) {
             title="Ingressos"
             description="Escolha seu lugar nessa noite. O resto é com a música."
           >
-            <TicketTypeList ticketTypes={event.ticketTypes} highlightedId={event.ticketTypes.at(-1)?.id} />
+            <TicketTypeList ticketTypes={event.ticketTypes} highlightedId={highlightedTicketId} />
           </Section>
         </div>
       </article>
