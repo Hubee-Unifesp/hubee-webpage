@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import type { UserOrganization } from "@/lib/api/auth";
-import type { SignupIntent } from "@/lib/validations/auth.schema";
-
-=======
 import type { SignupIntent } from "@/lib/validations/auth.schema";
 
 /** Papel global da conta na API. `ADMIN` administra a plataforma inteira. */
@@ -22,7 +17,6 @@ export interface UsuarioOrganizacao {
   level: OrganizationAccessLevel;
 }
 
->>>>>>> origin/develop
 export interface Usuario {
   id: string;
   /** Mesmo nome do `fullName` do cadastro e da API. */
@@ -33,17 +27,11 @@ export interface Usuario {
   /** URL da foto de perfil. Sem foto, a interface mostra as iniciais do nome. */
   avatarUrl?: string | null;
   profileComplete: boolean;
-<<<<<<< HEAD
-  signupIntent?: SignupIntent;
-  /** Organizações com convite aceito às quais a usuária pertence. */
-  organizations?: UserOrganization[];
-=======
   role: UserRole;
   /** O que a pessoa marcou no cadastro. É só intenção: quem dá acesso de organizador é o vínculo em `organizations`. */
   signupIntent: SignupIntent | null;
   /** Ausente nas respostas de login e cadastro; vem em `GET /auth/me` e `PATCH /users/me`. */
   organizations?: UsuarioOrganizacao[];
->>>>>>> origin/develop
 }
 
 /** Dados da usuária autenticada usados pelo layout da área logada. */
