@@ -3,10 +3,13 @@ import { parseApiError } from "./errors";
 import type {
   AgeRating,
   ApiEventDetail,
+  ApiEventListItem,
+  ApiEventPage,
   ApiEventSummary,
   CategorySummary,
   EventCategory,
   EventDetails,
+  EventSearchFilters,
   EventSummary,
   HomeEvents,
 } from "./events.types";
@@ -24,6 +27,15 @@ const CATEGORY_ORDER: readonly EventCategory[] = [
   "outros",
 ];
 
+const CATEGORY_TO_API_PARAM: Record<EventCategory, string> = {
+  festas: "Festas",
+  shows: "Shows",
+  palestras: "Palestras",
+  esportes: "Esportes",
+  academicos: "Acadêmicos",
+  outros: "Outros",
+};
+
 const AGE_RATINGS: readonly AgeRating[] = ["L", "10", "12", "14", "16", "18"];
 
 const SAO_PAULO_OFFSET_MS = -3 * 60 * 60 * 1000;
@@ -40,6 +52,120 @@ export function isSoldOut(event: EventSummary): boolean {
 export function soldRatio(event: EventSummary): number {
   if (event.capacity === null || event.ticketsSold === null) return 0;
   return event.capacity > 0 ? event.ticketsSold / event.capacity : 0;
+}
+
+export function toDateParam(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function buildEventQueryParams(
+  filters: EventSearchFilters,
+): Record<string, string | number> {
+  const params: Record<string, string | number> = { limit: 100 };
+  const search = filters.search?.trim();
+  const city = filters.city?.trim();
+  const categories = filters.categories ?? [];
+
+  if (search) {
+    params.search = search;
+  }
+  if (categories.length === 1) {
+    params.category = CATEGORY_TO_API_PARAM[categories[0]];
+  }
+  if (city) {
+    params.city = city;
+  }
+  if (filters.startDate) {
+    const startParam = toDateParam(filters.startDate);
+    const endParam = filters.endDate
+      ? toDateParam(filters.endDate)
+      : startParam;
+    params.startDate = startParam;
+    params.endDate = endParam;
+  }
+
+  return params;
+}
+
+const normalizeSearch = (text: string) =>
+  text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+
+/**
+ * Busca eventos publicados filtrados via `GET /events` com query parameters (GOL-135).
+ * Suporta busca textual (nome, descrição ou agremiação), categorias, cidade e intervalo de datas.
+ */
+export async function searchEvents(
+  filters: EventSearchFilters,
+  fallbackSummaries: readonly EventSummary[] = [],
+): Promise<EventSummary[]> {
+  const params = buildEventQueryParams(filters);
+  const { data } = await apiClient.get<ApiEventPage>("/events", { params });
+
+  const fallbackById = new Map(
+    fallbackSummaries.map((summary) => [summary.id, summary]),
+  );
+
+  let mapped = (data.data ?? []).map((item) =>
+    toListItemSummary(item, fallbackById.get(item.id)),
+  );
+
+  const searchTerm = filters.search?.trim()
+    ? normalizeSearch(filters.search.trim())
+    : "";
+
+  // Caso o usuário tenha pesquisado pelo nome da agremiação/local (que não consta em events.name/description),
+  // complementamos com os eventos cujos filtros de data/cidade/categoria batem e cujo organizador/local corresponde.
+  if (searchTerm && fallbackSummaries.length > 0) {
+    const existingIds = new Set(mapped.map((item) => item.id));
+    const extraMatches = fallbackSummaries.filter((event) => {
+      if (existingIds.has(event.id)) return false;
+      const matchesOrgOrVenue =
+        normalizeSearch(event.organizerName).includes(searchTerm) ||
+        normalizeSearch(event.venueName).includes(searchTerm);
+      if (!matchesOrgOrVenue) return false;
+      if (
+        filters.city &&
+        !normalizeSearch(event.venueName).includes(
+          normalizeSearch(filters.city),
+        )
+      ) {
+        return false;
+      }
+      if (filters.startDate) {
+        const startDay = new Date(
+          filters.startDate.getFullYear(),
+          filters.startDate.getMonth(),
+          filters.startDate.getDate(),
+        ).getTime();
+        const endDateObj = filters.endDate ?? filters.startDate;
+        const endDay = new Date(
+          endDateObj.getFullYear(),
+          endDateObj.getMonth(),
+          endDateObj.getDate(),
+          23,
+          59,
+          59,
+          999,
+        ).getTime();
+        const eventStart = new Date(event.startDate).getTime();
+        const eventEnd = new Date(event.endDate).getTime();
+        if (eventEnd < startDay || eventStart > endDay) return false;
+      }
+      return true;
+    });
+    mapped = [...mapped, ...extraMatches];
+  }
+
+  if (filters.categories && filters.categories.length > 0) {
+    mapped = mapped.filter((event) =>
+      filters.categories!.includes(event.category),
+    );
+  }
+
+  return mapped;
 }
 
 export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
@@ -116,6 +242,44 @@ export function toAgeRating(value: string | null | undefined): AgeRating | null 
   return AGE_RATINGS.includes(normalized as AgeRating)
     ? (normalized as AgeRating)
     : null;
+}
+
+function toListItemSummary(
+  event: ApiEventListItem,
+  fallback?: EventSummary,
+): EventSummary {
+  const venueName =
+    event.venueName && event.venueCity
+      ? `${event.venueName} · ${event.venueCity}`
+      : (event.venueName || event.venueCity || fallback?.venueName || "");
+
+  return {
+    id: event.id,
+    title: event.name,
+    description: event.description ?? undefined,
+    category: toCategory(event.category),
+    organizerName: event.organizerName || fallback?.organizerName || "Organização Hubee",
+    venueName,
+    startDate: event.startDate,
+    endDate: event.endDate,
+    price:
+      event.minPrice !== null && event.minPrice !== undefined
+        ? Number(event.minPrice)
+        : (fallback?.price ?? null),
+    batchLabel: event.minPriceBatch ?? fallback?.batchLabel ?? undefined,
+    capacity:
+      event.capacity !== undefined
+        ? event.capacity !== null
+          ? Number(event.capacity)
+          : null
+        : (fallback?.capacity ?? null),
+    ticketsSold:
+      event.ticketsSold !== undefined
+        ? event.ticketsSold !== null
+          ? Number(event.ticketsSold)
+          : null
+        : (fallback?.ticketsSold ?? null),
+  };
 }
 
 function toEventSummary(event: ApiEventSummary): EventSummary {

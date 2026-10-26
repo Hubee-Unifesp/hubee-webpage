@@ -51,6 +51,37 @@ export interface ApiEvent {
   featured: boolean;
 }
 
+/** Item retornado por `GET /events` (`EventListItemResponseDto`). */
+export interface ApiEventListItem extends ApiEvent {
+  venueName: string;
+  venueCity: string;
+  minPrice: number | string | null;
+  minPriceBatch: string | null;
+  organizerName?: string;
+  capacity?: number | null;
+  ticketsSold?: number | null;
+}
+
+/** Resposta paginada retornada por `GET /events` (`EventPageResponseDto`). */
+export interface ApiEventPage {
+  data: ApiEventListItem[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+/** Filtros aceitos por `searchEvents` para consulta em `GET /events` (GOL-135). */
+export interface EventSearchFilters {
+  search?: string;
+  categories?: EventCategory[];
+  city?: string | null;
+  startDate?: Date | null;
+  endDate?: Date | null;
+}
+
 export interface ApiOrganization {
   id: string;
   name: string;
