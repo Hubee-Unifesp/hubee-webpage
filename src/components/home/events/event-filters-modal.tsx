@@ -46,22 +46,22 @@ const CATEGORY_LIST: readonly EventCategory[] = [
 
 const MONTHS = [
   "Jan",
-  "Feb",
+  "Fev",
   "Mar",
-  "Apr",
-  "May",
+  "Abr",
+  "Mai",
   "Jun",
   "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
+  "Ago",
+  "Set",
+  "Out",
   "Nov",
-  "Dec",
+  "Dez",
 ] as const;
 
 const YEARS = [2025, 2026, 2027] as const;
 
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] as const;
+const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"] as const;
 
 const normalizeText = (value: string) =>
   value
@@ -85,8 +85,26 @@ export function EventFiltersModal({
 }: EventFiltersModalProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>("todos");
   const [cityQuery, setCityQuery] = useState(filters.city ?? "");
-  const [viewMonth, setViewMonth] = useState(() => filters.dateRange.start?.getMonth() ?? 8);
-  const [viewYear, setViewYear] = useState(() => filters.dateRange.start?.getFullYear() ?? 2025);
+  const [viewMonth, setViewMonth] = useState(
+    () => filters.dateRange.start?.getMonth() ?? new Date().getMonth(),
+  );
+  const [viewYear, setViewYear] = useState(
+    () => filters.dateRange.start?.getFullYear() ?? new Date().getFullYear(),
+  );
+
+  const hasActiveFilters =
+    filters.categories.length > 0 ||
+    filters.city !== null ||
+    filters.dateRange.start !== null;
+
+  const handleClearAllFilters = () => {
+    setCityQuery("");
+    onFiltersChange({
+      categories: [],
+      city: null,
+      dateRange: { start: null, end: null },
+    });
+  };
 
   const toggleCategory = (category: EventCategory) => {
     const exists = filters.categories.includes(category);
@@ -364,6 +382,18 @@ export function EventFiltersModal({
                 onNextMonth={goToNextMonth}
                 onDayClick={handleDayClick}
               />
+            </div>
+          )}
+
+          {hasActiveFilters && (
+            <div className="mt-5 flex justify-end border-t border-hubee-800/40 pt-4 dark:border-hubee-50/40">
+              <button
+                type="button"
+                onClick={handleClearAllFilters}
+                className="inline-flex h-9 cursor-pointer items-center justify-center rounded-full border border-hubee-750 px-4 text-xs font-medium text-hubee-800 transition-colors outline-none hover:bg-hubee-200 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:border-hubee-400 dark:text-hubee-50 dark:hover:bg-hubee-750"
+              >
+                Limpar filtros
+              </button>
             </div>
           )}
         </DialogPrimitive.Content>

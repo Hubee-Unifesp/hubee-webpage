@@ -108,6 +108,15 @@ export function EventListingSection() {
             <ListFilter aria-hidden="true" strokeWidth={2} className="size-4" />
             Filtros
           </button>
+          {hasActiveModalFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-hubee-400 bg-transparent px-3 text-xs font-medium text-hubee-750 transition-colors outline-none hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:border-hubee-500 dark:text-hubee-50 dark:hover:bg-hubee-750"
+            >
+              Limpar filtros
+            </button>
+          )}
         </form>
         <CategoryFilter
           categories={resolvedData.categories}
