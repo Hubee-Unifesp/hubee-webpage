@@ -6,6 +6,7 @@ import type {
   ApiEventListItem,
   ApiEventPage,
   ApiEventSummary,
+  ApiTicketType,
   CategorySummary,
   EventCategory,
   EventDetails,
@@ -27,15 +28,6 @@ const CATEGORY_ORDER: readonly EventCategory[] = [
   "outros",
 ];
 
-const CATEGORY_TO_API_PARAM: Record<EventCategory, string> = {
-  festas: "Festas",
-  shows: "Shows",
-  palestras: "Palestras",
-  esportes: "Esportes",
-  academicos: "Acadêmicos",
-  outros: "Outros",
-};
-
 const AGE_RATINGS: readonly AgeRating[] = ["L", "10", "12", "14", "16", "18"];
 
 const SAO_PAULO_OFFSET_MS = -3 * 60 * 60 * 1000;
@@ -45,6 +37,7 @@ export function isSoldOut(event: EventSummary): boolean {
   return (
     event.capacity !== null &&
     event.ticketsSold !== null &&
+    event.capacity > 0 &&
     event.ticketsSold >= event.capacity
   );
 }
@@ -61,19 +54,21 @@ export function toDateParam(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * Monta os query params enviados para `GET /events`.
+ * Nota: `category` no banco é texto livre (ex.: "festa", "Festas", "Música") e a API
+ * compara com `ilike` sem curingas. Por isso não enviamos `category` na query string
+ * e filtramos localmente após normalizar com `toCategory`.
+ */
 export function buildEventQueryParams(
   filters: EventSearchFilters,
 ): Record<string, string | number> {
   const params: Record<string, string | number> = { limit: 100 };
   const search = filters.search?.trim();
   const city = filters.city?.trim();
-  const categories = filters.categories ?? [];
 
   if (search) {
     params.search = search;
-  }
-  if (categories.length === 1) {
-    params.category = CATEGORY_TO_API_PARAM[categories[0]];
   }
   if (city) {
     params.city = city;
@@ -182,6 +177,9 @@ export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
 
 /**
  * Busca os detalhes completos de um evento publicado via `GET /events/:id`.
+ * Consulta em paralelo `GET /events/summary` (de forma resiliente) para inferir lotes esgotados
+ * a partir de `capacity`, `ticketsSold` e `minPrice`, já que `ticket_types.quantity` na API
+ * representa a capacidade total do lote (default 0) e não o saldo restante.
  * Retorna `null` quando o evento não existe, não está publicado (404) ou o ID é inválido (400).
  */
 export async function getEventById(id: string): Promise<EventDetails | null> {
@@ -189,10 +187,20 @@ export async function getEventById(id: string): Promise<EventDetails | null> {
   if (!trimmedId) return null;
 
   try {
-    const { data } = await apiClient.get<ApiEventDetail>(
-      `/events/${encodeURIComponent(trimmedId)}`,
+    const [detailResponse, summaryList] = await Promise.all([
+      apiClient.get<ApiEventDetail>(
+        `/events/${encodeURIComponent(trimmedId)}`,
+      ),
+      apiClient
+        .get<ApiEventSummary[]>("/events/summary")
+        .then((res) => (Array.isArray(res.data) ? res.data : []))
+        .catch(() => [] as ApiEventSummary[]),
+    ]);
+
+    const matchingSummary = summaryList.find(
+      (item) => item.id === detailResponse.data.id,
     );
-    return toEventDetails(data);
+    return toEventDetails(detailResponse.data, matchingSummary);
   } catch (error) {
     const { status } = parseApiError(error);
     if (status === 404 || status === 400) {
@@ -202,7 +210,65 @@ export async function getEventById(id: string): Promise<EventDetails | null> {
   }
 }
 
-export function toEventDetails(event: ApiEventDetail): EventDetails {
+/**
+ * Determina se um lote está esgotado.
+ * Em `ticket_types`, `quantity` representa a capacidade total do lote (default 0),
+ * e não o saldo restante:
+ * - Um lote com `quantity === 0` (criado sem `quantity`) NÃO é marcado como esgotado.
+ * - Se a API informar `soldOut` ou `ticketsSold` no próprio lote, usamos esse valor.
+ * - Caso contrário, usamos o resumo do evento (`GET /events/summary`): se o evento atingiu
+ *   a capacidade total (`ticketsSold >= capacity`) ou se o menor preço disponível (`minPrice`)
+ *   já é maior que o preço deste lote (`quantity > 0`), o lote está esgotado.
+ */
+export function isTicketTypeSoldOut(
+  ticket: ApiTicketType,
+  eventSummary?: Pick<ApiEventSummary, "capacity" | "ticketsSold" | "minPrice">,
+): boolean {
+  if (typeof ticket.soldOut === "boolean") {
+    return ticket.soldOut;
+  }
+
+  const batchCapacity =
+    ticket.quantity !== undefined ? Number(ticket.quantity) : 0;
+  if (batchCapacity <= 0) {
+    return false;
+  }
+
+  if (ticket.ticketsSold !== undefined) {
+    return Number(ticket.ticketsSold) >= batchCapacity;
+  }
+
+  if (eventSummary) {
+    const totalCapacity =
+      eventSummary.capacity !== null && eventSummary.capacity !== undefined
+        ? Number(eventSummary.capacity)
+        : 0;
+    const totalSold =
+      eventSummary.ticketsSold !== null &&
+      eventSummary.ticketsSold !== undefined
+        ? Number(eventSummary.ticketsSold)
+        : 0;
+
+    if (totalCapacity > 0 && totalSold >= totalCapacity) {
+      return true;
+    }
+
+    if (
+      eventSummary.minPrice !== null &&
+      eventSummary.minPrice !== undefined &&
+      Number(ticket.price) < Number(eventSummary.minPrice)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function toEventDetails(
+  event: ApiEventDetail,
+  eventSummary?: Pick<ApiEventSummary, "capacity" | "ticketsSold" | "minPrice">,
+): EventDetails {
   return {
     id: event.id,
     title: event.name,
@@ -231,7 +297,7 @@ export function toEventDetails(event: ApiEventDetail): EventDetails {
       id: ticket.id,
       batch: ticket.batch,
       price: Number(ticket.price),
-      soldOut: ticket.quantity !== undefined ? Number(ticket.quantity) <= 0 : false,
+      soldOut: isTicketTypeSoldOut(ticket, eventSummary),
     })),
   };
 }

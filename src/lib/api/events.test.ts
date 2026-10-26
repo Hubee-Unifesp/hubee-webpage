@@ -17,6 +17,7 @@ import {
   getEventById,
   getHomeEvents,
   isSoldOut,
+  isTicketTypeSoldOut,
   searchEvents,
   soldRatio,
   toAgeRating,
@@ -68,13 +69,13 @@ const apiEventDetailFixture: ApiEventDetail = {
       id: "a1b2c3d4-0001-4a5b-8c6d-7e8f9a0b1c2d",
       batch: "1º Lote",
       price: "60.00",
-      quantity: 0,
+      quantity: 100,
     },
     {
       id: "a1b2c3d4-0002-4a5b-8c6d-7e8f9a0b1c2d",
       batch: "2º Lote",
       price: 80,
-      quantity: 120,
+      quantity: 0,
     },
   ],
 };
@@ -100,12 +101,34 @@ beforeEach(() => {
 });
 
 describe("getEventById", () => {
-  it("mapeia os dados do endpoint GET /events/:id para EventDetails", async () => {
-    publicGet.mockResolvedValueOnce({ data: apiEventDetailFixture });
+  it("mapeia os dados de GET /events/:id + /events/summary sem marcar quantity=0 como esgotado e detectando lote esgotado", async () => {
+    publicGet
+      .mockResolvedValueOnce({ data: apiEventDetailFixture })
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: EVENT_ID,
+            name: "Entre acordes e encontros",
+            description: "Show intimista",
+            category: "Shows",
+            startDate: "2026-11-21T23:00:00.000Z",
+            endDate: "2026-11-22T03:00:00.000Z",
+            featured: true,
+            organizerName: "Coletivo Entro",
+            venueName: "Casa Natura Musical",
+            venueCity: "São Paulo",
+            minPrice: 80,
+            minPriceBatch: "2º Lote",
+            capacity: 100,
+            ticketsSold: 100,
+          },
+        ] satisfies ApiEventSummary[],
+      });
 
     const result = await getEventById(EVENT_ID);
 
     expect(publicGet).toHaveBeenCalledWith(`/events/${EVENT_ID}`);
+    expect(publicGet).toHaveBeenCalledWith("/events/summary");
     expect(result).toEqual({
       id: EVENT_ID,
       title: "Entre acordes e encontros",
@@ -151,14 +174,62 @@ describe("getEventById", () => {
     });
   });
 
+  it("calcula isTicketTypeSoldOut corretamente para quantity default 0 vs lote com 100 ingressos vendidos", () => {
+    expect(
+      isTicketTypeSoldOut(
+        { id: "1", batch: "Lote sem quantity", price: 50, quantity: 0 },
+        { capacity: 0, ticketsSold: 0, minPrice: 50 },
+      ),
+    ).toBe(false);
+    expect(
+      isTicketTypeSoldOut(
+        {
+          id: "2",
+          batch: "Lote 100 ingressos disponivel",
+          price: 50,
+          quantity: 100,
+        },
+        { capacity: 100, ticketsSold: 20, minPrice: 50 },
+      ),
+    ).toBe(false);
+    expect(
+      isTicketTypeSoldOut(
+        {
+          id: "3",
+          batch: "Lote 100 ingressos todos vendidos (evento lotado)",
+          price: 50,
+          quantity: 100,
+        },
+        { capacity: 100, ticketsSold: 100, minPrice: 50 },
+      ),
+    ).toBe(true);
+    expect(
+      isTicketTypeSoldOut(
+        {
+          id: "4",
+          batch: "1º Lote esgotado quando minPrice subiu para o 2º Lote",
+          price: 50,
+          quantity: 100,
+        },
+        { capacity: 200, ticketsSold: 100, minPrice: 80 },
+      ),
+    ).toBe(true);
+  });
+
   it("retorna null quando a API responde 404 (evento inexistente ou nao publicado)", async () => {
-    publicGet.mockRejectedValueOnce(makeAxiosError(404, "Evento não encontrado"));
+    publicGet
+      .mockRejectedValueOnce(makeAxiosError(404, "Evento não encontrado"))
+      .mockResolvedValueOnce({ data: [] });
 
     await expect(getEventById(EVENT_ID)).resolves.toBeNull();
   });
 
   it("retorna null quando a API responde 400 (UUID invalido na rota)", async () => {
-    publicGet.mockRejectedValueOnce(makeAxiosError(400, "Validation failed (uuid is expected)"));
+    publicGet
+      .mockRejectedValueOnce(
+        makeAxiosError(400, "Validation failed (uuid is expected)"),
+      )
+      .mockResolvedValueOnce({ data: [] });
 
     await expect(getEventById("id-invalido")).resolves.toBeNull();
   });
@@ -169,7 +240,9 @@ describe("getEventById", () => {
   });
 
   it("propaga erros inesperados da API (ex.: 500)", async () => {
-    publicGet.mockRejectedValueOnce(makeAxiosError(500, "Internal Server Error"));
+    publicGet
+      .mockRejectedValueOnce(makeAxiosError(500, "Internal Server Error"))
+      .mockResolvedValueOnce({ data: [] });
 
     await expect(getEventById(EVENT_ID)).rejects.toThrow();
   });
@@ -226,12 +299,14 @@ describe("getHomeEvents", () => {
     });
     expect(home.thisWeek.events.map((e) => e.id)).toEqual([EVENT_ID]);
     expect(home.sellingOut.map((e) => e.id)).toEqual([EVENT_ID]);
-    expect(home.free.map((e) => e.id)).toEqual(["22222222-2222-4222-8222-222222222222"]);
+    expect(home.free.map((e) => e.id)).toEqual([
+      "22222222-2222-4222-8222-222222222222",
+    ]);
   });
 });
 
 describe("searchEvents (GOL-135)", () => {
-  it("monta query params e consulta GET /events com filtros de busca, categoria, cidade e data", async () => {
+  it("monta query params sem enviar category literal e filtra categorias via toCategory (incluindo 'festa' e 'Música' em 'outros')", async () => {
     const pageResponse: ApiEventPage = {
       data: [
         {
@@ -242,17 +317,32 @@ describe("searchEvents (GOL-135)", () => {
           venueId: "venue-1",
           startDate: "2026-10-30T17:00:00.000Z",
           endDate: "2026-10-31T02:00:00.000Z",
-          category: "Festas",
+          category: "festa",
           featured: true,
           venueName: "Arena Unifesp",
           venueCity: "São José dos Campos",
           minPrice: "35.00",
           minPriceBatch: "1º Lote",
         },
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "Festival de Música Instrumental",
+          description: "Apresentação musical",
+          organizerId: "org-2",
+          venueId: "venue-1",
+          startDate: "2026-10-30T19:00:00.000Z",
+          endDate: "2026-10-30T23:00:00.000Z",
+          category: "Música",
+          featured: false,
+          venueName: "Arena Unifesp",
+          venueCity: "São José dos Campos",
+          minPrice: 0,
+          minPriceBatch: "Gratuito",
+        },
       ],
-      meta: { page: 1, limit: 100, total: 1, totalPages: 1 },
+      meta: { page: 1, limit: 100, total: 2, totalPages: 1 },
     };
-    publicGet.mockResolvedValueOnce({ data: pageResponse });
+    publicGet.mockResolvedValue({ data: pageResponse });
 
     const fallback: EventSummary[] = [
       {
@@ -283,13 +373,12 @@ describe("searchEvents (GOL-135)", () => {
     ).toEqual({
       limit: 100,
       search: "Cervejada",
-      category: "Festas",
       city: "São José dos Campos",
       startDate: "2026-10-30",
       endDate: "2026-10-31",
     });
 
-    const results = await searchEvents(
+    const resultsFestas = await searchEvents(
       {
         search: "Cervejada",
         categories: ["festas"],
@@ -304,20 +393,19 @@ describe("searchEvents (GOL-135)", () => {
       params: {
         limit: 100,
         search: "Cervejada",
-        category: "Festas",
         city: "São José dos Campos",
         startDate: "2026-10-30",
         endDate: "2026-10-31",
       },
     });
-    expect(results).toHaveLength(1);
-    expect(results[0]).toMatchObject({
-      id: EVENT_ID,
-      title: "Cervejada da Bateria",
-      organizerName: "Atlética Bateria SJC",
-      venueName: "Arena Unifesp · São José dos Campos",
-      price: 35,
+    expect(resultsFestas.map((r) => r.id)).toEqual([EVENT_ID]);
+
+    const resultsOutros = await searchEvents({
+      categories: ["outros"],
     });
+    expect(resultsOutros.map((r) => r.id)).toEqual([
+      "33333333-3333-4333-8333-333333333333",
+    ]);
   });
 });
 

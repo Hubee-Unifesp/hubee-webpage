@@ -98,6 +98,8 @@ export interface ApiTicketType {
   batch: string;
   price: number | string;
   quantity?: number;
+  ticketsSold?: number;
+  soldOut?: boolean;
 }
 
 /** Contrato retornado por `GET /events/summary` (`EventSummaryResponseDto`). */
