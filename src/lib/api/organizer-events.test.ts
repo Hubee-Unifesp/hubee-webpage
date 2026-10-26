@@ -1,18 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const { authGet, publicGet } = vi.hoisted(() => ({
-  authGet: vi.fn(),
-  publicGet: vi.fn(),
-}));
-
-vi.mock("./apiClient", () => ({ apiClient: { get: authGet } }));
-vi.mock("./client", () => ({ apiClient: { get: publicGet } }));
-
-import {
-  getOrganizerEvents,
-  resolveUserOrganizations,
-  toEventoOrganizador,
-} from "./events";
+import { getOrganizerEvents, resolveUserOrganizations, toEventoOrganizador } from "./events";
 import {
   calculateSoldPercentage,
   canCancelEvent,
@@ -20,26 +7,51 @@ import {
   canDuplicateEvent,
   canViewPublicPage,
   deriveOrganizerRole,
+  deriveOrganizerRoleFromLevel,
   formatOrganizerRoleLabel,
+  formatShortOrganizerRoleLabel,
   getPrimaryEventActionLabel,
   toOrganizacoesVinculadas,
 } from "@/types/organizacao";
 
-describe("regras de papel e permissões do organizador (RBAC)", () => {
-  it("deriva o papel semântico a partir de role e permission", () => {
+const { getAuthMock, getPublicMock } = vi.hoisted(() => ({
+  getAuthMock: vi.fn(),
+  getPublicMock: vi.fn(),
+}));
+
+vi.mock("./apiClient", () => ({
+  apiClient: { get: getAuthMock },
+}));
+
+vi.mock("./client", () => ({
+  apiClient: { get: getPublicMock },
+}));
+
+describe("organizacao helpers (RBAC e cálculos)", () => {
+  it("deriva o papel a partir de level (manage, write, read)", () => {
+    expect(deriveOrganizerRoleFromLevel("manage")).toBe("administrador");
+    expect(deriveOrganizerRoleFromLevel("write")).toBe("membro");
+    expect(deriveOrganizerRoleFromLevel("read")).toBe("leitura");
+  });
+
+  it("deriva o papel correto a partir de role + permission", () => {
     expect(deriveOrganizerRole("admin", "full")).toBe("administrador");
     expect(deriveOrganizerRole("member", "full")).toBe("membro");
     expect(deriveOrganizerRole("member", "read_only")).toBe("leitura");
     expect(deriveOrganizerRole("admin", "read_only")).toBe("leitura");
   });
 
-  it("formata o rótulo em português para exibição na interface", () => {
+  it("formata os rótulos completos e curtos dos papéis", () => {
     expect(formatOrganizerRoleLabel("administrador")).toBe("Administrador");
     expect(formatOrganizerRoleLabel("membro")).toBe("Membro");
     expect(formatOrganizerRoleLabel("leitura")).toBe("Leitura");
+
+    expect(formatShortOrganizerRoleLabel("administrador")).toBe("Admin");
+    expect(formatShortOrganizerRoleLabel("membro")).toBe("Membro");
+    expect(formatShortOrganizerRoleLabel("leitura")).toBe("Leitura");
   });
 
-  it("permite criar, editar e duplicar apenas para administrador e membro", () => {
+  it("aplica as permissões de criar/editar, duplicar e cancelar por papel e status", () => {
     expect(canCreateOrEditEvent("administrador")).toBe(true);
     expect(canCreateOrEditEvent("membro")).toBe(true);
     expect(canCreateOrEditEvent("leitura")).toBe(false);
@@ -47,190 +59,185 @@ describe("regras de papel e permissões do organizador (RBAC)", () => {
     expect(canDuplicateEvent("administrador")).toBe(true);
     expect(canDuplicateEvent("membro")).toBe(true);
     expect(canDuplicateEvent("leitura")).toBe(false);
-  });
 
-  it("permite cancelar evento apenas para administrador em rascunho ou publicado", () => {
-    expect(canCancelEvent("administrador", "draft")).toBe(true);
     expect(canCancelEvent("administrador", "published")).toBe(true);
+    expect(canCancelEvent("administrador", "draft")).toBe(true);
     expect(canCancelEvent("administrador", "finished")).toBe(false);
     expect(canCancelEvent("administrador", "cancelled")).toBe(false);
-
-    expect(canCancelEvent("membro", "draft")).toBe(false);
     expect(canCancelEvent("membro", "published")).toBe(false);
     expect(canCancelEvent("leitura", "published")).toBe(false);
   });
 
-  it("exibe link para página pública apenas para eventos publicados ou encerrados", () => {
+  it("define corretamente quando a página pública pode ser aberta", () => {
     expect(canViewPublicPage("published")).toBe(true);
     expect(canViewPublicPage("finished")).toBe(true);
     expect(canViewPublicPage("draft")).toBe(false);
     expect(canViewPublicPage("cancelled")).toBe(false);
   });
 
-  it("define o rótulo da ação principal do cartão conforme papel e status", () => {
-    expect(getPrimaryEventActionLabel("leitura", "draft")).toBe("Visualizar");
+  it("retorna o rótulo da ação principal por papel e status", () => {
     expect(getPrimaryEventActionLabel("leitura", "published")).toBe("Visualizar");
+    expect(getPrimaryEventActionLabel("leitura", "draft")).toBe("Visualizar");
     expect(getPrimaryEventActionLabel("administrador", "draft")).toBe("Editar");
     expect(getPrimaryEventActionLabel("membro", "draft")).toBe("Editar");
     expect(getPrimaryEventActionLabel("administrador", "published")).toBe("Gerenciar");
     expect(getPrimaryEventActionLabel("membro", "finished")).toBe("Gerenciar");
   });
 
-  it("converte organizações da sessão para o modelo de domínio", () => {
-    expect(toOrganizacoesVinculadas(undefined)).toEqual([]);
-    expect(
-      toOrganizacoesVinculadas([
-        { orgId: "org-1", name: "AAACH", role: "admin", permission: "full" },
-        { orgId: "org-2", name: "CA SI", role: "member", permission: "read_only" },
-      ]),
-    ).toEqual([
-      { orgId: "org-1", nome: "AAACH", role: "admin", permission: "full", papel: "administrador" },
-      { orgId: "org-2", nome: "CA SI", role: "member", permission: "read_only", papel: "leitura" },
-    ]);
-  });
-});
-
-describe("calculateSoldPercentage", () => {
-  it("retorna 0 quando capacidade ou vendas forem zero ou negativas", () => {
+  it("calcula o percentual vendido truncando entre 0 e 100", () => {
     expect(calculateSoldPercentage(0, 0)).toBe(0);
-    expect(calculateSoldPercentage(10, 0)).toBe(0);
-    expect(calculateSoldPercentage(0, 100)).toBe(0);
-  });
-
-  it("calcula o percentual arredondado e limita a 100%", () => {
-    expect(calculateSoldPercentage(342, 500)).toBe(68);
-    expect(calculateSoldPercentage(189, 250)).toBe(76);
-    expect(calculateSoldPercentage(200, 200)).toBe(100);
+    expect(calculateSoldPercentage(0, 200)).toBe(0);
+    expect(calculateSoldPercentage(50, 200)).toBe(25);
     expect(calculateSoldPercentage(250, 200)).toBe(100);
   });
-});
 
-describe("resolveUserOrganizations", () => {
-  beforeEach(() => {
-    authGet.mockReset();
-    publicGet.mockReset();
-  });
-
-  it("usa user.organizations diretamente quando já estiver presente na sessão (pós-GOL-144)", async () => {
-    const result = await resolveUserOrganizations({
-      id: "user-1",
-      organizations: [{ orgId: "org-1", name: "AAACH", role: "member", permission: "full" }],
-    });
-
-    expect(result).toEqual([
-      { orgId: "org-1", nome: "AAACH", role: "member", permission: "full", papel: "membro" },
+  it("mapeia a lista de organizações do usuário em OrganizacaoVinculada usando organizationName e level", () => {
+    const result = toOrganizacoesVinculadas([
+      {
+        orgId: "org-1",
+        organizationName: "Atlética Unifesp",
+        role: "admin",
+        permission: "full",
+        level: "manage",
+      },
+      {
+        orgId: "org-2",
+        organizationName: "Bateria",
+        role: "member",
+        permission: "read_only",
+        level: "read",
+      },
     ]);
-    expect(publicGet).not.toHaveBeenCalled();
-  });
-
-  it("filtra vínculos aceitos via /organizations e /organizations/:orgId/users quando disponível", async () => {
-    publicGet.mockResolvedValueOnce({
-      data: [
-        { id: "org-1", name: "AAACH" },
-        { id: "org-2", name: "CA SI" },
-      ],
-    });
-    authGet.mockImplementation((url: string) => {
-      if (url === "/organizations/org-1/users") {
-        return Promise.resolve({
-          data: [
-            { orgId: "org-1", userId: "user-1", role: "member", permission: "read_only", inviteStatus: "accepted" },
-          ],
-        });
-      }
-      return Promise.resolve({
-        data: [
-          { orgId: "org-2", userId: "user-1", role: "admin", permission: "full", inviteStatus: "pending" },
-        ],
-      });
-    });
-
-    const result = await resolveUserOrganizations({ id: "user-1", signupIntent: "BUY" });
-
-    expect(result).toEqual([
-      { orgId: "org-1", nome: "AAACH", role: "member", permission: "read_only", papel: "leitura" },
-    ]);
-  });
-
-  it("usa fallback com signupIntent === 'ORGANIZE' quando /organizations/:orgId/users retorna 403 (pré-GOL-144)", async () => {
-    publicGet.mockResolvedValueOnce({
-      data: [{ id: "org-1", name: "AAACH — Atlética de Artes, Ciências e Humanidades" }],
-    });
-    authGet.mockRejectedValue(new Error("403 Forbidden"));
-
-    const result = await resolveUserOrganizations({ id: "user-1", signupIntent: "ORGANIZE" });
 
     expect(result).toEqual([
       {
         orgId: "org-1",
-        nome: "AAACH — Atlética de Artes, Ciências e Humanidades",
+        nome: "Atlética Unifesp",
         role: "admin",
         permission: "full",
+        level: "manage",
         papel: "administrador",
+      },
+      {
+        orgId: "org-2",
+        nome: "Bateria",
+        role: "member",
+        permission: "read_only",
+        level: "read",
+        papel: "leitura",
       },
     ]);
   });
 });
 
+describe("resolveUserOrganizations", () => {
+  it("retorna as organizações vindas em user.organizations", () => {
+    const resolved = resolveUserOrganizations({
+      id: "user-1",
+      organizations: [
+        {
+          orgId: "org-1",
+          organizationName: "DAComp",
+          role: "member",
+          permission: "full",
+          level: "write",
+        },
+      ],
+    });
+
+    expect(resolved).toEqual([
+      {
+        orgId: "org-1",
+        nome: "DAComp",
+        role: "member",
+        permission: "full",
+        level: "write",
+        papel: "membro",
+      },
+    ]);
+  });
+
+  it("retorna lista vazia quando user é nulo ou não possui organizações vinculadas", () => {
+    expect(resolveUserOrganizations(null)).toEqual([]);
+    expect(resolveUserOrganizations({ id: "user-1" })).toEqual([]);
+    expect(resolveUserOrganizations({ id: "user-1", organizations: [] })).toEqual([]);
+  });
+});
+
 describe("getOrganizerEvents & toEventoOrganizador", () => {
   beforeEach(() => {
-    authGet.mockReset();
-    publicGet.mockReset();
+    getAuthMock.mockReset();
+    getPublicMock.mockReset();
   });
 
-  it("mapeia os campos do evento da API para EventoOrganizador", () => {
-    const mapped = toEventoOrganizador({
-      id: "ev-1",
-      name: "Bixos 2026 — A Recepção",
-      description: "Recepção oficial dos calouros",
-      organizerId: "org-1",
-      venueId: "v-1",
-      startDate: "2026-04-28T22:00:00Z",
-      endDate: "2026-04-29T04:00:00Z",
-      category: "Festas",
-      status: "published",
-      featured: true,
-      venueName: "Espaço Leste",
-      venueCity: "São Paulo",
-      minPrice: 40,
-      minPriceBatch: "1º Lote",
-      capacity: 500,
-      ticketsSold: 342,
-    });
-
-    expect(mapped).toEqual({
-      id: "ev-1",
-      nome: "Bixos 2026 — A Recepção",
-      descricao: "Recepção oficial dos calouros",
-      categoria: "festas",
-      status: "published",
-      dataInicio: "2026-04-28T22:00:00Z",
-      dataFim: "2026-04-29T04:00:00Z",
-      local: "Espaço Leste · São Paulo",
-      precoMinimo: 40,
-      loteMinimo: "1º Lote",
-      capacidade: 500,
-      ingressosVendidos: 342,
-      percentualVendido: 68,
-    });
-  });
-
-  it("calcula capacidade e preço mínimo a partir de /events/:id/ticket-types quando não vêm em /events", async () => {
-    authGet.mockResolvedValueOnce({
+  it("mapeia resposta paginada de /events quando capacity já está presente", async () => {
+    getAuthMock.mockResolvedValueOnce({
       data: {
         data: [
           {
-            id: "ev-1",
-            name: "Noite do Calouro",
+            id: "evt-1",
+            name: "Festa do Bixo",
+            description: "Recepção",
+            organizerId: "org-1",
+            venueId: "ven-1",
+            startDate: "2026-05-10T22:00:00.000Z",
+            endDate: "2026-05-11T04:00:00.000Z",
+            status: "published",
+            category: "Festas",
+            featured: true,
+            venueName: "Quadra",
+            venueCity: "São José dos Campos",
+            minPrice: "45.00",
+            minPriceBatch: "1º Lote",
+            capacity: 200,
+            ticketsSold: 50,
+          },
+        ],
+        meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
+      },
+    });
+
+    const events = await getOrganizerEvents({ organizerId: "org-1" });
+
+    expect(getAuthMock).toHaveBeenCalledWith("/events", {
+      params: { limit: 50, organizerId: "org-1" },
+    });
+    expect(getPublicMock).not.toHaveBeenCalled();
+    expect(events).toEqual([
+      {
+        id: "evt-1",
+        nome: "Festa do Bixo",
+        descricao: "Recepção",
+        categoria: "festas",
+        status: "published",
+        dataInicio: "2026-05-10T22:00:00.000Z",
+        dataFim: "2026-05-11T04:00:00.000Z",
+        local: "Quadra · São José dos Campos",
+        precoMinimo: 45,
+        loteMinimo: "1º Lote",
+        capacidade: 200,
+        ingressosVendidos: 50,
+        percentualVendido: 25,
+      },
+    ]);
+  });
+
+  it("enriquece a capacidade via /events/:id/ticket-types quando capacity não vem em /events", async () => {
+    getAuthMock.mockResolvedValueOnce({
+      data: {
+        data: [
+          {
+            id: "evt-2",
+            name: "Workshop IA",
             description: null,
             organizerId: "org-1",
-            venueId: "v-1",
-            startDate: "2026-06-12T22:00:00Z",
-            endDate: "2026-06-13T04:00:00Z",
-            category: "Festas",
-            status: "published",
+            venueId: "ven-2",
+            startDate: "2026-06-01T14:00:00.000Z",
+            endDate: "2026-06-01T18:00:00.000Z",
+            status: "draft",
+            category: "Palestras",
             featured: false,
-            venueName: "Quadra",
+            venueName: "Auditório",
             venueCity: "São Paulo",
             minPrice: null,
             minPriceBatch: null,
@@ -239,28 +246,35 @@ describe("getOrganizerEvents & toEventoOrganizador", () => {
         meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
       },
     });
-    publicGet.mockResolvedValueOnce({
+    getPublicMock.mockResolvedValueOnce({
       data: [
-        { id: "tt-1", batch: "1º Lote", price: "35.00", quantity: 150 },
-        { id: "tt-2", batch: "2º Lote", price: "50.00", quantity: 100 },
+        { id: "tt-1", batch: "Lote Promocional", price: "20.00", quantity: 40 },
+        { id: "tt-2", batch: "2º Lote", price: "35.00", quantity: 60 },
       ],
     });
 
-    const result = await getOrganizerEvents({ organizerId: "org-1" });
+    const events = await getOrganizerEvents({ organizerId: "org-1" });
 
-    expect(authGet).toHaveBeenCalledWith("/events", {
-      params: { limit: 50, organizerId: "org-1" },
+    expect(getPublicMock).toHaveBeenCalledWith("/events/evt-2/ticket-types");
+    expect(events[0]?.capacidade).toBe(100);
+    expect(events[0]?.precoMinimo).toBe(20);
+    expect(events[0]?.loteMinimo).toBe("Lote Promocional");
+  });
+
+  it("usa 'Local a definir' quando venueName e venueCity estão ausentes", () => {
+    const mapped = toEventoOrganizador({
+      id: "evt-3",
+      name: "Evento Sem Local",
+      description: null,
+      organizerId: "org-1",
+      venueId: "ven-1",
+      startDate: "2026-07-01T10:00:00.000Z",
+      endDate: "2026-07-01T12:00:00.000Z",
+      category: null,
+      featured: false,
     });
-    expect(publicGet).toHaveBeenCalledWith("/events/ev-1/ticket-types");
-    expect(result[0]).toMatchObject({
-      id: "ev-1",
-      nome: "Noite do Calouro",
-      local: "Quadra · São Paulo",
-      precoMinimo: 35,
-      loteMinimo: "1º Lote",
-      capacidade: 250,
-      ingressosVendidos: 0,
-      percentualVendido: 0,
-    });
+
+    expect(mapped.local).toBe("Local a definir");
+    expect(mapped.status).toBe("draft");
   });
 });

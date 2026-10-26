@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, ShoppingCart, User, type LucideIcon } from "lucide-react";
+import { Bell, ShoppingCart, type LucideIcon } from "lucide-react";
 import type { NavigationItem } from "../types";
 
 interface IconNavigationItem extends NavigationItem {
@@ -12,7 +12,3 @@ export const accountActions: readonly IconNavigationItem[] = [
   { href: "/notificacoes", label: "Notificações", icon: Bell },
 ];
 
-export const userMenuItems: readonly IconNavigationItem[] = [
-  { href: "/conta/perfil", label: "Meu perfil", icon: User },
-  { href: "/meus-eventos", label: "Meus Eventos", icon: CalendarDays },
-];

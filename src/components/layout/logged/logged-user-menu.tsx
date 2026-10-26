@@ -15,21 +15,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
 import { formatShortOrganizerRoleLabel } from "@/types/organizacao";
 import type { Usuario } from "@/types/usuario";
-import { accountNavItems, organizerManageEventsNavItem } from "./account-nav.config";
+import { buyerAccountNavItems, organizerManageEventsNavItem } from "./account-nav.config";
 import { UserAvatar } from "./user-avatar";
 
 export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
-  const { logoutState } = useAuth();
+  const { logoutState, isOrganizer } = useAuth();
   const { organizacoes, organizacaoAtiva } = useOrganizacaoAtiva();
 
-  const showOrganizerEvents =
-    organizacoes.length > 0 ||
-    (usuario.organizations?.length ?? 0) > 0 ||
-    usuario.signupIntent === "ORGANIZE";
-
   const ManageIcon = organizerManageEventsNavItem.icon;
-  const activeOrgName = organizacaoAtiva?.nome ?? usuario.organizations?.[0]?.name ?? "Hubee Eventos";
-  const shortRole = formatShortOrganizerRoleLabel(organizacaoAtiva?.papel ?? "administrador");
+  const activeOrg = organizacaoAtiva ?? organizacoes[0] ?? null;
 
   return (
     <DropdownMenu>
@@ -39,8 +33,13 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
           variant="hubee_header"
           size="icon"
           aria-label={`Abrir menu de ${usuario.fullName}`}
+          className="group cursor-pointer transition-transform hover:scale-105 active:scale-95"
         >
-          <UserAvatar name={usuario.fullName} src={usuario.avatarUrl} />
+          <UserAvatar
+            name={usuario.fullName}
+            src={usuario.avatarUrl}
+            className="cursor-pointer transition-all ring-2 ring-transparent group-hover:ring-hubee-400 group-hover:brightness-105 dark:group-hover:ring-hubee-200"
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -52,16 +51,16 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
           <span className="truncate text-xs text-hubee-neutral-300 dark:text-hubee-200">
             {usuario.email}
           </span>
-          {showOrganizerEvents && (
+          {isOrganizer && activeOrg && (
             <span className="mt-1.5 inline-flex w-fit max-w-full items-center truncate rounded-full border border-hubee-400/60 bg-hubee-100 px-2.5 py-0.5 text-[11px] font-semibold text-hubee-800 dark:border-hubee-300 dark:bg-hubee-100 dark:text-hubee-800">
-              {shortRole} • {activeOrgName}
+              {formatShortOrganizerRoleLabel(activeOrg.papel)} • {activeOrg.nome}
             </span>
           )}
         </DropdownMenuLabel>
 
         <DropdownMenuSeparator className="my-1.5 bg-hubee-800/10 dark:bg-hubee-50/15" />
 
-        {accountNavItems.map(({ href, label, icon: Icon }) => (
+        {buyerAccountNavItems.map(({ href, label, icon: Icon }) => (
           <DropdownMenuItem
             key={href}
             asChild
@@ -74,7 +73,7 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
           </DropdownMenuItem>
         ))}
 
-        {showOrganizerEvents && (
+        {isOrganizer && (
           <DropdownMenuItem
             asChild
             className="mt-0.5 cursor-pointer gap-2.5 rounded-lg bg-hubee-100/80 px-2.5 py-2 text-sm font-medium text-hubee-800 focus:bg-hubee-200/70 focus:text-hubee-800 dark:bg-hubee-400/15 dark:text-hubee-50 dark:focus:bg-hubee-400/25 dark:focus:text-hubee-50"

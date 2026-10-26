@@ -7,8 +7,9 @@ import { HeaderActions } from "./actions/header-actions";
 import { MainNavigation } from "./navigation/main-navigation";
 import { getNavigationItems } from "./navigation/navigation.config";
 import { ThemeToggle } from "./theme-toggle";
-import type { HeaderProps } from "./types";
+import type { HeaderProps, HeaderRole } from "./types";
 import { useAuth } from "@/contexts/AuthContext";
+import { ThemedHubeeLogo } from "@/components/brand";
 
 export function Header({
   className,
@@ -16,9 +17,9 @@ export function Header({
   homeHref = "/",
 }: Omit<HeaderProps, 'role' | 'logoutHref'>) {
   const pathname = usePathname();
-  const { user, logoutState } = useAuth();
-  const currentRole = user 
-    ? (user.signupIntent === 'ORGANIZE' ? 'organizer' : 'user') 
+  const { user, isOrganizer } = useAuth();
+  const currentRole: HeaderRole = user
+    ? (isOrganizer ? 'organizer' : 'user')
     : 'guest';
 
   const items = getNavigationItems(currentRole, homeHref);
@@ -38,19 +39,14 @@ export function Header({
         <Link
           href={`${homeHref}#inicio`}
           aria-label="Hubee — página inicial"
-          className="rounded-md font-heading text-[26px] leading-none font-extrabold tracking-tighter outline-none hover:text-hubee-400 focus-visible:ring-3 focus-visible:ring-hubee-400 md:text-[28px] dark:hover:text-hubee-50 dark:focus-visible:ring-hubee-800"
+          className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:focus-visible:ring-hubee-800"
         >
-          LOGO
+          <ThemedHubeeLogo light="white" dark="dark_alt" className="h-8 md:h-9" priority />
         </Link>
         <MainNavigation items={items} pathname={pathname} />
         <div className="flex items-center gap-0.5">
           <ThemeToggle className="md:hidden" />
-          <HeaderActions 
-            signedIn={!!user} 
-            // Mostramos o primeiro nome do utilizador se estiver logado
-            userName={user?.fullName?.split(" ")[0]} 
-            onLogout={logoutState} 
-          />
+          <HeaderActions user={user} />
         </div>
       </header>
     </div>

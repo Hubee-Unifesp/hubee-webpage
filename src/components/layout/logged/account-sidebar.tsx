@@ -13,7 +13,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
 import { formatOrganizerRoleLabel } from "@/types/organizacao";
-import { accountNavItems, organizerEventsNavItem } from "./account-nav.config";
+import { buyerAccountNavItems, organizerEventsNavItem } from "./account-nav.config";
 
 const navLinkClassName =
   "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium outline-none hover:bg-hubee-100 focus-visible:ring-3 focus-visible:ring-hubee-800 aria-[current=page]:bg-hubee-800 aria-[current=page]:font-semibold aria-[current=page]:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400 dark:aria-[current=page]:bg-hubee-400 dark:aria-[current=page]:text-hubee-800";
@@ -21,17 +21,11 @@ const navLinkClassName =
 /** Menu lateral da conta (desktop, a partir de 768px). Separa "Minha Conta" da seção de Organização conforme o Figma. */
 export function AccountSidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { isOrganizer } = useAuth();
   const { organizacoes, organizacaoAtiva, selecionarOrganizacao } = useOrganizacaoAtiva();
 
-  const showOrganizerEvents =
-    organizacoes.length > 0 ||
-    (user?.organizations?.length ?? 0) > 0 ||
-    user?.signupIntent === "ORGANIZE" ||
-    isActiveRoute(pathname, "/conta/eventos");
-
   const OrganizerIcon = organizerEventsNavItem.icon;
-  const activeOrgName = organizacaoAtiva?.nome ?? user?.organizations?.[0]?.name ?? "Hubee Eventos";
+  const activeOrgName = organizacaoAtiva?.nome ?? organizacoes[0]?.nome ?? "";
 
   return (
     <nav aria-label="Conta" className="hidden md:block">
@@ -40,7 +34,7 @@ export function AccountSidebar() {
           Minha Conta
         </p>
         <ul className="flex flex-col gap-1">
-          {accountNavItems.map(({ href, label, icon: Icon }) => (
+          {buyerAccountNavItems.map(({ href, label, icon: Icon }) => (
             <li key={href}>
               <Link
                 href={href}
@@ -54,7 +48,7 @@ export function AccountSidebar() {
           ))}
         </ul>
 
-        {showOrganizerEvents && (
+        {isOrganizer && (
           <>
             <hr className="my-3.5 border-hubee-800/15 dark:border-hubee-50/15" />
 

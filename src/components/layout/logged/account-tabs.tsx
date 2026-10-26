@@ -9,12 +9,7 @@ import { getAccountNavItems } from "./account-nav.config";
 /** Abas da conta (mobile, abaixo de 768px). Rolam na horizontal se não couberem. */
 export function AccountTabs() {
   const pathname = usePathname();
-  const { user } = useAuth();
-  const showOrganizerEvents =
-    (user?.organizations?.length ?? 0) > 0 ||
-    user?.signupIntent === "ORGANIZE" ||
-    isActiveRoute(pathname, "/conta/eventos");
-  const navItems = getAccountNavItems(showOrganizerEvents);
+  const { isOrganizer } = useAuth();
 
   return (
     <nav
@@ -22,7 +17,7 @@ export function AccountTabs() {
       className="-mx-4 mb-6 border-b border-hubee-800/20 sm:-mx-8 md:hidden dark:border-hubee-400/30"
     >
       <ul className="flex overflow-x-auto">
-        {navItems.map(({ href, label, icon: Icon }) => (
+        {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
           <li key={href} className="min-w-max flex-1">
             <Link
               href={href}

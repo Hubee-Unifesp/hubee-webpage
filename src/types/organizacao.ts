@@ -1,7 +1,7 @@
-import type { UserOrganization } from "@/lib/api/auth";
 import type { EventCategory } from "@/lib/api/events.types";
+import type { OrganizationAccessLevel, UsuarioOrganizacao } from "@/types/usuario";
 
-/** Papel derivado da combinação `role` + `permission` em `organization_users`. */
+/** Papel derivado do nível efetivo (`level`) ou da combinação `role` + `permission` em `organization_users`. */
 export type PapelOrganizador = "administrador" | "membro" | "leitura";
 
 /** Status do evento retornado pela `hubee-api`. */
@@ -16,6 +16,7 @@ export interface OrganizacaoVinculada {
   nome: string;
   role: "admin" | "member";
   permission: "full" | "read_only";
+  level: OrganizationAccessLevel;
   papel: PapelOrganizador;
 }
 
@@ -37,15 +38,30 @@ export interface EventoOrganizador {
 }
 
 /**
- * Converte a dupla `role` + `permission` do banco no papel semântico da interface:
+ * Converte o nível efetivo (`level` retornado em `GET /auth/me` pela GOL-144) no papel semântico da interface:
+ * - `manage` -> `administrador`
+ * - `write` -> `membro`
+ * - `read` -> `leitura`
+ */
+export function deriveOrganizerRoleFromLevel(level: OrganizationAccessLevel): PapelOrganizador {
+  switch (level) {
+    case "manage":
+      return "administrador";
+    case "write":
+      return "membro";
+    case "read":
+      return "leitura";
+  }
+}
+
+/**
+ * Converte a dupla `role` + `permission` do banco no papel semântico da interface
+ * (mesma precedência de `effectiveLevel` na `hubee-api`):
+ * - `read_only` -> `leitura`
  * - `admin` + `full` -> `administrador`
  * - `member` + `full` -> `membro`
- * - `member` (ou qualquer role) + `read_only` -> `leitura`
  */
-export function deriveOrganizerRole(
-  role: "admin" | "member",
-  permission: "full" | "read_only",
-): PapelOrganizador {
+export function deriveOrganizerRole(role: string, permission: string): PapelOrganizador {
   if (permission === "read_only") return "leitura";
   if (role === "admin") return "administrador";
   return "membro";
@@ -101,14 +117,20 @@ export function calculateSoldPercentage(ticketsSold: number, capacity: number): 
 }
 
 export function toOrganizacoesVinculadas(
-  organizations?: readonly UserOrganization[],
+  organizations?: readonly UsuarioOrganizacao[],
 ): OrganizacaoVinculada[] {
   if (!organizations) return [];
-  return organizations.map((org) => ({
-    orgId: org.orgId,
-    nome: org.name,
-    role: org.role,
-    permission: org.permission,
-    papel: deriveOrganizerRole(org.role, org.permission),
-  }));
+  return organizations.map((org) => {
+    const papel = org.level
+      ? deriveOrganizerRoleFromLevel(org.level)
+      : deriveOrganizerRole(org.role, org.permission);
+    return {
+      orgId: org.orgId,
+      nome: org.organizationName,
+      role: org.role === "admin" ? "admin" : "member",
+      permission: org.permission === "read_only" ? "read_only" : "full",
+      level: org.level ?? (papel === "administrador" ? "manage" : papel === "membro" ? "write" : "read"),
+      papel,
+    };
+  });
 }

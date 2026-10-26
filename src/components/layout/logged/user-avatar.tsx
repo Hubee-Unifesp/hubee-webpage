@@ -20,7 +20,7 @@ export function UserAvatar({ name, src, className }: UserAvatarProps) {
     <span
       aria-hidden="true"
       className={cn(
-        "flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-hubee-400 text-xs font-bold text-hubee-800 dark:bg-hubee-800 dark:text-hubee-400",
+        "flex size-7 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-hubee-400 text-xs font-bold text-hubee-800 select-none dark:bg-hubee-800 dark:text-hubee-400",
         className,
       )}
     >

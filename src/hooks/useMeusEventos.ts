@@ -5,11 +5,9 @@ import type {
   EventoOrganizador,
   FiltroStatusEvento,
   OrganizacaoVinculada,
-  PapelOrganizador,
 } from "@/types/organizacao";
 
 const ACTIVE_ORG_STORAGE_KEY = "hubee:activeOrgId";
-const ROLE_OVERRIDE_STORAGE_KEY = "hubee:roleOverride";
 const ORG_CHANGE_EVENT = "hubee:active-org-change";
 
 type EventosState =
@@ -18,10 +16,6 @@ type EventosState =
   | { status: "error"; data: null };
 
 const loadingState: EventosState = { status: "loading", data: null };
-
-function isPapelOrganizador(value: string | null): value is PapelOrganizador {
-  return value === "administrador" || value === "membro" || value === "leitura";
-}
 
 function readStoredOrgId(): string | null {
   if (typeof window === "undefined") return null;
@@ -41,21 +35,6 @@ function writeStoredOrgId(orgId: string): void {
   }
 }
 
-function readRoleOverride(): PapelOrganizador | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const param = new URLSearchParams(window.location.search).get("papel");
-    if (isPapelOrganizador(param)) {
-      window.sessionStorage.setItem(ROLE_OVERRIDE_STORAGE_KEY, param);
-      return param;
-    }
-    const stored = window.sessionStorage.getItem(ROLE_OVERRIDE_STORAGE_KEY);
-    return isPapelOrganizador(stored) ? stored : null;
-  } catch {
-    return null;
-  }
-}
-
 function notifyOrgChange(): void {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(ORG_CHANGE_EVENT));
@@ -63,38 +42,16 @@ function notifyOrgChange(): void {
 
 export function useOrganizacaoAtiva() {
   const { user, isLoading: authLoading } = useAuth();
-  const [organizacoes, setOrganizacoes] = useState<OrganizacaoVinculada[]>([]);
-  const [orgsLoaded, setOrgsLoaded] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(() => readStoredOrgId());
-  const [roleOverride, setRoleOverride] = useState<PapelOrganizador | null>(() =>
-    readRoleOverride(),
+
+  const organizacoes: OrganizacaoVinculada[] = useMemo(
+    () => resolveUserOrganizations(user),
+    [user],
   );
-
-  useEffect(() => {
-    if (authLoading) return;
-
-    let active = true;
-    resolveUserOrganizations(user)
-      .then((resolved) => {
-        if (!active) return;
-        setOrganizacoes(resolved);
-        setOrgsLoaded(true);
-      })
-      .catch(() => {
-        if (!active) return;
-        setOrganizacoes([]);
-        setOrgsLoaded(true);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [authLoading, user]);
 
   useEffect(() => {
     const syncState = () => {
       setSelectedOrgId(readStoredOrgId());
-      setRoleOverride(readRoleOverride());
     };
     syncState();
     window.addEventListener(ORG_CHANGE_EVENT, syncState);
@@ -107,10 +64,8 @@ export function useOrganizacaoAtiva() {
 
   const organizacaoAtiva: OrganizacaoVinculada | null = useMemo(() => {
     if (organizacoes.length === 0) return null;
-    const base = organizacoes.find((org) => org.orgId === selectedOrgId) ?? organizacoes[0];
-    if (!roleOverride) return base;
-    return { ...base, papel: roleOverride };
-  }, [organizacoes, selectedOrgId, roleOverride]);
+    return organizacoes.find((org) => org.orgId === selectedOrgId) ?? organizacoes[0];
+  }, [organizacoes, selectedOrgId]);
 
   const selecionarOrganizacao = useCallback((orgId: string) => {
     writeStoredOrgId(orgId);
@@ -120,7 +75,6 @@ export function useOrganizacaoAtiva() {
 
   return {
     authLoading,
-    orgsLoaded,
     organizacoes,
     organizacaoAtiva,
     selecionarOrganizacao,
@@ -130,7 +84,6 @@ export function useOrganizacaoAtiva() {
 export function useMeusEventos() {
   const {
     authLoading,
-    orgsLoaded,
     organizacoes,
     organizacaoAtiva,
     selecionarOrganizacao: selecionarOrgBase,
@@ -144,7 +97,7 @@ export function useMeusEventos() {
   const activeOrgId = organizacaoAtiva?.orgId ?? null;
 
   useEffect(() => {
-    if (authLoading || !orgsLoaded) return;
+    if (authLoading) return;
     if (!activeOrgId) return;
 
     writeStoredOrgId(activeOrgId);
@@ -161,7 +114,7 @@ export function useMeusEventos() {
     return () => {
       active = false;
     };
-  }, [authLoading, orgsLoaded, activeOrgId, attempt]);
+  }, [authLoading, activeOrgId, attempt]);
 
   const selecionarOrganizacao = useCallback(
     (orgId: string) => {
@@ -194,12 +147,11 @@ export function useMeusEventos() {
     });
   }, [todosEventos, filtroStatus, busca]);
 
-  const currentStatus =
-    authLoading || !orgsLoaded
-      ? ("loading" as const)
-      : !activeOrgId
-        ? ("ok" as const)
-        : state.status;
+  const currentStatus = authLoading
+    ? ("loading" as const)
+    : !activeOrgId
+      ? ("ok" as const)
+      : state.status;
 
   return {
     status: currentStatus,

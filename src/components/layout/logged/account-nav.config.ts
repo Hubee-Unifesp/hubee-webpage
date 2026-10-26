@@ -4,33 +4,39 @@ export interface AccountNavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  /** Só aparece para quem pertence a uma organização. */
+  organizerOnly?: boolean;
 }
 
 export const organizerEventsNavItem: AccountNavItem = {
   href: "/conta/eventos",
   label: "Meus eventos",
   icon: CalendarDays,
+  organizerOnly: true,
 };
 
 export const organizerManageEventsNavItem: AccountNavItem = {
   href: "/conta/eventos",
   label: "Gerenciar eventos",
   icon: CalendarDays,
+  organizerOnly: true,
 };
 
-/** Seções padrão da conta ("Minha Conta" — participante). */
-export const accountNavItems: readonly AccountNavItem[] = [
+/** Seções pessoais da conta ("Minha Conta" — participante). */
+export const buyerAccountNavItems: readonly AccountNavItem[] = [
   { href: "/conta/pedidos", label: "Meus pedidos", icon: ShoppingBag },
   { href: "/conta/perfil", label: "Meu perfil", icon: User },
 ];
 
-/**
- * Retorna os itens de navegação da conta (usado em `AccountTabs` e `MobileMenu`).
- * Inclui "Meus eventos" ao final quando a usuária possui organização vinculada (ou está na rota `/conta/eventos`).
- */
-export function getAccountNavItems(includeOrganizerEvents: boolean): readonly AccountNavItem[] {
-  if (!includeOrganizerEvents) return accountNavItems;
-  return [...accountNavItems, organizerEventsNavItem];
+/** Seções da conta. Usadas pelas abas mobile e pelo menu mobile. */
+export const accountNavItems: readonly AccountNavItem[] = [
+  ...buyerAccountNavItems,
+  organizerEventsNavItem,
+];
+
+/** Seções da conta que a pessoa pode ver: o comprador não recebe as de organizador. */
+export function getAccountNavItems(isOrganizer: boolean): readonly AccountNavItem[] {
+  return accountNavItems.filter((item) => !item.organizerOnly || isOrganizer);
 }
 
 export const cartHref = "/carrinho";
