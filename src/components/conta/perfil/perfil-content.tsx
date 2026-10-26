@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { DadosPessoaisForm } from "./dados-pessoais-form";
 import { ExcluirContaCard } from "./excluir-conta-card";
 import { PerfilSkeleton } from "./perfil-skeleton";
+import { PermissoesCard } from "./permissoes-card";
 import { TrocarSenhaForm } from "./trocar-senha-form";
 
 /** Conteúdo da página Meu Perfil: dados do usuário logado, com carregando, erro e o aviso de perfil incompleto. */
@@ -44,6 +45,7 @@ export function PerfilContent() {
           )}
 
           <DadosPessoaisForm usuario={user} />
+          <PermissoesCard usuario={user} />
           <TrocarSenhaForm />
           <ExcluirContaCard />
         </>
