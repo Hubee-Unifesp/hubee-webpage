@@ -102,7 +102,7 @@ export function canCancelEvent(papel: PapelOrganizador, status: StatusEvento): b
 }
 
 export function canViewPublicPage(status: StatusEvento): boolean {
-  return status === "published" || status === "finished";
+  return status === "published" || status === "finished" || status === "draft";
 }
 
 export function getPrimaryEventActionLabel(papel: PapelOrganizador, status: StatusEvento): string {

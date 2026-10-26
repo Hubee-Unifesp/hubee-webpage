@@ -39,10 +39,6 @@ export function EventoOrganizadorCard({ evento, papel }: EventoOrganizadorCardPr
   const showCancel = canCancelEvent(papel, evento.status);
 
   const handlePrimaryAction = () => {
-    if (papel === "leitura") {
-      toast.success(`Visualizando resumo de "${evento.nome}".`);
-      return;
-    }
     if (evento.status === "draft") {
       toast.success(`O formulário de edição de "${evento.nome}" estará disponível em breve.`);
       return;
@@ -126,15 +122,26 @@ export function EventoOrganizadorCard({ evento, papel }: EventoOrganizadorCardPr
           </p>
 
           <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              size="sm"
-              onClick={handlePrimaryAction}
-              aria-label={`${primaryLabel} evento ${evento.nome}`}
-              className="rounded-full bg-hubee-750 px-3.5 text-xs font-semibold text-hubee-50 hover:bg-hubee-800 focus-visible:ring-hubee-800 dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300"
-            >
-              {primaryLabel}
-            </Button>
+            {papel === "leitura" ? (
+              <Button
+                asChild
+                size="sm"
+                aria-label={`${primaryLabel} evento ${evento.nome}`}
+                className="rounded-full bg-hubee-750 px-3.5 text-xs font-semibold text-hubee-50 hover:bg-hubee-800 focus-visible:ring-hubee-800 dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300"
+              >
+                <Link href={`/eventos/${evento.id}`}>{primaryLabel}</Link>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                onClick={handlePrimaryAction}
+                aria-label={`${primaryLabel} evento ${evento.nome}`}
+                className="rounded-full bg-hubee-750 px-3.5 text-xs font-semibold text-hubee-50 hover:bg-hubee-800 focus-visible:ring-hubee-800 dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300"
+              >
+                {primaryLabel}
+              </Button>
+            )}
 
             {showQuickActionsMenu && (
               <DropdownMenu>

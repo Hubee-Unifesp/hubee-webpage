@@ -71,7 +71,7 @@ describe("organizacao helpers (RBAC e cálculos)", () => {
   it("define corretamente quando a página pública pode ser aberta", () => {
     expect(canViewPublicPage("published")).toBe(true);
     expect(canViewPublicPage("finished")).toBe(true);
-    expect(canViewPublicPage("draft")).toBe(false);
+    expect(canViewPublicPage("draft")).toBe(true);
     expect(canViewPublicPage("cancelled")).toBe(false);
   });
 
@@ -197,12 +197,15 @@ describe("getOrganizerEvents & toEventoOrganizador", () => {
       },
     });
 
+    getPublicMock.mockResolvedValueOnce({ data: [] });
+
     const events = await getOrganizerEvents({ organizerId: "org-1" });
 
     expect(getAuthMock).toHaveBeenCalledWith("/events", {
       params: { limit: 50, organizerId: "org-1" },
     });
-    expect(getPublicMock).not.toHaveBeenCalled();
+    expect(getPublicMock).toHaveBeenCalledWith("/events/summary");
+    expect(getPublicMock).not.toHaveBeenCalledWith(expect.stringContaining("/ticket-types"));
     expect(events).toEqual([
       {
         id: "evt-1",
@@ -222,7 +225,7 @@ describe("getOrganizerEvents & toEventoOrganizador", () => {
     ]);
   });
 
-  it("enriquece a capacidade via /events/:id/ticket-types quando capacity não vem em /events", async () => {
+  it("enriquece a capacidade via /events/:id/ticket-types quando capacity não vem em /events nem em summary", async () => {
     getAuthMock.mockResolvedValueOnce({
       data: {
         data: [
@@ -246,19 +249,76 @@ describe("getOrganizerEvents & toEventoOrganizador", () => {
         meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
       },
     });
+    getPublicMock
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({
+        data: [
+          { id: "tt-1", batch: "Lote Promocional", price: "20.00", quantity: 40 },
+          { id: "tt-2", batch: "2º Lote", price: "35.00", quantity: 60 },
+        ],
+      });
+
+    const events = await getOrganizerEvents({ organizerId: "org-1" });
+
+    expect(getPublicMock).toHaveBeenCalledWith("/events/summary");
+    expect(getPublicMock).toHaveBeenCalledWith("/events/evt-2/ticket-types");
+    expect(events[0]?.capacidade).toBe(100);
+    expect(events[0]?.precoMinimo).toBe(20);
+    expect(events[0]?.loteMinimo).toBe("Lote Promocional");
+  });
+
+  it("mescla capacity e ticketsSold a partir de /events/summary para evento publicado sem chamar /ticket-types", async () => {
+    getAuthMock.mockResolvedValueOnce({
+      data: {
+        data: [
+          {
+            id: "evt-published",
+            name: "Festival de Inverno",
+            description: null,
+            organizerId: "org-1",
+            venueId: "ven-3",
+            startDate: "2026-07-15T20:00:00.000Z",
+            endDate: "2026-07-16T02:00:00.000Z",
+            status: "published",
+            category: "Shows",
+            featured: false,
+            venueName: "Parque",
+            venueCity: "Campos do Jordão",
+            minPrice: "50.00",
+            minPriceBatch: "1º Lote",
+          },
+        ],
+        meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
+      },
+    });
     getPublicMock.mockResolvedValueOnce({
       data: [
-        { id: "tt-1", batch: "Lote Promocional", price: "20.00", quantity: 40 },
-        { id: "tt-2", batch: "2º Lote", price: "35.00", quantity: 60 },
+        {
+          id: "evt-published",
+          name: "Festival de Inverno",
+          description: null,
+          category: "Shows",
+          startDate: "2026-07-15T20:00:00.000Z",
+          endDate: "2026-07-16T02:00:00.000Z",
+          featured: false,
+          organizerName: "Org 1",
+          venueName: "Parque",
+          venueCity: "Campos do Jordão",
+          minPrice: 50,
+          minPriceBatch: "1º Lote",
+          capacity: 500,
+          ticketsSold: 350,
+        },
       ],
     });
 
     const events = await getOrganizerEvents({ organizerId: "org-1" });
 
-    expect(getPublicMock).toHaveBeenCalledWith("/events/evt-2/ticket-types");
-    expect(events[0]?.capacidade).toBe(100);
-    expect(events[0]?.precoMinimo).toBe(20);
-    expect(events[0]?.loteMinimo).toBe("Lote Promocional");
+    expect(getPublicMock).toHaveBeenCalledWith("/events/summary");
+    expect(getPublicMock).not.toHaveBeenCalledWith("/events/evt-published/ticket-types");
+    expect(events[0]?.capacidade).toBe(500);
+    expect(events[0]?.ingressosVendidos).toBe(350);
+    expect(events[0]?.percentualVendido).toBe(70);
   });
 
   it("usa 'Local a definir' quando venueName e venueCity estão ausentes", () => {

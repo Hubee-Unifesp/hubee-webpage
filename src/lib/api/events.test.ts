@@ -1,9 +1,13 @@
 import { AxiosError, type AxiosResponse } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { publicGet } = vi.hoisted(() => ({ publicGet: vi.fn() }));
+const { publicGet, authGet } = vi.hoisted(() => ({
+  publicGet: vi.fn(),
+  authGet: vi.fn(),
+}));
 
 vi.mock("./client", () => ({ apiClient: { get: publicGet } }));
+vi.mock("./apiClient", () => ({ apiClient: { get: authGet } }));
 
 import { formatFilterDateRange } from "@/components/home/events/active-filter-chips";
 import {
@@ -98,36 +102,38 @@ function makeAxiosError(status: number, message = "Erro"): AxiosError {
 
 beforeEach(() => {
   publicGet.mockReset();
+  authGet.mockReset();
 });
 
 describe("getEventById", () => {
   it("mapeia os dados de GET /events/:id + /events/summary sem marcar quantity=0 como esgotado e detectando lote esgotado", async () => {
-    publicGet
-      .mockResolvedValueOnce({ data: apiEventDetailFixture })
-      .mockResolvedValueOnce({
-        data: [
-          {
-            id: EVENT_ID,
-            name: "Entre acordes e encontros",
-            description: "Show intimista",
-            category: "Shows",
-            startDate: "2026-11-21T23:00:00.000Z",
-            endDate: "2026-11-22T03:00:00.000Z",
-            featured: true,
-            organizerName: "Coletivo Entro",
-            venueName: "Casa Natura Musical",
-            venueCity: "São Paulo",
-            minPrice: 80,
-            minPriceBatch: "2º Lote",
-            capacity: 100,
-            ticketsSold: 100,
-          },
-        ] satisfies ApiEventSummary[],
-      });
+    authGet.mockResolvedValueOnce({ data: apiEventDetailFixture });
+    publicGet.mockResolvedValueOnce({
+      data: [
+        {
+          id: EVENT_ID,
+          name: "Entre acordes e encontros",
+          description: "Show intimista",
+          category: "Shows",
+          startDate: "2026-11-21T23:00:00.000Z",
+          endDate: "2026-11-22T03:00:00.000Z",
+          featured: true,
+          organizerName: "Coletivo Entro",
+          venueName: "Casa Natura Musical",
+          venueCity: "São Paulo",
+          minPrice: 80,
+          minPriceBatch: "2º Lote",
+          capacity: 100,
+          ticketsSold: 100,
+        },
+      ] satisfies ApiEventSummary[],
+    });
 
     const result = await getEventById(EVENT_ID);
 
-    expect(publicGet).toHaveBeenCalledWith(`/events/${EVENT_ID}`);
+    expect(authGet).toHaveBeenCalledWith(`/events/${EVENT_ID}`, {
+      skipAuthRedirect: true,
+    });
     expect(publicGet).toHaveBeenCalledWith("/events/summary");
     expect(result).toEqual({
       id: EVENT_ID,
@@ -217,32 +223,33 @@ describe("getEventById", () => {
   });
 
   it("retorna null quando a API responde 404 (evento inexistente ou nao publicado)", async () => {
-    publicGet
-      .mockRejectedValueOnce(makeAxiosError(404, "Evento não encontrado"))
-      .mockResolvedValueOnce({ data: [] });
+    authGet
+      .mockRejectedValueOnce(makeAxiosError(404, "Evento não encontrado"));
+    publicGet.mockResolvedValueOnce({ data: [] });
 
     await expect(getEventById(EVENT_ID)).resolves.toBeNull();
   });
 
   it("retorna null quando a API responde 400 (UUID invalido na rota)", async () => {
-    publicGet
+    authGet
       .mockRejectedValueOnce(
         makeAxiosError(400, "Validation failed (uuid is expected)"),
-      )
-      .mockResolvedValueOnce({ data: [] });
+      );
+    publicGet.mockResolvedValueOnce({ data: [] });
 
     await expect(getEventById("id-invalido")).resolves.toBeNull();
   });
 
   it("retorna null para id vazio sem chamar a API", async () => {
     await expect(getEventById("   ")).resolves.toBeNull();
+    expect(authGet).not.toHaveBeenCalled();
     expect(publicGet).not.toHaveBeenCalled();
   });
 
   it("propaga erros inesperados da API (ex.: 500)", async () => {
-    publicGet
-      .mockRejectedValueOnce(makeAxiosError(500, "Internal Server Error"))
-      .mockResolvedValueOnce({ data: [] });
+    authGet
+      .mockRejectedValueOnce(makeAxiosError(500, "Internal Server Error"));
+    publicGet.mockResolvedValueOnce({ data: [] });
 
     await expect(getEventById(EVENT_ID)).rejects.toThrow();
   });

@@ -85,27 +85,41 @@ async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
 
 /**
  * Busca os eventos de uma organização vinculada à usuária logada via `GET /events?organizerId=...`.
- * Se `capacity` não vier no item de `/events`, soma `quantity` de `GET /events/:id/ticket-types`.
+ * Mescla `capacity` e `ticketsSold` via `GET /events/summary`. Se `capacity` ainda não vier no item,
+ * soma `quantity` de `GET /events/:id/ticket-types`.
  */
 export async function getOrganizerEvents(
   params: GetOrganizerEventsParams,
 ): Promise<EventoOrganizador[]> {
-  const { data } = await authClient.get<ApiEventPage | ApiEventListItem[]>(
-    "/events",
-    {
+  const [{ data }, summaries] = await Promise.all([
+    authClient.get<ApiEventPage | ApiEventListItem[]>("/events", {
       params: { limit: 50, ...params },
-    },
-  );
+    }),
+    apiClient
+      .get<ApiEventSummary[]>("/events/summary")
+      .then((res) => (Array.isArray(res.data) ? res.data : []))
+      .catch(() => [] as ApiEventSummary[]),
+  ]);
 
+  const summaryById = new Map(summaries.map((s) => [s.id, s]));
   const items = Array.isArray(data) ? data : data.data;
 
   const enriched = await Promise.all(
     items.map(async (item) => {
-      if (item.capacity !== undefined && item.capacity !== null) {
-        return toEventoOrganizador(item);
+      const summary = summaryById.get(item.id);
+      const mergedItem: ApiEventListItem = summary
+        ? {
+            ...item,
+            capacity: item.capacity ?? summary.capacity,
+            ticketsSold: item.ticketsSold ?? summary.ticketsSold,
+          }
+        : item;
+
+      if (mergedItem.capacity !== undefined && mergedItem.capacity !== null) {
+        return toEventoOrganizador(mergedItem);
       }
       const ticketTypes = await getTicketTypes(item.id);
-      return toEventoOrganizador(item, ticketTypes);
+      return toEventoOrganizador(mergedItem, ticketTypes);
     }),
   );
 
@@ -299,8 +313,9 @@ export async function getEventById(id: string): Promise<EventDetails | null> {
 
   try {
     const [detailResponse, summaryList] = await Promise.all([
-      apiClient.get<ApiEventDetail>(
+      authClient.get<ApiEventDetail>(
         `/events/${encodeURIComponent(trimmedId)}`,
+        { skipAuthRedirect: true },
       ),
       apiClient
         .get<ApiEventSummary[]>("/events/summary")
