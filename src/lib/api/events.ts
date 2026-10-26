@@ -1,11 +1,12 @@
 import { apiClient } from "./client";
+import { parseApiError } from "./errors";
 import type {
-  ApiEvent,
-  ApiOrganization,
-  ApiTicketType,
-  ApiVenue,
+  AgeRating,
+  ApiEventDetail,
+  ApiEventSummary,
   CategorySummary,
   EventCategory,
+  EventDetails,
   EventSummary,
   HomeEvents,
 } from "./events.types";
@@ -22,6 +23,8 @@ const CATEGORY_ORDER: readonly EventCategory[] = [
   "academicos",
   "outros",
 ];
+
+const AGE_RATINGS: readonly AgeRating[] = ["L", "10", "12", "14", "16", "18"];
 
 const SAO_PAULO_OFFSET_MS = -3 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -40,32 +43,10 @@ export function soldRatio(event: EventSummary): number {
 }
 
 export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
-  const [events, organizations, venues] = await Promise.all([
-    apiClient
-      .get<ApiEvent[]>("/events", { params: { status: "published" } })
-      .then(({ data }) => data),
-    apiClient.get<ApiOrganization[]>("/organizations").then(({ data }) => data),
-    apiClient.get<ApiVenue[]>("/venues").then(({ data }) => data),
-  ]);
+  const { data } = await apiClient.get<ApiEventSummary[]>("/events/summary");
 
-  const upcoming = events.filter((event) => new Date(event.endDate) > now);
-  const ticketTypes = await Promise.all(
-    upcoming.map((event) => getTicketTypes(event.id)),
-  );
-
-  const organizerNames = new Map(
-    organizations.map(({ id, name }) => [id, name]),
-  );
-  const venueNames = new Map(
-    venues.map(({ id, name, address }) => [
-      id,
-      address ? `${name} · ${address.city}` : name,
-    ]),
-  );
-
-  const summaries = upcoming.map((event, index) =>
-    toEventSummary(event, ticketTypes[index], organizerNames, venueNames),
-  );
+  const upcoming = data.filter((event) => new Date(event.endDate) > now);
+  const summaries = upcoming.map(toEventSummary);
   const featuredIds = upcoming
     .filter((event) => event.featured)
     .map((event) => event.id);
@@ -73,40 +54,98 @@ export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
   return buildHomeEvents(summaries, featuredIds, now);
 }
 
-async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
+/**
+ * Busca os detalhes completos de um evento publicado via `GET /events/:id`.
+ * Retorna `null` quando o evento não existe, não está publicado (404) ou o ID é inválido (400).
+ */
+export async function getEventById(id: string): Promise<EventDetails | null> {
+  const trimmedId = id.trim();
+  if (!trimmedId) return null;
+
   try {
-    const { data } = await apiClient.get<ApiTicketType[]>(
-      `/events/${eventId}/ticket-types`,
+    const { data } = await apiClient.get<ApiEventDetail>(
+      `/events/${encodeURIComponent(trimmedId)}`,
     );
-    return data;
-  } catch {
-    return [];
+    return toEventDetails(data);
+  } catch (error) {
+    const { status } = parseApiError(error);
+    if (status === 404 || status === 400) {
+      return null;
+    }
+    throw error;
   }
 }
 
-function toEventSummary(
-  event: ApiEvent,
-  ticketTypes: ApiTicketType[],
-  organizerNames: Map<string, string>,
-  venueNames: Map<string, string>,
-): EventSummary {
-  const cheapest = ticketTypes
-    .map((ticket) => ({ ...ticket, price: Number(ticket.price) }))
-    .toSorted((a, b) => a.price - b.price)[0];
+export function toEventDetails(event: ApiEventDetail): EventDetails {
+  return {
+    id: event.id,
+    title: event.name,
+    tagline: event.edition ?? null,
+    description: event.description ?? null,
+    category: toCategory(event.category),
+    ageRating: toAgeRating(event.ageRating),
+    startDate: event.startDate,
+    endDate: event.endDate,
+    photoUrl: event.photoUrl ?? null,
+    venue: event.venue
+      ? {
+          id: event.venue.id,
+          name: event.venue.name,
+          address: event.venue.address ?? null,
+        }
+      : null,
+    organizer: event.organization
+      ? {
+          id: event.organization.id,
+          name: event.organization.name,
+          description: event.organization.description ?? null,
+        }
+      : null,
+    ticketTypes: (event.ticketTypes ?? []).map((ticket) => ({
+      id: ticket.id,
+      batch: ticket.batch,
+      price: Number(ticket.price),
+      soldOut: ticket.quantity !== undefined ? Number(ticket.quantity) <= 0 : false,
+    })),
+  };
+}
+
+export function toAgeRating(value: string | null | undefined): AgeRating | null {
+  if (!value) return null;
+  const normalized = value.trim().toUpperCase();
+  return AGE_RATINGS.includes(normalized as AgeRating)
+    ? (normalized as AgeRating)
+    : null;
+}
+
+function toEventSummary(event: ApiEventSummary): EventSummary {
+  const venueName =
+    event.venueName && event.venueCity
+      ? `${event.venueName} · ${event.venueCity}`
+      : (event.venueName || event.venueCity || "");
 
   return {
     id: event.id,
     title: event.name,
     description: event.description ?? undefined,
     category: toCategory(event.category),
-    organizerName: organizerNames.get(event.organizerId) ?? "",
-    venueName: venueNames.get(event.venueId) ?? "",
+    organizerName: event.organizerName,
+    venueName,
     startDate: event.startDate,
     endDate: event.endDate,
-    price: cheapest?.price ?? null,
-    batchLabel: cheapest?.batch,
-    capacity: null,
-    ticketsSold: null,
+    price:
+      event.minPrice !== null && event.minPrice !== undefined
+        ? Number(event.minPrice)
+        : null,
+    batchLabel: event.minPriceBatch ?? undefined,
+    capacity:
+      event.capacity !== null && event.capacity !== undefined
+        ? Number(event.capacity)
+        : null,
+    ticketsSold:
+      event.ticketsSold !== null && event.ticketsSold !== undefined
+        ? Number(event.ticketsSold)
+        : null,
   };
 }
 

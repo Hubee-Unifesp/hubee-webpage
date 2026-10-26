@@ -66,6 +66,55 @@ export interface ApiTicketType {
   id: string;
   batch: string;
   price: number | string;
+  quantity?: number;
+}
+
+/** Contrato retornado por `GET /events/summary` (`EventSummaryResponseDto`). */
+export interface ApiEventSummary {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  startDate: string;
+  endDate: string;
+  featured: boolean;
+  organizerName: string;
+  venueName: string;
+  venueCity: string;
+  minPrice: number | string | null;
+  minPriceBatch: string | null;
+  capacity: number | null;
+  ticketsSold: number | null;
+}
+
+/** Contrato retornado por `GET /events/:id` (`EventDetailResponseDto`). */
+export interface ApiEventDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  ageRating: string | null;
+  organizerId: string;
+  venueId: string;
+  startDate: string;
+  endDate: string;
+  salesStartDate?: string | null;
+  status?: string;
+  category: string | null;
+  edition: string | null;
+  photoUrl: string | null;
+  featured: boolean;
+  venue: {
+    id: string;
+    name: string;
+    maxCapacity?: number;
+    address: EventAddress | null;
+  } | null;
+  organization: {
+    id: string;
+    name: string;
+    description: string | null;
+  } | null;
+  ticketTypes: ApiTicketType[];
 }
 
 /** Classificação indicativa aceita pela API (`eventAgeRating`). */
