@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isActiveRoute } from "@/components/layout/header";
-import { accountNavItems } from "./account-nav.config";
+import { useAuth } from "@/contexts/AuthContext";
+import { getAccountNavItems } from "./account-nav.config";
 
 /** Menu lateral da conta (desktop, a partir de 768px). O item da página atual fica destacado. */
 export function AccountSidebar() {
   const pathname = usePathname();
+  const { isOrganizer } = useAuth();
 
   return (
     <nav aria-label="Conta" className="hidden md:block">
       <ul className="sticky top-6 flex flex-col gap-1">
-        {accountNavItems.map(({ href, label, icon: Icon }) => (
+        {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
           <li key={href}>
             <Link
               href={href}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { MainNavigation, ThemeToggle, getNavigationItems, isActiveRoute } from "@/components/layout/header";
 import type { UsuarioLogado } from "@/types/usuario";
 import { cartHref, formatCartLabel, notificationsHref } from "./account-nav.config";
@@ -17,7 +18,8 @@ import { ThemedHubeeLogo } from "@/components/brand";
  */
 export function LoggedHeader({ usuario, itensNoCarrinho }: UsuarioLogado) {
   const pathname = usePathname();
-  const items = getNavigationItems("user", "/");
+  const { isOrganizer } = useAuth();
+  const items = getNavigationItems(isOrganizer ? "organizer" : "user", "/");
 
   return (
     <div className="w-full px-4 pt-4 sm:px-8 md:grid md:grid-cols-[1fr_minmax(0,52rem)_1fr] md:items-center md:gap-4 md:px-6">

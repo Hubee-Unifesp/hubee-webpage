@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { User, getMe, logout as apiLogout } from '@/lib/api/auth';
 import { parseApiError } from '@/lib/api/errors';
+import { canCreateEvents, isOrganizer } from '@/lib/permissions';
 import { clearSession, getToken } from '@/lib/session';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -11,6 +12,10 @@ type AuthContextType = {
   isLoading: boolean;
   /** `true` quando não foi possível carregar a sessão (API fora do ar), diferente de não estar logado. */
   hasError: boolean;
+  /** Pertence a alguma organização: vê a área de gestão de eventos. */
+  isOrganizer: boolean;
+  /** Pode criar eventos (administrador ou nível `write`/`manage` em alguma organização). */
+  canCreateEvents: boolean;
   /** `true` depois do logout, até a rota mudar (evita redirecionar ao login enquanto a ida para a home acontece). */
   sessionEnded: boolean;
   loginState: (userData: User) => void;
@@ -67,6 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginState = (userData: User) => {
     setSessionEnded(false);
     setUser(userData);
+    // A resposta de login/cadastro não traz `organizations`: completa em segundo plano, sem `isLoading`,
+    // para o menu de organizador aparecer sem recarregar a página.
+    getMe()
+      .then((fullUser) => getToken() && setUser(fullUser))
+      .catch(() => undefined);
   };
 
   const logoutState = async () => {
@@ -78,7 +88,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, hasError, sessionEnded, loginState, updateUserState: setUser, refreshUser, logoutState }}
+      value={{
+        user,
+        isLoading,
+        hasError,
+        isOrganizer: isOrganizer(user),
+        canCreateEvents: canCreateEvents(user),
+        sessionEnded,
+        loginState,
+        updateUserState: setUser,
+        refreshUser,
+        logoutState,
+      }}
     >
       {children}
     </AuthContext.Provider>

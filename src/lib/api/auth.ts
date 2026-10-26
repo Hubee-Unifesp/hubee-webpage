@@ -1,15 +1,10 @@
 import { apiClient } from './apiClient';
 import { clearSession, saveSession } from '../session';
-import { LoginFormInputs, RegisterFormInputs, SignupIntent } from '../validations/auth.schema';
+import { LoginFormInputs, RegisterFormInputs } from '../validations/auth.schema';
+import type { Usuario } from '@/types/usuario';
 
-export type User = {
-  id: string;
-  fullName: string;
-  email: string;
-  phone?: string | null;
-  profileComplete: boolean;
-  signupIntent: SignupIntent;
-};
+/** Usuário da sessão: o mesmo `Usuario` usado pela interface, com papel, intenção de cadastro e organizações. */
+export type User = Usuario;
 
 type AuthResponse = {
   user: User;

@@ -7,7 +7,7 @@ import { HeaderActions } from "./actions/header-actions";
 import { MainNavigation } from "./navigation/main-navigation";
 import { getNavigationItems } from "./navigation/navigation.config";
 import { ThemeToggle } from "./theme-toggle";
-import type { HeaderProps } from "./types";
+import type { HeaderProps, HeaderRole } from "./types";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemedHubeeLogo } from "@/components/brand";
 
@@ -17,9 +17,9 @@ export function Header({
   homeHref = "/",
 }: Omit<HeaderProps, 'role' | 'logoutHref'>) {
   const pathname = usePathname();
-  const { user } = useAuth();
-  const currentRole = user 
-    ? (user.signupIntent === 'ORGANIZE' ? 'organizer' : 'user') 
+  const { user, isOrganizer } = useAuth();
+  const currentRole: HeaderRole = user
+    ? (isOrganizer ? 'organizer' : 'user')
     : 'guest';
 
   const items = getNavigationItems(currentRole, homeHref);
