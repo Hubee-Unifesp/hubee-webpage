@@ -7,8 +7,10 @@ export function middleware(request: NextRequest) {
 
   const publicRoutes = ['/login', '/cadastro'];
   const isPublicRoute = publicRoutes.includes(pathname);
+  // Páginas de evento (/eventos e /eventos/[id]) são abertas a visitantes.
+  const isPublicEventRoute = pathname === '/eventos' || pathname.startsWith('/eventos/');
 
-  if (!token && !isPublicRoute && pathname !== '/') {
+  if (!token && !isPublicRoute && !isPublicEventRoute && pathname !== '/') {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -20,5 +22,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)'],
 };

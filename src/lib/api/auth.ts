@@ -1,13 +1,10 @@
 import { apiClient } from './apiClient';
-import { LoginFormInputs, RegisterFormInputs, SignupIntent } from '../validations/auth.schema';
+import { clearSession, saveSession } from '../session';
+import { LoginFormInputs, RegisterFormInputs } from '../validations/auth.schema';
+import type { Usuario } from '@/types/usuario';
 
-export type User = {
-  id: string;
-  fullName: string;
-  email: string;
-  profileComplete: boolean;
-  signupIntent: SignupIntent;
-};
+/** Usuário da sessão: o mesmo `Usuario` usado pela interface, com papel, intenção de cadastro e organizações. */
+export type User = Usuario;
 
 type AuthResponse = {
   user: User;
@@ -16,30 +13,25 @@ type AuthResponse = {
 
 export const login = async (data: LoginFormInputs): Promise<AuthResponse> => {
   const response = await apiClient.post<AuthResponse>('/auth/login', data);
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('hubee_token', response.data.access_token);
-  }
+  saveSession(response.data.access_token);
   return response.data;
 };
 
 export const register = async (data: RegisterFormInputs): Promise<AuthResponse> => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { confirmPassword, ...payload } = data;
-  
+
   const response = await apiClient.post<AuthResponse>('/auth/register', payload);
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('hubee_token', response.data.access_token);
-  }
+  saveSession(response.data.access_token);
   return response.data;
 };
 
 export const getMe = async (): Promise<User> => {
-  const response = await apiClient.get<User>('/users/me');
+  // 401 aqui só quer dizer "sem sessão": quem decide o que fazer é o AuthProvider, não o interceptor.
+  const response = await apiClient.get<User>('/auth/me', { skipAuthRedirect: true });
   return response.data;
 };
 
 export const logout = async (): Promise<void> => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('hubee_token');
-  }
+  clearSession();
 };

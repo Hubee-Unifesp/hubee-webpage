@@ -1,7 +1,11 @@
 import { z } from "zod";
-import { emailField, PASSWORD_MIN_LENGTH } from "./auth.schema";
+import { emailField } from "./auth.schema";
 
 const PHONE_MIN_DIGITS = 10;
+
+/** Regra da nova senha na área logada (a API limita o bcrypt em 72 caracteres). */
+export const NEW_PASSWORD_MIN_LENGTH = 8;
+export const NEW_PASSWORD_MAX_LENGTH = 72;
 
 export const personalDataSchema = z.object({
   fullName: z.string().trim().min(1, { error: "Informe seu nome completo." }),
@@ -26,7 +30,8 @@ export const changePasswordSchema = z
     newPassword: z
       .string()
       .min(1, { error: "Informe a nova senha." })
-      .min(PASSWORD_MIN_LENGTH, { error: `A senha deve ter no mínimo ${PASSWORD_MIN_LENGTH} caracteres.` }),
+      .min(NEW_PASSWORD_MIN_LENGTH, { error: `A senha deve ter no mínimo ${NEW_PASSWORD_MIN_LENGTH} caracteres.` })
+      .max(NEW_PASSWORD_MAX_LENGTH, { error: `A senha deve ter no máximo ${NEW_PASSWORD_MAX_LENGTH} caracteres.` }),
     confirmPassword: z.string().min(1, { error: "Confirme a nova senha." }),
   })
   .refine((data) => !data.newPassword || data.newPassword !== data.currentPassword, {

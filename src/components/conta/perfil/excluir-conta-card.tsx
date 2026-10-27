@@ -5,16 +5,27 @@ import { ContaCard } from "@/components/conta/conta-card";
 import { Modal } from "@/components/modal";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { deleteMe } from "@/lib/api/users";
 import { submitButtonClassName } from "./perfil-styles";
 
 export function ExcluirContaCard() {
   const toast = useToast();
+  const { logoutState } = useAuth();
   const [aberto, setAberto] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
 
-  function confirmar() {
-    // TODO(auth-api): excluir a conta na API e encerrar a sessão.
-    setAberto(false);
-    toast.success("Conta excluída (simulação, sem integração com a API).");
+  async function confirmar() {
+    setExcluindo(true);
+    try {
+      await deleteMe();
+    } catch {
+      toast.error("Não foi possível excluir sua conta. Tente novamente.");
+      setExcluindo(false);
+      return;
+    }
+    // Conta excluída: encerra a sessão e vai para a home. O modal fica aberto até a página sair.
+    await logoutState();
   }
 
   return (
@@ -31,6 +42,7 @@ export function ExcluirContaCard() {
       <Modal
         open={aberto}
         onOpenChange={setAberto}
+        dismissible={!excluindo}
         title="Você deseja excluir sua conta permanentemente?"
         description="Esta ação não pode ser desfeita."
         tone="warning"
@@ -38,6 +50,7 @@ export function ExcluirContaCard() {
           <>
             <Button
               type="button"
+              disabled={excluindo}
               onClick={() => setAberto(false)}
               className="h-9 bg-hubee-800 px-5 text-xs font-semibold text-hubee-50 hover:bg-hubee-900"
             >
@@ -45,10 +58,12 @@ export function ExcluirContaCard() {
             </Button>
             <Button
               type="button"
-              onClick={confirmar}
+              disabled={excluindo}
+              aria-busy={excluindo}
+              onClick={() => void confirmar()}
               className="h-9 bg-red-600 px-5 text-xs font-semibold text-white hover:bg-red-700"
             >
-              Excluir Conta
+              {excluindo ? "Excluindo..." : "Excluir Conta"}
             </Button>
           </>
         }

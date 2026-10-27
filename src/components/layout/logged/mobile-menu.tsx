@@ -8,8 +8,10 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { isActiveRoute, type NavigationItem } from "@/components/layout/header";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { accountNavItems, cartHref, formatCartLabel, notificationsHref } from "./account-nav.config";
+import { cartHref, formatCartLabel, getAccountNavItems, notificationsHref } from "./account-nav.config";
+import { ThemedHubeeLogo } from "@/components/brand";
 
 const itemClassName =
   "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium outline-none hover:bg-hubee-100 focus-visible:ring-3 focus-visible:ring-hubee-800 aria-[current=page]:bg-hubee-400 aria-[current=page]:text-hubee-800 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400 dark:aria-[current=page]:bg-hubee-50 dark:aria-[current=page]:text-hubee-750 [&_svg]:size-[18px] [&_svg]:shrink-0";
@@ -25,6 +27,7 @@ interface MobileMenuProps {
 export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { logoutState, isOrganizer } = useAuth();
   const close = () => setOpen(false);
 
   // Se a janela passar do breakpoint de desktop, o botão some: fecha o menu para não prender o foco.
@@ -57,9 +60,9 @@ export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
               href="/#inicio"
               onClick={close}
               aria-label="Hubee — página inicial"
-              className="rounded-md font-heading text-[26px] leading-none font-extrabold tracking-tighter outline-none hover:text-hubee-400 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:hover:text-hubee-50 dark:focus-visible:ring-hubee-800"
+              className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:focus-visible:ring-hubee-800"
             >
-              LOGO
+              <ThemedHubeeLogo light="white" dark="dark_alt" className="h-8" />
             </Link>
             <DialogPrimitive.Close asChild>
               <Button type="button" variant="hubee_header" size="icon" aria-label="Fechar menu">
@@ -126,7 +129,7 @@ export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
             <div>
               <p className={groupLabelClassName}>Conta</p>
               <ul className="flex flex-col gap-0.5">
-                {accountNavItems.map(({ href, label, icon: Icon }) => (
+                {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
                   <li key={href}>
                     <Link
                       href={href}
@@ -140,8 +143,14 @@ export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
                   </li>
                 ))}
                 <li>
-                  {/* TODO(auth-api): encerrar a sessão. Por enquanto o item é só visual. */}
-                  <button type="button" className={cn(itemClassName, "cursor-pointer")}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      void logoutState();
+                    }}
+                    className={cn(itemClassName, "cursor-pointer")}
+                  >
                     <LogOut aria-hidden="true" />
                     Sair
                   </button>

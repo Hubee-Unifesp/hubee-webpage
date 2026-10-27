@@ -4,11 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { MainNavigation, ThemeToggle, getNavigationItems, isActiveRoute } from "@/components/layout/header";
 import type { UsuarioLogado } from "@/types/usuario";
 import { cartHref, formatCartLabel, notificationsHref } from "./account-nav.config";
 import { LoggedUserMenu } from "./logged-user-menu";
 import { MobileMenu } from "./mobile-menu";
+import { ThemedHubeeLogo } from "@/components/brand";
 
 /**
  * Header da área logada. Reaproveita o tema, a navegação principal e os botões do header da home;
@@ -16,7 +18,8 @@ import { MobileMenu } from "./mobile-menu";
  */
 export function LoggedHeader({ usuario, itensNoCarrinho }: UsuarioLogado) {
   const pathname = usePathname();
-  const items = getNavigationItems("user", "/");
+  const { isOrganizer } = useAuth();
+  const items = getNavigationItems(isOrganizer ? "organizer" : "user", "/");
 
   return (
     <div className="w-full px-4 pt-4 sm:px-8 md:grid md:grid-cols-[1fr_minmax(0,52rem)_1fr] md:items-center md:gap-4 md:px-6">
@@ -28,9 +31,9 @@ export function LoggedHeader({ usuario, itensNoCarrinho }: UsuarioLogado) {
         <Link
           href="/#inicio"
           aria-label="Hubee — página inicial"
-          className="rounded-md font-heading text-[26px] leading-none font-extrabold tracking-tighter outline-none hover:text-hubee-400 focus-visible:ring-3 focus-visible:ring-hubee-400 md:text-[28px] dark:hover:text-hubee-50 dark:focus-visible:ring-hubee-800"
+          className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:focus-visible:ring-hubee-800"
         >
-          LOGO
+          <ThemedHubeeLogo light="white" dark="dark_alt" className="h-8 md:h-9" priority />
         </Link>
 
         <MainNavigation items={items} pathname={pathname} />
