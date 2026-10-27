@@ -1,5 +1,13 @@
+import { apiClient as authClient } from "./apiClient";
 import { apiClient } from "./client";
 import { parseApiError } from "./errors";
+import {
+  calculateSoldPercentage,
+  toOrganizacoesVinculadas,
+  type EventoOrganizador,
+  type OrganizacaoVinculada,
+} from "@/types/organizacao";
+import type { UsuarioOrganizacao } from "@/types/usuario";
 import type {
   AgeRating,
   ApiEventDetail,
@@ -12,6 +20,7 @@ import type {
   EventDetails,
   EventSearchFilters,
   EventSummary,
+  GetOrganizerEventsParams,
   HomeEvents,
 } from "./events.types";
 
@@ -45,6 +54,122 @@ export function isSoldOut(event: EventSummary): boolean {
 export function soldRatio(event: EventSummary): number {
   if (event.capacity === null || event.ticketsSold === null) return 0;
   return event.capacity > 0 ? event.ticketsSold / event.capacity : 0;
+}
+
+export interface OrganizerSessionUser {
+  id: string;
+  organizations?: readonly UsuarioOrganizacao[];
+}
+
+/**
+ * Resolve as organizações vinculadas à usuária logada a partir de `user.organizations`
+ * retornado por `GET /auth/me` (GOL-144 / GOL-145).
+ */
+export function resolveUserOrganizations(
+  user: OrganizerSessionUser | null | undefined,
+): OrganizacaoVinculada[] {
+  if (!user || !Array.isArray(user.organizations)) return [];
+  return toOrganizacoesVinculadas(user.organizations);
+}
+
+async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
+  try {
+    const { data } = await apiClient.get<ApiTicketType[]>(
+      `/events/${eventId}/ticket-types`,
+    );
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Busca os eventos de uma organização vinculada à usuária logada via `GET /events?organizerId=...`.
+ * Mescla `capacity` e `ticketsSold` via `GET /events/summary`. Se `capacity` ainda não vier no item,
+ * soma `quantity` de `GET /events/:id/ticket-types`.
+ */
+export async function getOrganizerEvents(
+  params: GetOrganizerEventsParams,
+): Promise<EventoOrganizador[]> {
+  const [{ data }, summaries] = await Promise.all([
+    authClient.get<ApiEventPage | ApiEventListItem[]>("/events", {
+      params: { limit: 50, ...params },
+    }),
+    apiClient
+      .get<ApiEventSummary[]>("/events/summary")
+      .then((res) => (Array.isArray(res.data) ? res.data : []))
+      .catch(() => [] as ApiEventSummary[]),
+  ]);
+
+  const summaryById = new Map(summaries.map((s) => [s.id, s]));
+  const items = Array.isArray(data) ? data : data.data;
+
+  const enriched = await Promise.all(
+    items.map(async (item) => {
+      const summary = summaryById.get(item.id);
+      const mergedItem: ApiEventListItem = summary
+        ? {
+            ...item,
+            capacity: item.capacity ?? summary.capacity,
+            ticketsSold: item.ticketsSold ?? summary.ticketsSold,
+          }
+        : item;
+
+      if (mergedItem.capacity !== undefined && mergedItem.capacity !== null) {
+        return toEventoOrganizador(mergedItem);
+      }
+      const ticketTypes = await getTicketTypes(item.id);
+      return toEventoOrganizador(mergedItem, ticketTypes);
+    }),
+  );
+
+  return enriched;
+}
+
+export function toEventoOrganizador(
+  item: ApiEventListItem,
+  ticketTypes: readonly ApiTicketType[] = [],
+): EventoOrganizador {
+  const ticketTypesCapacity = ticketTypes.reduce(
+    (sum, ticket) => sum + Math.max(0, Number(ticket.quantity ?? 0)),
+    0,
+  );
+  const capacidade =
+    item.capacity !== undefined && item.capacity !== null
+      ? Math.max(0, Number(item.capacity))
+      : ticketTypesCapacity;
+  const ingressosVendidos = Math.max(0, Number(item.ticketsSold ?? 0));
+
+  const cheapestTicket = ticketTypes
+    .map((ticket) => ({ ...ticket, price: Number(ticket.price) }))
+    .toSorted((a, b) => a.price - b.price)[0];
+
+  const precoMinimo =
+    item.minPrice !== null && item.minPrice !== undefined
+      ? Number(item.minPrice)
+      : (cheapestTicket?.price ?? null);
+  const loteMinimo = item.minPriceBatch ?? cheapestTicket?.batch ?? null;
+
+  const local =
+    item.venueName && item.venueCity
+      ? `${item.venueName} · ${item.venueCity}`
+      : (item.venueName ?? item.venueCity ?? "Local a definir");
+
+  return {
+    id: item.id,
+    nome: item.name,
+    descricao: item.description ?? "",
+    categoria: toCategory(item.category),
+    status: item.status ?? "draft",
+    dataInicio: item.startDate,
+    dataFim: item.endDate,
+    local,
+    precoMinimo,
+    loteMinimo,
+    capacidade,
+    ingressosVendidos,
+    percentualVendido: calculateSoldPercentage(ingressosVendidos, capacidade),
+  };
 }
 
 export function toDateParam(date: Date): string {
@@ -188,8 +313,9 @@ export async function getEventById(id: string): Promise<EventDetails | null> {
 
   try {
     const [detailResponse, summaryList] = await Promise.all([
-      apiClient.get<ApiEventDetail>(
+      authClient.get<ApiEventDetail>(
         `/events/${encodeURIComponent(trimmedId)}`,
+        { skipAuthRedirect: true },
       ),
       apiClient
         .get<ApiEventSummary[]>("/events/summary")

@@ -1,3 +1,5 @@
+import type { StatusEvento } from "@/types/organizacao";
+
 export type EventCategory =
   | "festas"
   | "shows"
@@ -47,16 +49,17 @@ export interface ApiEvent {
   venueId: string;
   startDate: string;
   endDate: string;
+  status?: StatusEvento;
   category: string | null;
   featured: boolean;
 }
 
 /** Item retornado por `GET /events` (`EventListItemResponseDto`). */
 export interface ApiEventListItem extends ApiEvent {
-  venueName: string;
-  venueCity: string;
-  minPrice: number | string | null;
-  minPriceBatch: string | null;
+  venueName?: string | null;
+  venueCity?: string | null;
+  minPrice?: number | string | null;
+  minPriceBatch?: string | null;
   organizerName?: string;
   capacity?: number | null;
   ticketsSold?: number | null;
@@ -80,6 +83,15 @@ export interface EventSearchFilters {
   city?: string | null;
   startDate?: Date | null;
   endDate?: Date | null;
+}
+
+/** Parâmetros para listagem de eventos do organizador em `GET /events`. */
+export interface GetOrganizerEventsParams {
+  organizerId: string;
+  status?: StatusEvento;
+  search?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface ApiOrganization {
