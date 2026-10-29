@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AxiosError } from "axios";
-import type { RegisterFormInputs } from "@/lib/validations/auth.schema";
+import type { RegisterFormInputs, SignupIntent } from "@/lib/validations/auth.schema";
 import { RegisterForm } from "./register-form";
 import { register } from "@/lib/api/auth";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,9 @@ export function RegisterScreen() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { loginState } = useAuth();
+
+  const intentParam = searchParams.get("intent");
+  const defaultIntent: SignupIntent = intentParam === "ORGANIZE" ? "ORGANIZE" : "BUY";
 
   function clearMessages() {
     setError(null);
@@ -64,6 +67,7 @@ export function RegisterScreen() {
       onSubmit={handleSubmit}
       onEdit={clearMessages}
       isLoading={isLoading}
+      defaultIntent={defaultIntent}
       error={error}
       emailError={emailError}
       successMessage={successMessage}
