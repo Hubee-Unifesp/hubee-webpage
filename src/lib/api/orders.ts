@@ -48,7 +48,7 @@ async function getMyTickets(): Promise<ApiTicket[]> {
   }
 }
 
-async function getEvents(eventIds: readonly string[]): Promise<Map<string, EventoPedido>> {
+export async function getEvents(eventIds: readonly string[]): Promise<Map<string, EventoPedido>> {
   const found = await Promise.all([...new Set(eventIds)].map(getEvento));
   return new Map(found.filter((evento) => evento !== null).map((evento) => [evento.id, evento]));
 }
@@ -75,7 +75,7 @@ async function getEvento(eventId: string): Promise<EventoPedido | null> {
   }
 }
 
-async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
+export async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
   try {
     const { data } = await publicClient.get<ApiTicketType[]>(`/events/${eventId}/ticket-types`);
     return data;
@@ -133,6 +133,6 @@ function toItens(
   });
 }
 
-function ticketTypeLabel(type: ApiTicketType | undefined): string {
+export function ticketTypeLabel(type: ApiTicketType | undefined): string {
   return type ? `Ingresso ${type.batch}` : "Ingresso";
 }

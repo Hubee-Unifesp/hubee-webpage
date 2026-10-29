@@ -57,11 +57,13 @@ interface EventMediaProps {
   category: EventCategory;
   startDate: string;
   soldOut?: boolean;
+  /** Mostra o ícone da categoria também no celular, no lugar do nome. */
+  alwaysShowIcon?: boolean;
   className?: string;
 }
 
 
-export function EventMedia({ category, startDate, soldOut, className }: EventMediaProps) {
+export function EventMedia({ category, startDate, soldOut, alwaysShowIcon, className }: EventMediaProps) {
   const { label, icon: Icon, mediaClassName, patternClassName } = categoryConfig[category];
 
   return (
@@ -80,10 +82,16 @@ export function EventMedia({ category, startDate, soldOut, className }: EventMed
           Esgotado
         </span>
       )}
-      <Icon aria-hidden="true" strokeWidth={1.5} className="relative hidden size-9 md:block" />
-      <span aria-hidden="true" className="relative truncate pl-14 pr-2 text-[10px] font-semibold tracking-[0.15em] uppercase md:hidden">
-        {label}
-      </span>
+      <Icon
+        aria-hidden="true"
+        strokeWidth={1.5}
+        className={cn("relative size-9", !alwaysShowIcon && "hidden md:block")}
+      />
+      {!alwaysShowIcon && (
+        <span aria-hidden="true" className="relative truncate pl-14 pr-2 text-[10px] font-semibold tracking-[0.15em] uppercase md:hidden">
+          {label}
+        </span>
+      )}
     </div>
   );
 }
