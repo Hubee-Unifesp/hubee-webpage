@@ -39,7 +39,6 @@ export function MeuIngressoCard({ ingresso, encerrado = false }: MeuIngressoCard
           <EventMedia
             category={evento.categoria}
             startDate={evento.dataInicio}
-            alwaysShowIcon
             className="h-24 md:h-32"
           />
         ) : (

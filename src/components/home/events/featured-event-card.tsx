@@ -25,8 +25,8 @@ export function FeaturedEventCard({ event }: { event: EventSummary }) {
       />
 
       <div className="flex flex-1 flex-col p-4 md:p-5">
-        <CategoryPill category={event.category} className="hidden md:inline-flex" />
-        <h3 className="font-sans text-base leading-snug font-semibold md:mt-3 md:text-xl">
+        <CategoryPill category={event.category} />
+        <h3 className="mt-3 font-sans text-base leading-snug font-semibold md:text-xl">
           <Link
             href={href}
             className="rounded-sm outline-none hover:underline focus-visible:ring-3 focus-visible:ring-hubee-400"
