@@ -7,10 +7,11 @@ export function middleware(request: NextRequest) {
 
   const publicRoutes = ['/login', '/cadastro'];
   const isPublicRoute = publicRoutes.includes(pathname);
-  // Páginas de evento (/eventos e /eventos/[id]) são abertas a visitantes.
+  // Páginas públicas abertas tanto a visitantes quanto a usuários autenticados.
   const isPublicEventRoute = pathname === '/eventos' || pathname.startsWith('/eventos/');
+  const isOpenRoute = pathname === '/' || pathname === '/sobre' || isPublicEventRoute;
 
-  if (!token && !isPublicRoute && !isPublicEventRoute && pathname !== '/') {
+  if (!token && !isPublicRoute && !isOpenRoute) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
