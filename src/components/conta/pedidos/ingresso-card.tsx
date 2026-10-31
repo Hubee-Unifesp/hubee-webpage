@@ -8,10 +8,11 @@ const statusIngressoLabel: Partial<Record<StatusIngresso, string>> = {
   cancelado: "Ingresso cancelado",
 };
 
+// Tons pastel e sem borda, no mesmo padrão do StatusBadge do pedido.
 const statusBadgeConfig: Record<StatusIngresso, { label: string; className: string }> = {
-  emitido: { label: "Válido", className: "bg-emerald-100 text-emerald-800 border-emerald-300" },
-  usado: { label: "Utilizado", className: "bg-hubee-neutral-50 text-hubee-neutral-500 border-hubee-neutral-200" },
-  cancelado: { label: "Cancelado", className: "bg-rose-100 text-rose-800 border-rose-300" },
+  emitido: { label: "Válido", className: "bg-emerald-100 text-emerald-800" },
+  usado: { label: "Utilizado", className: "bg-hubee-neutral-50 text-hubee-neutral-500" },
+  cancelado: { label: "Cancelado", className: "bg-rose-100 text-rose-800" },
 };
 
 interface IngressoCardProps {
@@ -24,13 +25,12 @@ export function IngressoCard({ ingresso, participante }: IngressoCardProps) {
   const { evento } = ingresso;
   const statusLabel = statusIngressoLabel[ingresso.status];
   const badge = statusBadgeConfig[ingresso.status];
-  const inativo = ingresso.status !== "emitido";
 
   return (
-    <article className={cn("flex flex-col gap-5 rounded-xl border border-hubee-300 bg-hubee-100 p-5 text-hubee-750 md:flex-row md:items-center md:justify-between", inativo && "opacity-75")}>
+    <article className="flex flex-col gap-5 rounded-xl border border-hubee-300 bg-hubee-100 p-5 text-hubee-750 md:flex-row md:items-center md:justify-between">
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2 mb-1">
-          <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold", badge.className)}>
+          <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", badge.className)}>
             {badge.label}
           </span>
           <span className="text-xs font-medium text-hubee-neutral-300 dark:text-hubee-200">
@@ -45,7 +45,10 @@ export function IngressoCard({ ingresso, participante }: IngressoCardProps) {
             {formatEventDate(evento.dataInicio, evento.dataFim)}
           </p>
         )}
-        <p className="mt-4 text-sm font-bold text-hubee-600">Código: {ingresso.codigo}</p>
+        {/* O código tem 64 caracteres sem espaços: `break-all` evita que vaze da tela no celular. */}
+        <p className="mt-4 text-sm font-bold text-hubee-600">
+          Código: <span className="font-mono text-xs font-semibold break-all">{ingresso.codigo}</span>
+        </p>
         <p className="text-xs">{statusLabel ?? "Apresente este código na entrada do evento."}</p>
       </div>
 

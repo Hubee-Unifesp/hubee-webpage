@@ -50,7 +50,7 @@ export function PedidosLista({ pedidos }: { pedidos: Pedido[] }) {
           action={filtro ? { label: "Limpar filtro", onClick: () => setFiltro(null) } : undefined}
         />
       ) : (
-        <ul className="grid gap-4 xl:grid-cols-2">
+        <ul className="divide-y divide-hubee-300 overflow-hidden rounded-xl border border-hubee-300 bg-hubee-100 shadow-sm">
           {visiveis.map((pedido) => (
             <li key={pedido.id}>
               <PedidoCard pedido={pedido} />
