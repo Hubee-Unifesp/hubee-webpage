@@ -11,7 +11,7 @@ import { useMeusIngressos } from "@/hooks/useMeusIngressos";
 import type { MeuIngresso } from "@/types/ingresso";
 import { MeuIngressoCard } from "./meu-ingresso-card";
 
-const gridClassName = "grid gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4";
+const gridClassName = "grid w-full min-w-0 gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4";
 
 /** Página Meus Ingressos: um cartão por ingresso, separados entre próximos e anteriores. */
 export function MeusIngressosContent() {
@@ -34,7 +34,9 @@ export function MeusIngressosContent() {
           <Skeleton className="h-6 w-40 rounded-full" />
           <div className={gridClassName}>
             {Array.from({ length: 4 }, (_, index) => (
-              <EventCardSkeleton key={index} />
+              <div key={index} className="min-w-0">
+                <EventCardSkeleton />
+              </div>
             ))}
           </div>
         </div>
@@ -103,7 +105,7 @@ function IngressosSection({ title, ingressos, encerrados = false, children }: In
       ) : (
         <ul className={gridClassName}>
           {ingressos.map((ingresso) => (
-            <li key={ingresso.id}>
+            <li key={ingresso.id} className="min-w-0">
               <MeuIngressoCard ingresso={ingresso} encerrado={encerrados} />
             </li>
           ))}

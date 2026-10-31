@@ -38,7 +38,7 @@ export function MeuIngressoCard({ ingresso, encerrado = false }: MeuIngressoCard
   const [qrModalOpen, setQrModalOpen] = useState(false);
 
   return (
-    <article className={eventCardClassName}>
+    <article className={cn(eventCardClassName, "w-full min-w-0")}>
       <div className={cn("relative", inativo && "opacity-60")}>
         {evento ? (
           <EventMedia
@@ -101,35 +101,38 @@ export function MeuIngressoCard({ ingresso, encerrado = false }: MeuIngressoCard
       </div>
 
       {/* Picote: as meias-luas usam a cor de fundo da página para "recortar" o cartão. */}
-      <div aria-hidden="true" className="relative flex h-4 items-center">
+      <div aria-hidden="true" className="relative flex h-4 items-center overflow-hidden">
         <span className="absolute -left-2 size-4 rounded-full border border-hubee-400 bg-hubee-50 dark:border-hubee-500 dark:bg-hubee-800" />
         <span className="mx-4 w-full border-t border-dashed border-hubee-400 dark:border-hubee-500" />
         <span className="absolute -right-2 size-4 rounded-full border border-hubee-400 bg-hubee-50 dark:border-hubee-500 dark:bg-hubee-800" />
       </div>
 
-      <div className="flex flex-col gap-2 p-3 pt-2 md:p-4 md:pt-2">
-        <div className="flex items-end justify-between gap-2">
-        <div className="flex min-w-0 flex-col leading-tight">
-          <span className="text-[10px] font-semibold tracking-wide uppercase">Código</span>
-          <span title={ingresso.codigo} className="truncate font-mono text-sm font-bold text-hubee-800 dark:text-hubee-50">
-            {ingresso.codigo}
-          </span>
-          <span className="mt-1 truncate text-[11px] text-hubee-neutral-300 dark:text-hubee-100">
-            Pedido #{ingresso.pedidoNumero}
-            {ingresso.valor !== null && ` · ${formatPrice(ingresso.valor)}`}
-          </span>
-        </div>
-        <Button
-          variant="hubee_750"
-          size="sm"
-          className="shrink-0 hover:text-hubee-400 focus-visible:ring-hubee-400 dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300 dark:hover:text-hubee-800"
-          type="button"
-          onClick={() => setQrModalOpen(true)}
-          aria-label={`Exibir QR Code do ingresso de ${nome}`}
-        >
-          <QrCode aria-hidden="true" className="size-4" />
-          Exibir QR Code
-        </Button>
+      <div className="flex min-w-0 flex-col gap-2 p-3 pt-2 md:p-4 md:pt-2">
+        <div className="flex min-w-0 flex-col gap-2.5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="text-[10px] font-semibold tracking-wide uppercase">Código</span>
+            <span
+              title={ingresso.codigo}
+              className="block max-w-full truncate font-mono text-xs font-bold text-hubee-800 sm:text-sm dark:text-hubee-50"
+            >
+              {ingresso.codigo}
+            </span>
+            <span className="mt-1 truncate text-[11px] text-hubee-neutral-300 dark:text-hubee-100">
+              Pedido #{ingresso.pedidoNumero}
+              {ingresso.valor !== null && ` · ${formatPrice(ingresso.valor)}`}
+            </span>
+          </div>
+          <Button
+            variant="hubee_750"
+            size="sm"
+            className="w-full shrink-0 hover:text-hubee-400 focus-visible:ring-hubee-400 sm:w-auto dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300 dark:hover:text-hubee-800"
+            type="button"
+            onClick={() => setQrModalOpen(true)}
+            aria-label={`Exibir QR Code do ingresso de ${nome}`}
+          >
+            <QrCode aria-hidden="true" className="size-4" />
+            Exibir QR Code
+          </Button>
         </div>
 
         <div className="flex justify-end border-t border-hubee-200/60 pt-1.5 dark:border-hubee-700/60">
