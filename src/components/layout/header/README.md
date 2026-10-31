@@ -17,7 +17,7 @@ No tema claro a pílula é escura (`hubee-800`) com hover amarelo (`hubee-400`);
 Em telas menores que 768px, a navegação principal fica oculta: a pílula acompanha a largura das seções da home (margens de 16px, ou 32px a partir de 640px) e mostra o logo, o botão de tema e as ações da conta (carrinho, notificações e usuário) ou “Entrar” para visitantes. O logo leva ao início e “Meus Eventos” continua no menu do usuário.
 O texto LOGO segue o placeholder da referência e pode ser substituído pela marca final.
 
-O link “Eventos” aponta para `/#eventos`, a seção da home reservada para a futura listagem com scroll infinito.
+O link “Eventos” aponta para `/eventos`, a página dedicada com a listagem de todos os eventos da plataforma.
 
 Os destinos `/meus-ingressos`, `/meus-eventos`, `/notificacoes`, `/carrinho` e `/conta/perfil` existem como páginas na área logada (placeholders, exceto `/conta/perfil`). Veja [`../logged/README.md`](../logged/README.md).
 
