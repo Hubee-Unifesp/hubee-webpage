@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/components/home/events/format";
@@ -71,23 +72,26 @@ function TicketTypeCard({ ticket, highlighted }: { ticket: EventTicketType; high
       </p>
       <p className="mt-1 text-[11px] text-hubee-neutral-300 dark:text-hubee-100">+ taxa de serviço</p>
 
-      <Button
-        type="button"
-        disabled={soldOut}
-        className={cn(
-          "mt-5 h-10 w-full text-sm font-semibold focus-visible:ring-hubee-400",
-          soldOut
-            ? "bg-cinzaclaro text-hubee-neutral-300 disabled:opacity-100 dark:bg-hubee-neutral-50 dark:text-hubee-neutral-300"
-            : "bg-hubee-400 text-hubee-800 hover:bg-hubee-300",
-        )}
-      >
-        Comprar
-        <span className="sr-only">
-          {" "}
-          {ticket.batch}
-          {soldOut && " (esgotado)"}
-        </span>
-      </Button>
+      {soldOut ? (
+        <Button
+          type="button"
+          disabled
+          className="mt-5 h-10 w-full bg-cinzaclaro text-sm font-semibold text-hubee-neutral-300 focus-visible:ring-hubee-400 disabled:opacity-100 dark:bg-hubee-neutral-50 dark:text-hubee-neutral-300"
+        >
+          Comprar
+          <span className="sr-only"> {ticket.batch} (esgotado)</span>
+        </Button>
+      ) : (
+        <Button
+          asChild
+          className="mt-5 h-10 w-full bg-hubee-400 text-sm font-semibold text-hubee-800 hover:bg-hubee-300 focus-visible:ring-hubee-400"
+        >
+          <Link href="/checkout">
+            Comprar
+            <span className="sr-only"> {ticket.batch}</span>
+          </Link>
+        </Button>
+      )}
     </article>
   );
 }
