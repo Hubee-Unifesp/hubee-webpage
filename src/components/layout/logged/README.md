@@ -23,7 +23,7 @@ A navegação da conta fica em `conta/layout.tsx` para que o carrinho use o mesm
 
 - `logged-header.tsx`: pílula do header. Reaproveita `ThemeToggle`, `MainNavigation` e `getNavigationItems` do header da home. Mostra carrinho com contador, notificações e o menu da usuária (avatar/iniciais).
 - `logged-session.tsx`: `SessionHeader` (header com o usuário da sessão) e `RequireSession` (sem sessão válida, vai para `/login?redirect=…`; falha de rede não derruba a sessão).
-- `logged-user-menu.tsx`: menu com Meus pedidos, Gerenciar eventos (só organizador, direcionando para `/meus-eventos`), Meu perfil e Sair.
+- `logged-user-menu.tsx`: menu pessoal da conta com Meus pedidos, Meu perfil e Sair.
 - `mobile-menu.tsx`: menu lateral abaixo de 768px (Radix Dialog: Esc fecha, foco preso, fecha ao navegar).
 - `account-sidebar.tsx` / `account-tabs.tsx`: navegação da conta pessoal no desktop / mobile, com `aria-current="page"` no item ativo.
 - `account-nav.config.ts`: **fonte única** das seções da conta pessoal e atalhos para páginas do organizador (`/meus-eventos`).
