@@ -107,7 +107,7 @@ export function MeusEventosContent() {
             </span>
 
             {organizacoes.length > 1 && (
-              <div className="md:hidden">
+              <div>
                 <Select value={organizacaoAtiva.orgId} onValueChange={selecionarOrganizacao}>
                   <SelectTrigger
                     size="sm"
@@ -254,7 +254,7 @@ export function MeusEventosContent() {
               }
             />
           ) : (
-            <ul className="grid gap-4 xl:grid-cols-2">
+            <ul className="grid gap-4 md:grid-cols-2">
               {eventosFiltrados.map((evento) => (
                 <li key={evento.id}>
                   <EventoOrganizadorCard evento={evento} papel={papel} />

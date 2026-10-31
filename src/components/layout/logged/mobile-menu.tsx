@@ -27,7 +27,7 @@ interface MobileMenuProps {
 export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const { logoutState, isOrganizer } = useAuth();
+  const { logoutState } = useAuth();
   const close = () => setOpen(false);
 
   // Se a janela passar do breakpoint de desktop, o botão some: fecha o menu para não prender o foco.
@@ -129,7 +129,7 @@ export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
             <div>
               <p className={groupLabelClassName}>Conta</p>
               <ul className="flex flex-col gap-0.5">
-                {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
+                {getAccountNavItems().map(({ href, label, icon: Icon }) => (
                   <li key={href}>
                     <Link
                       href={href}
