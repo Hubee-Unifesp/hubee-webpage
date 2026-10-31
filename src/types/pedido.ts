@@ -51,6 +51,10 @@ export interface Pedido {
   itens: ItemPedido[];
   /** Total em reais. */
   total: number;
+  /** Método de pagamento utilizado (ex.: 'pix', 'cartao_credito'). */
+  metodoPagamento?: string | null;
+  /** Data/hora em que o pagamento foi confirmado. */
+  pagoEm?: string | null;
   /** Só existem ingressos emitidos para pedidos pagos. */
   ingressos: IngressoPedido[];
 }

@@ -24,8 +24,17 @@ export async function getMyOrders(): Promise<Pedido[]> {
 }
 
 /** Rejeita com 404 quando o pedido não existe ou é de outra pessoa. */
+interface ApiPayment {
+  paymentMethod: string;
+  status: string;
+  paidAt?: string | null;
+}
+
 export async function getPedido(id: string): Promise<Pedido> {
-  const order = await apiClient.get<ApiOrder>(`/orders/${id}`).then(({ data }) => data);
+  const [order, payment] = await Promise.all([
+    apiClient.get<ApiOrder>(`/orders/${id}`).then(({ data }) => data),
+    getPayment(id),
+  ]);
 
   const tickets =
     order.status === "pago" ? (await getMyTickets()).filter((ticket) => ticket.orderId === order.id) : [];
@@ -35,7 +44,16 @@ export async function getPedido(id: string): Promise<Pedido> {
     Promise.all(eventIds.map(getTicketTypes)).then((lists) => lists.flat()),
   ]);
 
-  return toPedido(order, tickets, events, ticketTypes);
+  return toPedido(order, tickets, events, ticketTypes, payment);
+}
+
+async function getPayment(orderId: string): Promise<ApiPayment | null> {
+  try {
+    const { data } = await apiClient.get<ApiPayment>(`/orders/${orderId}/payments`);
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 async function getMyTickets(): Promise<ApiTicket[]> {
@@ -89,6 +107,7 @@ function toPedido(
   tickets: readonly ApiTicket[],
   events: ReadonlyMap<string, EventoPedido>,
   ticketTypes: readonly ApiTicketType[],
+  payment?: ApiPayment | null,
 ): Pedido {
   return {
     id: order.id,
@@ -98,6 +117,8 @@ function toPedido(
     eventos: [...new Set(tickets.map((ticket) => events.get(ticket.eventId)).filter((evento) => evento !== undefined))],
     itens: toItens(tickets, ticketTypes, events),
     total: Number(order.totalAmount),
+    metodoPagamento: payment?.paymentMethod ?? null,
+    pagoEm: payment?.paidAt ?? (order.status === "pago" ? order.createdAt : null),
     ingressos: tickets.map((ticket) => ({
       id: ticket.id,
       tipo: ticketTypeLabel(ticketTypes.find((type) => type.id === ticket.ticketTypeId)),

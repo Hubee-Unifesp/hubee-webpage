@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Ticket } from "lucide-react";
+import { ArrowRight, QrCode, Ticket } from "lucide-react";
+import { TicketQrModal } from "./ticket-qr-modal";
 import { Button } from "@/components/ui/button";
 import { categoryConfig } from "@/components/home/events/categories.config";
 import { eventCardClassName } from "@/components/home/events/event-card";
@@ -31,6 +35,7 @@ export function MeuIngressoCard({ ingresso, encerrado = false }: MeuIngressoCard
   const status = statusConfig[ingresso.status === "emitido" && encerrado ? "encerrado" : ingresso.status];
   const inativo = ingresso.status !== "emitido" || encerrado;
   const nome = evento?.nome ?? "Evento indisponível";
+  const [qrModalOpen, setQrModalOpen] = useState(false);
 
   return (
     <article className={eventCardClassName}>
@@ -102,7 +107,8 @@ export function MeuIngressoCard({ ingresso, encerrado = false }: MeuIngressoCard
         <span className="absolute -right-2 size-4 rounded-full border border-hubee-400 bg-hubee-50 dark:border-hubee-500 dark:bg-hubee-800" />
       </div>
 
-      <div className="flex items-end justify-between gap-2 p-3 pt-2 md:p-4 md:pt-2">
+      <div className="flex flex-col gap-2 p-3 pt-2 md:p-4 md:pt-2">
+        <div className="flex items-end justify-between gap-2">
         <div className="flex min-w-0 flex-col leading-tight">
           <span className="text-[10px] font-semibold tracking-wide uppercase">Código</span>
           <span title={ingresso.codigo} className="truncate font-mono text-sm font-bold text-hubee-800 dark:text-hubee-50">
@@ -117,13 +123,33 @@ export function MeuIngressoCard({ ingresso, encerrado = false }: MeuIngressoCard
           variant="hubee_750"
           size="sm"
           className="shrink-0 hover:text-hubee-400 focus-visible:ring-hubee-400 dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300 dark:hover:text-hubee-800"
-          asChild
+          type="button"
+          onClick={() => setQrModalOpen(true)}
+          aria-label={`Exibir QR Code do ingresso de ${nome}`}
         >
-          <Link href={`/conta/pedidos/${ingresso.pedidoId}`} aria-label={`Ver ingresso de ${nome}`}>
-            Ver ingresso
-          </Link>
+          <QrCode aria-hidden="true" className="size-4" />
+          Exibir QR Code
         </Button>
+        </div>
+
+        <div className="flex justify-end border-t border-hubee-200/60 pt-1.5 dark:border-hubee-700/60">
+          <Link
+            href={`/conta/pedidos/${ingresso.pedidoId}`}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-hubee-neutral-300 hover:text-hubee-800 hover:underline dark:text-hubee-200 dark:hover:text-hubee-50"
+          >
+            Ver detalhes do pedido
+            <ArrowRight aria-hidden="true" className="size-3" />
+          </Link>
+        </div>
       </div>
+
+      <TicketQrModal
+        open={qrModalOpen}
+        onOpenChange={setQrModalOpen}
+        ingresso={ingresso}
+        statusLabel={status.label}
+        statusClassName={status.className}
+      />
     </article>
   );
 }

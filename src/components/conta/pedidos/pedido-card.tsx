@@ -6,7 +6,7 @@ import { CategoryPill, EventMedia, HexPattern } from "@/components/home/events/e
 import { formatEventDate, formatPrice } from "@/components/home/events/format";
 import { cn } from "@/lib/utils";
 import type { Pedido } from "@/types/pedido";
-import { formatOrderDate } from "./format";
+import { formatOrderDateTime, formatPaymentMethod } from "./format";
 import { StatusBadge } from "./status-pedido";
 
 /** Cartão de pedido da lista "Meus pedidos". */
@@ -15,7 +15,7 @@ export function PedidoCard({ pedido }: { pedido: Pedido }) {
   const [evento = null] = pedido.eventos;
   const outrosEventos = pedido.eventos.length - 1;
   const href = `/conta/pedidos/${pedido.id}`;
-  const dataCompra = `Pedido feito em ${formatOrderDate(pedido.criadoEm)}`;
+  const dataCompra = `Pedido feito em ${formatOrderDateTime(pedido.criadoEm)}`;
 
   return (
     <article className="flex h-full overflow-hidden rounded-xl border border-hubee-400 bg-hubee-100 text-hubee-750 shadow-sm">
@@ -57,6 +57,11 @@ export function PedidoCard({ pedido }: { pedido: Pedido }) {
           </p>
         )}
         <p className="text-xs">{dataCompra}</p>
+        {pedido.metodoPagamento && (
+          <p className="text-xs text-hubee-neutral-300 dark:text-hubee-200">
+            Forma de pagamento: {formatPaymentMethod(pedido.metodoPagamento)}
+          </p>
+        )}
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-2">
           <p className="flex flex-col leading-tight">

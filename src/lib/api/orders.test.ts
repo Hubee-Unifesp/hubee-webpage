@@ -188,6 +188,19 @@ describe("getPedido", () => {
     expect(pedido.ingressos.map((item) => item.id)).toEqual(["1"]);
   });
 
+  it("carrega informacoes de pagamento quando disponiveis", async () => {
+    routes[`/orders/${paidOrder.id}/payments`] = {
+      paymentMethod: "pix",
+      status: "confirmado",
+      paidAt: "2026-10-01T15:05:00Z",
+    };
+    authGet.mockImplementation(resolve(routes));
+
+    const pedido = await getPedido(paidOrder.id);
+    expect(pedido.metodoPagamento).toBe("pix");
+    expect(pedido.pagoEm).toBe("2026-10-01T15:05:00Z");
+  });
+
   it("rejeita quando o pedido nao existe", async () => {
     await expect(getPedido("nao-existe")).rejects.toThrow();
   });

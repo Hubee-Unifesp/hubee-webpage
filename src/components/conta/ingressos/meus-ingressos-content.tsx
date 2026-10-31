@@ -17,7 +17,7 @@ const gridClassName = "grid gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid
 export function MeusIngressosContent() {
   const router = useRouter();
   const { status, data, retry } = useMeusIngressos();
-  const verEventos = { label: "Ver eventos", onClick: () => router.push("/#eventos") };
+  const verEventos = { label: "Ver eventos", onClick: () => router.push("/eventos") };
 
   return (
     <div className="flex flex-col gap-6">
