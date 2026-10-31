@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, LogOut, Menu, ShoppingCart, X } from "lucide-react";
+import { Bell, LogIn, LogOut, Menu, ShoppingCart, UserPlus, X } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { isActiveRoute, type NavigationItem } from "@/components/layout/header";
+import { loginItem, registerItem } from "@/components/layout/header/actions/actions.config";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { cartHref, formatCartLabel, getAccountNavItems, notificationsHref } from "./account-nav.config";
@@ -20,14 +21,15 @@ const groupLabelClassName = "px-3 pb-1 text-xs font-medium text-hubee-neutral-30
 
 interface MobileMenuProps {
   navigationItems: readonly NavigationItem[];
-  itemsInCart: number;
+  itemsInCart?: number;
+  homeHref?: string;
 }
 
 /** Menu lateral em tela cheia para telas menores que 768px (Radix Dialog: Esc fecha, foco preso). */
-export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
+export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const { logoutState, isOrganizer } = useAuth();
+  const { user, logoutState, isOrganizer } = useAuth();
   const close = () => setOpen(false);
 
   // Se a janela passar do breakpoint de desktop, o botão some: fecha o menu para não prender o foco.
@@ -57,7 +59,7 @@ export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
 
           <div className="flex h-14 shrink-0 items-center justify-between bg-hubee-800 px-4 text-hubee-50 dark:bg-hubee-400 dark:text-hubee-800">
             <Link
-              href="/#inicio"
+              href={`${homeHref}#inicio`}
               onClick={close}
               aria-label="Hubee — página inicial"
               className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:focus-visible:ring-hubee-800"
@@ -92,71 +94,103 @@ export function MobileMenu({ navigationItems, itemsInCart }: MobileMenuProps) {
 
             <hr className="border-hubee-800/20 dark:border-hubee-50/20" />
 
-            <ul className="flex flex-col gap-0.5">
-              <li>
-                <Link
-                  href={cartHref}
-                  onClick={close}
-                  aria-label={formatCartLabel(itemsInCart)}
-                  aria-current={isActiveRoute(pathname, cartHref) ? "page" : undefined}
-                  className={itemClassName}
-                >
-                  <ShoppingCart aria-hidden="true" />
-                  Carrinho
-                  {itemsInCart > 0 && (
-                    <span
-                      aria-hidden="true"
-                      className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-hubee-800 px-1.5 text-xs font-bold text-hubee-50 dark:bg-hubee-400 dark:text-hubee-800"
-                    >
-                      {itemsInCart > 99 ? "99+" : itemsInCart}
-                    </span>
-                  )}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={notificationsHref}
-                  onClick={close}
-                  aria-current={isActiveRoute(pathname, notificationsHref) ? "page" : undefined}
-                  className={itemClassName}
-                >
-                  <Bell aria-hidden="true" />
-                  Notificações
-                </Link>
-              </li>
-            </ul>
-
-            <div>
-              <p className={groupLabelClassName}>Conta</p>
-              <ul className="flex flex-col gap-0.5">
-                {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
-                  <li key={href}>
+            {user ? (
+              <>
+                <ul className="flex flex-col gap-0.5">
+                  <li>
                     <Link
-                      href={href}
+                      href={cartHref}
                       onClick={close}
-                      aria-current={isActiveRoute(pathname, href) ? "page" : undefined}
+                      aria-label={formatCartLabel(itemsInCart)}
+                      aria-current={isActiveRoute(pathname, cartHref) ? "page" : undefined}
                       className={itemClassName}
                     >
-                      <Icon aria-hidden="true" />
-                      {label}
+                      <ShoppingCart aria-hidden="true" />
+                      Carrinho
+                      {itemsInCart > 0 && (
+                        <span
+                          aria-hidden="true"
+                          className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-hubee-800 px-1.5 text-xs font-bold text-hubee-50 dark:bg-hubee-400 dark:text-hubee-800"
+                        >
+                          {itemsInCart > 99 ? "99+" : itemsInCart}
+                        </span>
+                      )}
                     </Link>
                   </li>
-                ))}
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      close();
-                      void logoutState();
-                    }}
-                    className={cn(itemClassName, "cursor-pointer")}
-                  >
-                    <LogOut aria-hidden="true" />
-                    Sair
-                  </button>
-                </li>
-              </ul>
-            </div>
+                  <li>
+                    <Link
+                      href={notificationsHref}
+                      onClick={close}
+                      aria-current={isActiveRoute(pathname, notificationsHref) ? "page" : undefined}
+                      className={itemClassName}
+                    >
+                      <Bell aria-hidden="true" />
+                      Notificações
+                    </Link>
+                  </li>
+                </ul>
+
+                <div>
+                  <p className={groupLabelClassName}>Conta</p>
+                  <ul className="flex flex-col gap-0.5">
+                    {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
+                      <li key={href}>
+                        <Link
+                          href={href}
+                          onClick={close}
+                          aria-current={isActiveRoute(pathname, href) ? "page" : undefined}
+                          className={itemClassName}
+                        >
+                          <Icon aria-hidden="true" />
+                          {label}
+                        </Link>
+                      </li>
+                    ))}
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          close();
+                          void logoutState();
+                        }}
+                        className={cn(itemClassName, "cursor-pointer")}
+                      >
+                        <LogOut aria-hidden="true" />
+                        Sair
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <div>
+                <p className={groupLabelClassName}>Conta</p>
+                <ul className="flex flex-col gap-0.5">
+                  <li>
+                    <Link
+                      href={loginItem.href}
+                      onClick={close}
+                      aria-current={isActiveRoute(pathname, loginItem.href) ? "page" : undefined}
+                      className={itemClassName}
+                    >
+                      <LogIn aria-hidden="true" />
+                      {loginItem.label}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href={registerItem.href}
+                      onClick={close}
+                      aria-current={isActiveRoute(pathname, registerItem.href) ? "page" : undefined}
+                      className={itemClassName}
+                    >
+                      <UserPlus aria-hidden="true" />
+                      {registerItem.label}
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            )}
           </nav>
         </DialogPrimitive.Content>
       </DialogPortal>
