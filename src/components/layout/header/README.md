@@ -14,7 +14,7 @@ A home (`/`) usa o estado de visitante e `/login` apresenta o mock de usuário l
 
 No tema claro a pílula é escura (`hubee-800`) com hover amarelo (`hubee-400`); no tema escuro ela é amarela (`hubee-400`) com hover claro (`hubee-50`). O link da rota ativa usa a mesma cor do hover.
 
-Em telas menores que 768px, a navegação principal fica oculta: a pílula acompanha a largura das seções da home (margens de 16px, ou 32px a partir de 640px) e mostra o logo, o botão de tema e as ações da conta (carrinho, notificações e usuário) ou “Entrar” para visitantes. O logo leva ao início e “Meus Eventos” continua no menu do usuário.
+Em telas menores que 768px, a navegação principal e os botões de ação horizontais ficam ocultos: a pílula acompanha a largura das seções da home (margens de 16px, ou 32px a partir de 640px) e mostra o logo, o botão de tema e o botão de menu hambúrguer (`MobileMenu`), que abre o drawer lateral com os links de navegação (`Início`, `Eventos`, `Sobre`) e as ações da conta (`Entrar` e `Criar Conta` para visitantes, ou atalhos da conta e `Sair` para usuários autenticados).
 O texto LOGO segue o placeholder da referência e pode ser substituído pela marca final.
 
 O link “Eventos” aponta para `/#eventos`, a seção da home reservada para a futura listagem com scroll infinito.
