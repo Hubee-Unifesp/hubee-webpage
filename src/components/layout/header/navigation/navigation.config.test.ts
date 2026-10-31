@@ -17,8 +17,8 @@ describe("navigation.config", () => {
       expect(items).toEqual([
         { href: "/#inicio", label: "Início" },
         { href: "/eventos", label: "Eventos" },
-        { href: "/sobre", label: "Sobre" },
         { href: "/meus-ingressos", label: "Meus Ingressos" },
+        { href: "/sobre", label: "Sobre" },
       ]);
     });
 
@@ -27,9 +27,9 @@ describe("navigation.config", () => {
       expect(items).toEqual([
         { href: "/#inicio", label: "Início" },
         { href: "/eventos", label: "Eventos" },
-        { href: "/sobre", label: "Sobre" },
         { href: "/meus-ingressos", label: "Meus Ingressos" },
         { href: "/meus-eventos", label: "Meus Eventos" },
+        { href: "/sobre", label: "Sobre" },
       ]);
     });
   });

@@ -102,7 +102,7 @@ export function AllEventsContent() {
   const headerInfo = activeListSlug
     ? LIST_LABELS[activeListSlug]
     : {
-        title: "Todos os eventos",
+        title: "Explorar Eventos",
         subtitle:
           "Festas, shows, palestras e campeonatos das agremiações perto de você.",
       };
@@ -127,7 +127,7 @@ export function AllEventsContent() {
     : baseEvents;
 
   return (
-    <EventPageShell label="Todos os eventos">
+    <EventPageShell label="Explorar Eventos">
 
       <div
         className={cn(
