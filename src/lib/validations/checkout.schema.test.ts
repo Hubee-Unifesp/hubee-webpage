@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  PIX_EXPIRATION_SECONDS,
+  formatPixCountdown,
+} from "@/components/checkout/checkout.data";
+import {
   checkoutSchema,
   formatCardExpiry,
   formatCardNumber,
@@ -74,12 +78,14 @@ describe("checkoutSchema", () => {
     expect(validCard.success).toBe(true);
   });
 
-  it("formata mascaras de CPF, telefone, cartao e validade", () => {
+  it("formata mascaras de CPF, telefone, cartao, validade e timer PIX", () => {
     expect(formatCpf("12345678901")).toBe("123.456.789-01");
     expect(maskCpfForDisplay("123.456.789-01")).toBe("***.456.789-**");
     expect(formatPhone("11988887777")).toBe("(11) 98888-7777");
     expect(formatCardNumber("4242424242424242")).toBe("4242 4242 4242 4242");
     expect(formatCardExpiry("1128")).toBe("11/28");
+    expect(formatPixCountdown(PIX_EXPIRATION_SECONDS)).toBe("15:00");
+    expect(formatPixCountdown(899)).toBe("14:59");
+    expect(formatPixCountdown(0)).toBe("00:00");
   });
 });
-

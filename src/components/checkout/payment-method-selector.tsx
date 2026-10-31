@@ -1,20 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { Controller, type Control, type FieldErrors } from "react-hook-form";
 import {
   AlertCircle,
-  Check,
-  Clock,
-  Copy,
   CreditCard,
   Lock,
   QrCode,
+  Zap,
 } from "lucide-react";
 import { AuthField, AuthInput, fieldA11y } from "@/components/auth/auth-field";
 import { ContaCard } from "@/components/conta/conta-card";
 import { fieldInputClassName, fieldLabelClassName } from "@/components/conta/perfil/perfil-styles";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -38,7 +34,6 @@ interface PaymentMethodSelectorProps {
   errors: FieldErrors<CheckoutFormInputs>;
   paymentMethod: PaymentMethod;
   onPaymentMethodChange: (method: PaymentMethod) => void;
-  pix: CheckoutOrderData["pix"];
   installments: CheckoutOrderData["installments"];
   transactionError?: string | null;
   disabled?: boolean;
@@ -50,26 +45,10 @@ export function PaymentMethodSelector({
   errors,
   paymentMethod,
   onPaymentMethodChange,
-  pix,
   installments,
   transactionError,
   disabled = false,
 }: PaymentMethodSelectorProps) {
-  const [copied, setCopied] = useState(false);
-
-  async function handleCopyPixKey() {
-    try {
-      if (typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(pix.copyPasteKey);
-      }
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2500);
-    } catch {
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2500);
-    }
-  }
-
   return (
     <ContaCard title="2. Forma de Pagamento">
       <div className="flex flex-col gap-4">
@@ -104,64 +83,30 @@ export function PaymentMethodSelector({
           </TabsList>
 
           <TabsContent value="pix">
-            <div className="flex flex-col gap-3">
-              <p className="text-center text-xs font-semibold text-hubee-800 dark:text-hubee-50">
-                PIX Aprovado na Hora. Escaneie o QR Code para pagar.
-              </p>
+            <div className="flex items-start gap-3.5 rounded-xl border border-hubee-300 bg-hubee-100/80 p-4 text-hubee-800 sm:p-5 dark:border-hubee-700 dark:bg-hubee-800/70 dark:text-hubee-50">
+              <div
+                aria-hidden="true"
+                className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-hubee-300 text-hubee-800 dark:bg-hubee-400 dark:text-hubee-800"
+              >
+                <QrCode className="size-5" />
+              </div>
 
-              <div className="flex flex-col gap-4 rounded-xl border border-hubee-300 bg-hubee-100 p-4 text-hubee-750 sm:flex-row sm:items-center sm:p-5">
-                <div
-                  role="img"
-                  aria-label="QR Code dinâmico para pagamento via PIX"
-                  className="mx-auto flex aspect-square w-40 shrink-0 items-center justify-center rounded-xl border border-dashed border-hubee-600/60 bg-hubee-300 text-hubee-600 sm:mx-0 sm:w-36"
-                >
-                  <QrCode aria-hidden="true" className="size-16" strokeWidth={1.5} />
-                </div>
-
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-semibold text-orange-800">
-                    <Clock aria-hidden="true" className="size-3" />
-                    {pix.expirationLabel}
-                  </span>
-
-                  <h3 className="text-sm font-bold text-hubee-800">
-                    Escaneie o QR Code ou copie a chave PIX
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-bold text-hubee-800 dark:text-hubee-50">
+                    PIX Aprovado na Hora
                   </h3>
-
-                  <p className="text-xs leading-relaxed text-hubee-750">
-                    Abra o app do seu banco, escolha PIX Copia e Cola ou leitor de QR Code. A
-                    confirmação é instantânea.
-                  </p>
-
-                  <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div
-                      aria-label="Chave PIX Copia e Cola"
-                      className="min-w-0 flex-1 rounded-lg border border-hubee-200 bg-white px-3 py-2 font-mono text-[11px] leading-snug break-all text-hubee-800 select-all"
-                    >
-                      {pix.displayKey}
-                    </div>
-
-                    <Button
-                      type="button"
-                      variant="hubee_800"
-                      disabled={disabled}
-                      onClick={handleCopyPixKey}
-                      className="h-9 shrink-0 cursor-pointer px-3.5 text-xs font-semibold"
-                    >
-                      {copied ? (
-                        <>
-                          <Check aria-hidden="true" className="size-3.5" />
-                          Código copiado!
-                        </>
-                      ) : (
-                        <>
-                          <Copy aria-hidden="true" className="size-3.5" />
-                          Copiar código
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-hubee-300/80 px-2 py-0.5 text-[10px] font-semibold text-hubee-800 dark:bg-hubee-400 dark:text-hubee-800">
+                    <Zap aria-hidden="true" className="size-3" />
+                    Liberação imediata
+                  </span>
                 </div>
+
+                <p className="text-xs leading-relaxed text-hubee-750 dark:text-hubee-200">
+                  Ao clicar em &apos;Confirmar e Pagar&apos;, um QR Code e um código PIX Copia e
+                  Cola serão gerados na próxima etapa. Você terá 15 minutos para concluir o
+                  pagamento e liberar seus ingressos instantaneamente.
+                </p>
               </div>
             </div>
           </TabsContent>
@@ -330,4 +275,3 @@ export function PaymentMethodSelector({
     </ContaCard>
   );
 }
-

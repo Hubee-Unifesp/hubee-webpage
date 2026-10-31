@@ -2,11 +2,22 @@ import type { PaymentMethod } from "@/lib/validations/checkout.schema";
 
 export type CheckoutSimulationMode =
   | "form"
+  | "pix-payment"
   | "loading"
   | "processing"
   | "pix-timeout"
   | "payment-error"
   | "success";
+
+export const PIX_EXPIRATION_SECONDS = 15 * 60;
+
+/** Formata segundos restantes no padrão `MM:SS` (ex.: `900` -> `15:00`). */
+export function formatPixCountdown(secondsRemaining: number): string {
+  const safeSeconds = Math.max(0, Math.floor(secondsRemaining));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
 
 export interface CheckoutOrderItem {
   id: string;
@@ -84,7 +95,7 @@ export const CHECKOUT_MOCK_ORDER: CheckoutOrderData = {
   serviceFeeAmount: 7,
   totalAmount: 67,
   pix: {
-    expirationLabel: "Expira em 14:59",
+    expirationLabel: "Expira em 15:00",
     copyPasteKey:
       "00020126580014br.gov.bcb.pix0136hubee-checkout-9842-fe8a-4c11-9b0d520400005303986540567.005802BR5913HUBEE EVENTOS6009SAO PAULO62070503***6304A1B2",
     displayKey: "00020126580014br.gov.bcb.pix0136hubee-checkout-9842 ...",
@@ -95,4 +106,3 @@ export const CHECKOUT_MOCK_ORDER: CheckoutOrderData = {
     { value: "3x", label: "3x de R$ 22,33 sem juros" },
   ],
 };
-

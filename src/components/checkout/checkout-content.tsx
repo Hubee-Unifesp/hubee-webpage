@@ -19,11 +19,13 @@ import {
 import { BuyerIdentificationCard } from "./buyer-identification-card";
 import { CheckoutFeedbackModals } from "./checkout-feedback-modals";
 import { CheckoutOrderSummary } from "./checkout-order-summary";
+import { CheckoutPixPaymentView } from "./checkout-pix-payment-view";
 import { CheckoutSkeleton } from "./checkout-skeleton";
 import { CheckoutSuccessView } from "./checkout-success-view";
 import {
   CHECKOUT_MOCK_ORDER,
   DEFAULT_CHECKOUT_BUYER,
+  PIX_EXPIRATION_SECONDS,
   type CheckoutBuyerSummary,
   type CheckoutSimulationMode,
 } from "./checkout.data";
@@ -37,6 +39,7 @@ const SIMULATION_OPTIONS: ReadonlyArray<{
   label: string;
 }> = [
   { mode: "form", label: "Checkout" },
+  { mode: "pix-payment", label: "Pagamento PIX" },
   { mode: "loading", label: "Skeleton" },
   { mode: "processing", label: "Processando" },
   { mode: "pix-timeout", label: "Timeout PIX" },
@@ -49,6 +52,7 @@ export function CheckoutContent() {
   const router = useRouter();
   const { user } = useAuth();
   const [simulationMode, setSimulationMode] = useState<CheckoutSimulationMode>("form");
+  const [pixSecondsRemaining, setPixSecondsRemaining] = useState<number>(PIX_EXPIRATION_SECONDS);
   const [autoAdvanceOnProcessing, setAutoAdvanceOnProcessing] = useState(false);
   const [showInlineCardError, setShowInlineCardError] = useState(false);
   const [confirmedBuyer, setConfirmedBuyer] = useState<CheckoutBuyerSummary>({
@@ -119,6 +123,23 @@ export function CheckoutContent() {
     return () => window.clearTimeout(timer);
   }, [simulationMode, autoAdvanceOnProcessing]);
 
+  useEffect(() => {
+    if (simulationMode !== "pix-payment") return;
+
+    const interval = window.setInterval(() => {
+      setPixSecondsRemaining((previous) => {
+        if (previous <= 1) {
+          window.clearInterval(interval);
+          setSimulationMode("pix-timeout");
+          return 0;
+        }
+        return previous - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [simulationMode]);
+
   function handleToggleAccountData(checked: boolean) {
     setValue("useAccountData", checked, { shouldValidate: false });
     if (checked) {
@@ -149,9 +170,26 @@ export function CheckoutContent() {
     if (nextMode === "payment-error") {
       setValue("paymentMethod", "card", { shouldValidate: false });
       setShowInlineCardError(true);
+    } else if (nextMode === "pix-payment") {
+      setValue("paymentMethod", "pix", { shouldValidate: false });
+      setShowInlineCardError(false);
+      setPixSecondsRemaining(PIX_EXPIRATION_SECONDS);
+      setConfirmedBuyer({
+        fullName: watchedFullName?.trim() || accountFullName,
+        email: watchedEmail?.trim() || accountEmail,
+        cpf: watchedCpf || "123.456.789-00",
+        paymentMethod: "pix",
+      });
     } else if (nextMode === "pix-timeout") {
       setValue("paymentMethod", "pix", { shouldValidate: false });
       setShowInlineCardError(false);
+      setPixSecondsRemaining(0);
+      setConfirmedBuyer({
+        fullName: watchedFullName?.trim() || accountFullName,
+        email: watchedEmail?.trim() || accountEmail,
+        cpf: watchedCpf || "123.456.789-00",
+        paymentMethod: "pix",
+      });
     } else if (nextMode === "success") {
       setShowInlineCardError(false);
       setConfirmedBuyer({
@@ -168,25 +206,45 @@ export function CheckoutContent() {
   function onSubmit(data: CheckoutFormInputs) {
     setShowInlineCardError(false);
 
+    const buyerSummary: CheckoutBuyerSummary = {
+      fullName: data.fullName.trim(),
+      email: data.email.trim(),
+      cpf: data.cpf,
+      paymentMethod: data.paymentMethod,
+    };
+    setConfirmedBuyer(buyerSummary);
+
+    if (data.paymentMethod === "pix") {
+      setAutoAdvanceOnProcessing(false);
+      setPixSecondsRemaining(PIX_EXPIRATION_SECONDS);
+      setSimulationMode("pix-payment");
+      return;
+    }
+
     // Cartão terminado em 0000 permite simular erro de autorização diretamente pelo formulário.
-    if (data.paymentMethod === "card" && onlyDigits(data.cardNumber).endsWith("0000")) {
+    if (onlyDigits(data.cardNumber).endsWith("0000")) {
       setAutoAdvanceOnProcessing(false);
       setShowInlineCardError(true);
       setSimulationMode("payment-error");
       return;
     }
 
-    setConfirmedBuyer({
-      fullName: data.fullName.trim(),
-      email: data.email.trim(),
-      cpf: data.cpf,
-      paymentMethod: data.paymentMethod,
-    });
     setAutoAdvanceOnProcessing(true);
     setSimulationMode("processing");
   }
 
+  function handleConfirmPixPayment() {
+    setAutoAdvanceOnProcessing(false);
+    setConfirmedBuyer((prev) => ({
+      ...prev,
+      paymentMethod: "pix",
+    }));
+    setSimulationMode("success");
+  }
+
   const isProcessing = simulationMode === "processing";
+  const showPixPaymentView =
+    simulationMode === "pix-payment" || simulationMode === "pix-timeout";
 
   return (
     <div className="flex flex-col gap-8">
@@ -196,62 +254,76 @@ export function CheckoutContent() {
         <CheckoutSuccessView order={CHECKOUT_MOCK_ORDER} buyer={confirmedBuyer} />
       )}
 
-      {simulationMode !== "loading" && simulationMode !== "success" && (
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/eventos"
-                aria-label="Voltar para eventos"
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-100 text-hubee-800 outline-none hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-800 dark:border-hubee-750 dark:bg-hubee-750/60 dark:text-hubee-50 dark:hover:bg-hubee-700 dark:focus-visible:ring-hubee-400"
-              >
-                <ArrowLeft aria-hidden="true" className="size-4" />
-              </Link>
-              <ContaPageTitle>Finalizar Compra</ContaPageTitle>
-            </div>
-            <p className="text-xs text-hubee-neutral-300 dark:text-hubee-200">
-              Revise os detalhes do seu pedido e escolha a forma de pagamento.
-            </p>
-          </div>
-
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            noValidate
-            aria-busy={isProcessing}
-            className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]"
-          >
-            <div className="flex flex-col gap-6">
-              <BuyerIdentificationCard
-                control={control}
-                register={register}
-                errors={errors}
-                useAccountData={useAccountData}
-                onToggleAccountData={handleToggleAccountData}
-                disabled={isProcessing}
-              />
-
-              <PaymentMethodSelector
-                control={control}
-                errors={errors}
-                paymentMethod={paymentMethod}
-                onPaymentMethodChange={handlePaymentMethodChange}
-                pix={CHECKOUT_MOCK_ORDER.pix}
-                installments={CHECKOUT_MOCK_ORDER.installments}
-                transactionError={showInlineCardError ? TRANSACTION_ERROR_MESSAGE : null}
-                disabled={isProcessing}
-              />
-            </div>
-
-            <CheckoutOrderSummary
-              order={CHECKOUT_MOCK_ORDER}
-              acceptTerms={acceptTerms}
-              onToggleTerms={handleToggleTerms}
-              termsError={errors.acceptTerms?.message}
-              isProcessing={isProcessing}
-            />
-          </form>
-        </div>
+      {showPixPaymentView && (
+        <CheckoutPixPaymentView
+          order={CHECKOUT_MOCK_ORDER}
+          buyer={confirmedBuyer}
+          secondsRemaining={pixSecondsRemaining}
+          onConfirmPixPayment={handleConfirmPixPayment}
+          onBackToForm={() => {
+            setAutoAdvanceOnProcessing(false);
+            setSimulationMode("form");
+          }}
+        />
       )}
+
+      {simulationMode !== "loading" &&
+        simulationMode !== "success" &&
+        !showPixPaymentView && (
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/eventos"
+                  aria-label="Voltar para eventos"
+                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-100 text-hubee-800 outline-none hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-800 dark:border-hubee-750 dark:bg-hubee-750/60 dark:text-hubee-50 dark:hover:bg-hubee-700 dark:focus-visible:ring-hubee-400"
+                >
+                  <ArrowLeft aria-hidden="true" className="size-4" />
+                </Link>
+                <ContaPageTitle>Finalizar Compra</ContaPageTitle>
+              </div>
+              <p className="text-xs text-hubee-neutral-300 dark:text-hubee-200">
+                Revise os detalhes do seu pedido e escolha a forma de pagamento.
+              </p>
+            </div>
+
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              noValidate
+              aria-busy={isProcessing}
+              className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]"
+            >
+              <div className="flex flex-col gap-6">
+                <BuyerIdentificationCard
+                  control={control}
+                  register={register}
+                  errors={errors}
+                  useAccountData={useAccountData}
+                  onToggleAccountData={handleToggleAccountData}
+                  disabled={isProcessing}
+                />
+
+                <PaymentMethodSelector
+                  control={control}
+                  errors={errors}
+                  paymentMethod={paymentMethod}
+                  onPaymentMethodChange={handlePaymentMethodChange}
+                  installments={CHECKOUT_MOCK_ORDER.installments}
+                  transactionError={showInlineCardError ? TRANSACTION_ERROR_MESSAGE : null}
+                  disabled={isProcessing}
+                />
+              </div>
+
+              <CheckoutOrderSummary
+                order={CHECKOUT_MOCK_ORDER}
+                acceptTerms={acceptTerms}
+                onToggleTerms={handleToggleTerms}
+                termsError={errors.acceptTerms?.message}
+                isProcessing={isProcessing}
+              />
+            </form>
+          </div>
+        )}
 
       <CheckoutFeedbackModals
         mode={simulationMode}
@@ -262,7 +334,8 @@ export function CheckoutContent() {
         onRegeneratePix={() => {
           setAutoAdvanceOnProcessing(false);
           setValue("paymentMethod", "pix", { shouldValidate: false });
-          setSimulationMode("form");
+          setPixSecondsRemaining(PIX_EXPIRATION_SECONDS);
+          setSimulationMode("pix-payment");
         }}
         onSwitchToPix={() => {
           setAutoAdvanceOnProcessing(false);
@@ -287,7 +360,11 @@ export function CheckoutContent() {
             Estados do Protótipo (GOL-180):
           </span>
 
-          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Alternar estado visual">
+          <div
+            className="flex flex-wrap items-center gap-1.5"
+            role="group"
+            aria-label="Alternar estado visual"
+          >
             {SIMULATION_OPTIONS.map((option) => {
               const active = simulationMode === option.mode;
               return (
