@@ -98,7 +98,7 @@ export function MeusEventosContent() {
               type="button"
               variant="hubee_750"
               onClick={handleCriarEvento}
-              className="h-10 self-start rounded-lg px-4 font-semibold sm:self-auto dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300"
+              className="h-10 self-start rounded-lg px-4 font-semibold sm:self-auto sm:translate-y-1.5 dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300"
             >
               <Plus aria-hidden="true" className="size-4" />
               Criar Novo Evento
@@ -110,7 +110,7 @@ export function MeusEventosContent() {
               disabled
               aria-disabled="true"
               title="Apenas Administradores e Membros podem criar eventos"
-              className="h-10 self-start rounded-lg border-stone-300 bg-stone-200/70 px-4 font-semibold text-stone-500 sm:self-auto dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400"
+              className="h-10 self-start rounded-lg border-stone-300 bg-stone-200/70 px-4 font-semibold text-stone-500 sm:self-auto sm:translate-y-1.5 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400"
             >
               <Lock aria-hidden="true" className="size-4" />
               Criar Novo Evento
