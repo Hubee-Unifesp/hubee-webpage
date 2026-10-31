@@ -1,9 +1,8 @@
 "use client";
 
 import { useDeferredValue, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Sparkles, X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import {
   EventPageShell,
   containerClassName,
@@ -129,31 +128,6 @@ export function AllEventsContent() {
 
   return (
     <EventPageShell label="Todos os eventos">
-      <nav
-        aria-label="Trilha de navegação"
-        className="border-b border-hubee-200/70 dark:border-hubee-750"
-      >
-        <ol
-          className={cn(
-            containerClassName,
-            "flex items-center gap-2 py-3 text-xs text-hubee-750 dark:text-hubee-100",
-          )}
-        >
-          <li>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 rounded-sm outline-none hover:underline focus-visible:ring-3 focus-visible:ring-hubee-400"
-            >
-              <ArrowLeft aria-hidden="true" className="size-3.5" />
-              Início
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="truncate font-medium">
-            {headerInfo.title}
-          </li>
-        </ol>
-      </nav>
 
       <div
         className={cn(
