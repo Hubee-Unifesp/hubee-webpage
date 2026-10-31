@@ -89,69 +89,71 @@ export function MeusEventosContent() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-        <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <ContaPageTitle>Meus Eventos</ContaPageTitle>
-          <p className="text-sm text-hubee-750/80 dark:text-hubee-200">
-            Organização: <span className="font-medium text-hubee-800 dark:text-hubee-50">{organizacaoAtiva.nome}</span> •{" "}
-            {todosEventos.length} {todosEventos.length === 1 ? "evento" : "eventos"}
-          </p>
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            <span
-              className={cn(
-                "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold",
-                papelBadgeStyle[papel],
-              )}
-            >
-              {formatOrganizerRoleLabel(papel)}
-            </span>
 
-            {organizacoes.length > 1 && (
-              <div>
-                <Select value={organizacaoAtiva.orgId} onValueChange={selecionarOrganizacao}>
-                  <SelectTrigger
-                    size="sm"
-                    aria-label="Organização ativa"
-                    className="border-hubee-300 bg-hubee-neutral-25 text-xs font-semibold text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-50/5 dark:text-hubee-50"
-                  >
-                    <SelectValue placeholder="Selecione a organização" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizacoes.map((org) => (
-                      <SelectItem key={org.orgId} value={org.orgId}>
-                        {org.nome} ({formatOrganizerRoleLabel(org.papel)})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
+          {podeCriarEvento ? (
+            <Button
+              type="button"
+              variant="hubee_750"
+              onClick={handleCriarEvento}
+              className="h-10 self-start rounded-lg px-4 font-semibold sm:self-auto dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300"
+            >
+              <Plus aria-hidden="true" className="size-4" />
+              Criar Novo Evento
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              disabled
+              aria-disabled="true"
+              title="Apenas Administradores e Membros podem criar eventos"
+              className="h-10 self-start rounded-lg border-stone-300 bg-stone-200/70 px-4 font-semibold text-stone-500 sm:self-auto dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400"
+            >
+              <Lock aria-hidden="true" className="size-4" />
+              Criar Novo Evento
+            </Button>
+          )}
         </div>
 
-        {podeCriarEvento ? (
-          <Button
-            type="button"
-            variant="hubee_750"
-            onClick={handleCriarEvento}
-            className="h-10 self-start rounded-lg px-4 font-semibold sm:self-auto dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300"
+        <p className="text-sm text-hubee-750/80 dark:text-hubee-200">
+          Organização: <span className="font-medium text-hubee-800 dark:text-hubee-50">{organizacaoAtiva.nome}</span> •{" "}
+          {todosEventos.length} {todosEventos.length === 1 ? "evento" : "eventos"}
+        </p>
+
+        <div className="flex flex-wrap items-center gap-2 pt-0.5">
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+              papelBadgeStyle[papel],
+            )}
           >
-            <Plus aria-hidden="true" className="size-4" />
-            Criar Novo Evento
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            disabled
-            aria-disabled="true"
-            title="Apenas Administradores e Membros podem criar eventos"
-            className="h-10 self-start rounded-lg border-stone-300 bg-stone-200/70 px-4 font-semibold text-stone-500 sm:self-auto dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400"
-          >
-            <Lock aria-hidden="true" className="size-4" />
-            Criar Novo Evento
-          </Button>
-        )}
+            {formatOrganizerRoleLabel(papel)}
+          </span>
+
+          {organizacoes.length > 1 && (
+            <div>
+              <Select value={organizacaoAtiva.orgId} onValueChange={selecionarOrganizacao}>
+                <SelectTrigger
+                  size="sm"
+                  aria-label="Organização ativa"
+                  className="border-hubee-300 bg-hubee-neutral-25 text-xs font-semibold text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-50/5 dark:text-hubee-50"
+                >
+                  <SelectValue placeholder="Selecione a organização" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizacoes.map((org) => (
+                    <SelectItem key={org.orgId} value={org.orgId}>
+                      {org.nome} ({formatOrganizerRoleLabel(org.papel)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </div>
 
       {papel === "leitura" && (
