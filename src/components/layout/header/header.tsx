@@ -48,7 +48,7 @@ export function Header({
         <div className="flex items-center gap-0.5">
           <ThemeToggle className="md:hidden" />
           <HeaderActions user={user} />
-          <MobileMenu navigationItems={items} />
+          <MobileMenu navigationItems={items} homeHref={homeHref} />
         </div>
       </header>
     </div>

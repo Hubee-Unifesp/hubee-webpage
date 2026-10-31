@@ -3,11 +3,12 @@ import { getNavigationItems, isActiveRoute } from "./navigation.config";
 
 describe("navigation.config", () => {
   describe("getNavigationItems", () => {
-    it("deve retornar Início e Eventos para visitante", () => {
+    it("deve retornar Início, Eventos e Sobre para visitante", () => {
       const items = getNavigationItems("guest", "/");
       expect(items).toEqual([
         { href: "/#inicio", label: "Início" },
         { href: "/eventos", label: "Eventos" },
+        { href: "/sobre", label: "Sobre" },
       ]);
     });
 
@@ -16,6 +17,7 @@ describe("navigation.config", () => {
       expect(items).toEqual([
         { href: "/#inicio", label: "Início" },
         { href: "/eventos", label: "Eventos" },
+        { href: "/sobre", label: "Sobre" },
         { href: "/meus-ingressos", label: "Meus Ingressos" },
       ]);
     });
@@ -25,6 +27,7 @@ describe("navigation.config", () => {
       expect(items).toEqual([
         { href: "/#inicio", label: "Início" },
         { href: "/eventos", label: "Eventos" },
+        { href: "/sobre", label: "Sobre" },
         { href: "/meus-ingressos", label: "Meus Ingressos" },
         { href: "/meus-eventos", label: "Meus Eventos" },
       ]);

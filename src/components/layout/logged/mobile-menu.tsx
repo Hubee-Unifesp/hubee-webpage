@@ -8,6 +8,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { isActiveRoute, type NavigationItem } from "@/components/layout/header";
+import { loginItem, registerItem } from "@/components/layout/header/actions/actions.config";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { cartHref, formatCartLabel, getAccountNavItems, notificationsHref } from "./account-nav.config";
@@ -21,10 +22,11 @@ const groupLabelClassName = "px-3 pb-1 text-xs font-medium text-hubee-neutral-30
 interface MobileMenuProps {
   navigationItems: readonly NavigationItem[];
   itemsInCart?: number;
+  homeHref?: string;
 }
 
 /** Menu lateral em tela cheia para telas menores que 768px (Radix Dialog: Esc fecha, foco preso). */
-export function MobileMenu({ navigationItems, itemsInCart = 0 }: MobileMenuProps) {
+export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { user, logoutState } = useAuth();
@@ -57,7 +59,7 @@ export function MobileMenu({ navigationItems, itemsInCart = 0 }: MobileMenuProps
 
           <div className="flex h-14 shrink-0 items-center justify-between bg-hubee-800 px-4 text-hubee-50 dark:bg-hubee-400 dark:text-hubee-800">
             <Link
-              href="/#inicio"
+              href={`${homeHref}#inicio`}
               onClick={close}
               aria-label="Hubee — página inicial"
               className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:focus-visible:ring-hubee-800"
@@ -166,24 +168,24 @@ export function MobileMenu({ navigationItems, itemsInCart = 0 }: MobileMenuProps
                 <ul className="flex flex-col gap-0.5">
                   <li>
                     <Link
-                      href="/login"
+                      href={loginItem.href}
                       onClick={close}
-                      aria-current={isActiveRoute(pathname, "/login") ? "page" : undefined}
+                      aria-current={isActiveRoute(pathname, loginItem.href) ? "page" : undefined}
                       className={itemClassName}
                     >
                       <LogIn aria-hidden="true" />
-                      Entrar
+                      {loginItem.label}
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="/cadastro"
+                      href={registerItem.href}
                       onClick={close}
-                      aria-current={isActiveRoute(pathname, "/cadastro") ? "page" : undefined}
+                      aria-current={isActiveRoute(pathname, registerItem.href) ? "page" : undefined}
                       className={itemClassName}
                     >
                       <UserPlus aria-hidden="true" />
-                      Criar conta
+                      {registerItem.label}
                     </Link>
                   </li>
                 </ul>
