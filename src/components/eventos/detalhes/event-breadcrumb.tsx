@@ -9,7 +9,7 @@ interface EventBreadcrumbProps {
   title: string;
 }
 
-/** Trilha "Todos os eventos / Categoria / Evento"; no mobile mostra apenas o link de voltar. */
+/** Trilha "Explorar Eventos / Categoria / Evento"; no mobile mostra apenas o link de voltar. */
 export function EventBreadcrumb({ categoryLabel, title }: EventBreadcrumbProps) {
   return (
     <nav aria-label="Trilha de navegação" className="border-b border-hubee-200/70 dark:border-hubee-750">
@@ -20,7 +20,7 @@ export function EventBreadcrumb({ categoryLabel, title }: EventBreadcrumbProps) 
             className="inline-flex items-center gap-1.5 rounded-sm outline-none hover:underline focus-visible:ring-3 focus-visible:ring-hubee-400"
           >
             <ArrowLeft aria-hidden="true" className="size-3.5" />
-            Todos os eventos
+            Explorar Eventos
           </Link>
         </li>
         <li aria-hidden="true" className="hidden md:block">

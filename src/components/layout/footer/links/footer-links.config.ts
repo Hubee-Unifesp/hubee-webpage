@@ -2,7 +2,7 @@ import type { FooterColumn, FooterLinkItem, FooterRole } from "../types";
 
 const explorarItems: readonly FooterLinkItem[] = [
   { href: "#inicio", label: "Início" },
-  { href: "#eventos", label: "Eventos" },
+  { href: "/eventos", label: "Eventos" },
   { href: "/sobre", label: "Sobre o Hubee" },
 ];
 

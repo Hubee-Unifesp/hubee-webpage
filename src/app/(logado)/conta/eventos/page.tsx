@@ -1,9 +1,5 @@
-import type { Metadata } from "next";
-import { MeusEventosContent } from "@/components/conta/eventos/meus-eventos-content";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Meus Eventos | Hubee" };
-
-export default function MeusEventosPage() {
-  return <MeusEventosContent />;
+export default function ContaEventosRedirectPage() {
+  redirect("/meus-eventos");
 }
-

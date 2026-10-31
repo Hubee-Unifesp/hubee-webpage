@@ -9,7 +9,7 @@ import { EventCardSkeleton } from "@/components/home/events/list-states";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Todos os eventos | Hubee",
+  title: "Explorar Eventos | Hubee",
   description:
     "Explore festas, shows, palestras e campeonatos das agremiações perto de você.",
 };

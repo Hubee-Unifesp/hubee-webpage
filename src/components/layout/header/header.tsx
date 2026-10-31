@@ -10,7 +10,7 @@ import { ThemeToggle } from "./theme-toggle";
 import type { HeaderProps, HeaderRole } from "./types";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemedHubeeLogo } from "@/components/brand";
-import { MobileMenu } from "@/components/layout/logged/mobile-menu";
+import { MobileMenu } from "@/components/layout/logged";
 
 export function Header({
   className,
@@ -47,9 +47,7 @@ export function Header({
         <MainNavigation items={items} pathname={pathname} />
         <div className="flex items-center gap-0.5">
           <ThemeToggle className="md:hidden" />
-          <div className="hidden items-center gap-0.5 md:flex">
-            <HeaderActions user={user} />
-          </div>
+          <HeaderActions user={user} />
           <MobileMenu navigationItems={items} homeHref={homeHref} />
         </div>
       </header>

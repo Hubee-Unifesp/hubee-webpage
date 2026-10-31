@@ -15,7 +15,7 @@ export function HeaderActions({ user, signedIn = !!user }: HeaderActionsProps) {
   return (
     <div className="flex items-center gap-0.5">
       {isLogged && user ? (
-        <>
+        <div className="hidden items-center gap-0.5 md:flex">
           {accountActions.map(({ href, label, icon: Icon }) => (
             <Button key={href} variant="hubee_header" size="icon" asChild>
               <Link href={href} aria-label={label}>
@@ -24,7 +24,7 @@ export function HeaderActions({ user, signedIn = !!user }: HeaderActionsProps) {
             </Button>
           ))}
           <LoggedUserMenu usuario={user} />
-        </>
+        </div>
       ) : (
         <Button variant="hubee_header" size="default" className="border-current font-semibold" asChild>
           <Link href={loginItem.href}>{loginItem.label}</Link>
@@ -32,4 +32,4 @@ export function HeaderActions({ user, signedIn = !!user }: HeaderActionsProps) {
       )}
     </div>
   );
-}
+}

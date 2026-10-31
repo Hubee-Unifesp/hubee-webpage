@@ -8,10 +8,10 @@ interface NavigationEntry {
 
 const navigationEntries: readonly NavigationEntry[] = [
   { href: "#inicio", label: "Início" },
-  { href: "#eventos", label: "Eventos" },
-  { href: "/sobre", label: "Sobre" },
+  { href: "/eventos", label: "Eventos" },
   { href: "/meus-ingressos", label: "Meus Ingressos", roles: ["user", "organizer"] },
   { href: "/meus-eventos", label: "Meus Eventos", roles: ["organizer"] },
+  { href: "/sobre", label: "Sobre" },
 ];
 
 export function getNavigationItems(role: HeaderRole, homeHref: string): NavigationItem[] {

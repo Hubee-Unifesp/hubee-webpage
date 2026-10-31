@@ -14,10 +14,10 @@ A home (`/`) usa o estado de visitante e `/login` apresenta o mock de usuário l
 
 No tema claro a pílula é escura (`hubee-800`) com hover amarelo (`hubee-400`); no tema escuro ela é amarela (`hubee-400`) com hover claro (`hubee-50`). O link da rota ativa usa a mesma cor do hover.
 
-Em telas menores que 768px, a navegação principal e os botões de ação horizontais ficam ocultos: a pílula acompanha a largura das seções da home (margens de 16px, ou 32px a partir de 640px) e mostra o logo, o botão de tema e o botão de menu hambúrguer (`MobileMenu`), que abre o drawer lateral com os links de navegação (`Início`, `Eventos`, `Sobre`) e as ações da conta (`Entrar` e `Criar Conta` para visitantes, ou atalhos da conta e `Sair` para usuários autenticados).
+Em telas menores que 768px, a navegação principal e os botões de ação horizontais ficam ocultos na barra e passam a ser acessíveis pelo menu lateral (`MobileMenu` / gaveta hambúrguer), garantindo acesso a “Início”, “Eventos”, “Sobre”, “Meus Ingressos” e “Meus Eventos” (para organizadores), além das ações da conta (`Entrar` e `Criar conta` para visitantes, ou atalhos da conta e `Sair` para usuários autenticados) em todas as páginas públicas.
 O texto LOGO segue o placeholder da referência e pode ser substituído pela marca final.
 
-O link “Eventos” aponta para `/#eventos`, a seção da home reservada para a futura listagem com scroll infinito.
+O link “Eventos” aponta para `/eventos`, a página dedicada com a listagem de todos os eventos da plataforma.
 
 Os destinos `/meus-ingressos`, `/meus-eventos`, `/notificacoes`, `/carrinho` e `/conta/perfil` existem como páginas na área logada (placeholders, exceto `/conta/perfil`). Veja [`../logged/README.md`](../logged/README.md).
 
