@@ -37,7 +37,7 @@ export function PedidosContent() {
             icon={ShoppingBag}
             title="Você ainda não fez nenhum pedido"
             description="Quando você comprar ingressos, seus pedidos aparecem aqui."
-            action={{ label: "Ver eventos", onClick: () => router.push("/#eventos") }}
+            action={{ label: "Ver eventos", onClick: () => router.push("/eventos") }}
           />
         ) : (
           <PedidosLista pedidos={data} />
