@@ -84,6 +84,19 @@ describe("getMyOrders", () => {
     expect(publicGet.mock.calls.filter(([url]) => url === `/events/${EVENT_ID}`)).toHaveLength(1);
   });
 
+  it("carrega informacoes de pagamento para os pedidos da lista", async () => {
+    routes[`/orders/${paidOrder.id}/payments`] = {
+      paymentMethod: "pix",
+      status: "confirmado",
+      paidAt: "2026-10-01T15:05:00Z",
+    };
+    authGet.mockImplementation(resolve(routes));
+
+    const orders = await getMyOrders();
+    const paid = orders.find((order) => order.id === paidOrder.id);
+    expect(paid?.metodoPagamento).toBe("pix");
+  });
+
   it("mantem a lista quando os ingressos nao carregam", async () => {
     authGet.mockImplementation((url: string) =>
       url === "/users/me/tickets" ? Promise.reject(new Error("404")) : resolve(routes)(url),

@@ -33,7 +33,7 @@ export function IngressoCard({ ingresso, participante }: IngressoCardProps) {
           <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", badge.className)}>
             {badge.label}
           </span>
-          <span className="text-xs font-medium text-hubee-neutral-300 dark:text-hubee-200">
+          <span className="text-xs font-medium text-hubee-neutral-300">
             {ingresso.tipo}
           </span>
         </div>

@@ -92,7 +92,7 @@ export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; partic
         </div>
 
         <div className="mt-4 flex items-center justify-between border-t border-hubee-200 pt-4 dark:border-hubee-50/15">
-          <p className="text-sm font-semibold">Total Pago</p>
+          <p className="text-sm font-semibold">{pedido.status === "pago" ? "Total Pago" : "Total"}</p>
           <p className="text-base font-bold text-hubee-600 dark:text-hubee-400">{formatPrice(pedido.total)}</p>
         </div>
       </ContaCard>

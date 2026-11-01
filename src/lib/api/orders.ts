@@ -16,10 +16,23 @@ export async function getMyOrders(): Promise<Pedido[]> {
     getMyTickets(),
   ]);
 
-  const events = await getEvents(tickets.map((ticket) => ticket.eventId));
+  const [events, payments] = await Promise.all([
+    getEvents(tickets.map((ticket) => ticket.eventId)),
+    Promise.all(orders.map((order) => getPayment(order.id))),
+  ]);
+
+  const paymentsByOrderId = new Map(orders.map((order, index) => [order.id, payments[index]]));
 
   return orders
-    .map((order) => toPedido(order, tickets.filter((ticket) => ticket.orderId === order.id), events, []))
+    .map((order) =>
+      toPedido(
+        order,
+        tickets.filter((ticket) => ticket.orderId === order.id),
+        events,
+        [],
+        paymentsByOrderId.get(order.id) ?? null,
+      ),
+    )
     .toSorted((a, b) => b.criadoEm.localeCompare(a.criadoEm));
 }
 

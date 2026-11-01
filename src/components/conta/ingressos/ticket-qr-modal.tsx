@@ -36,12 +36,11 @@ export function TicketQrModal({
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(ingresso.codigo);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 2000);
       }
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
+      // Ignora falha de permissão de escrita no clipboard sem exibir feedback falso
     }
   }
 

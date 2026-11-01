@@ -54,7 +54,7 @@ export function PedidoCard({ pedido }: { pedido: Pedido }) {
             {formatEventDate(evento.dataInicio, evento.dataFim)}
           </p>
         )}
-        <p className="truncate text-xs text-hubee-neutral-300 dark:text-hubee-200">{meta.join(" · ")}</p>
+        <p className="truncate text-xs text-hubee-neutral-300">{meta.join(" · ")}</p>
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-1">
