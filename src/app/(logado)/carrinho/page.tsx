@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { CarrinhoContent } from "@/components/carrinho";
 
-export const metadata: Metadata = { title: "Carrinho | Hubee" };
+export const metadata: Metadata = {
+  title: "Carrinho | Hubee",
+  description: "Revise os ingressos selecionados e avance para o checkout.",
+};
 
-// Placeholder: o conteúdo desta página entra nas próximas tasks.
-export default function Page() {
-  return <h1 className="text-2xl font-bold">Carrinho</h1>;
+export default function CarrinhoPage() {
+  return <CarrinhoContent />;
 }
