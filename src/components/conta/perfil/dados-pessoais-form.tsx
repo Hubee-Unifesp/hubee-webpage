@@ -17,6 +17,7 @@ import type { Usuario } from "@/types/usuario";
 import { fieldInputClassName, fieldLabelClassName, submitButtonClassName } from "./perfil-styles";
 
 const FORMATOS_FOTO = ["image/jpeg", "image/png"];
+const TAMANHO_MAXIMO_FOTO = 2 * 1024 * 1024;
 
 /** Campos do formulário que a API pode recusar, na ordem em que o texto da mensagem é testado. */
 const CAMPOS_DA_API = {
@@ -75,6 +76,10 @@ export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
     if (!arquivo) return;
     if (!FORMATOS_FOTO.includes(arquivo.type)) {
       toast.error("Formato inválido. Use uma imagem .jpg, .png ou .jpeg.");
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO_FOTO) {
+      toast.error("A imagem deve ter no máximo 2MB.");
       return;
     }
     setArquivoFoto(arquivo);
