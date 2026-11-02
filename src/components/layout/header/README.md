@@ -50,7 +50,7 @@ Importe o componente e seus tipos por `@/components/layout/header`. Os component
 - Para seções da home, use `#nome-da-secao`. O destino será combinado com `homeHref`, preservando o mock em `/login`.
 - Adicione atalhos com ícones da conta em `actions/actions.config.ts`. “Entrar” também tem um destino único nesse arquivo.
 - Mantenha comportamento de tema em `theme-toggle.tsx`, comportamento da conta em `LoggedUserMenu` e a navegação principal em `navigation/main-navigation.tsx`.
-- O tema claro/escuro é global: `ThemeProvider` (`src/components/theme-provider.tsx`, ligado em `src/app/layout.tsx`) aplica a classe `.dark` no `<html>` e expõe `useTheme()`. O tema começa claro e não é salvo entre visitas. Estilize as duas versões com a variante `dark:` do Tailwind e as cores `hubee-*` de `globals.css`.
+- O tema claro/escuro é global: `ThemeProvider` (`src/components/theme-provider.tsx`, ligado em `src/app/layout.tsx`) aplica a classe `.dark` no `<html>` e expõe `useTheme()`. A escolha é salva no cookie `hubee_theme` (`light` ou `dark`, válido por 1 ano) e mantida entre visitas e abas; um script no `<head>` do layout aplica `.dark` antes da primeira pintura, evitando o flash de tema claro. Sem cookie, o tema começa claro. Estilize as duas versões com a variante `dark:` do Tailwind e as cores `hubee-*` de `globals.css`.
 - Botões e links clicáveis usam o `Button` de `@/components/ui/button` com a variante `hubee_header`, que herda a cor do texto e aplica o hover e o foco da header. Ao aumentar a quantidade de links, revise o espaço disponível no desktop e o breakpoint de 768px.
 
 A identificação de rota ativa usa o pathname e não tenta inferir a seção visível da home. Os links com âncora continuam navegando normalmente, sem sublinhado.
