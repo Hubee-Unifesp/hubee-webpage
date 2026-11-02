@@ -18,6 +18,18 @@ export const updateMe = async (payload: UpdateMePayload): Promise<User> => {
   return response.data;
 };
 
+export const uploadAvatar = async (file: File): Promise<User> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await apiClient.patch<User>('/users/me/avatar', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
 export const changePassword = async (payload: ChangePasswordPayload): Promise<void> => {
   // 401 aqui é "senha atual incorreta", não sessão expirada.
   await apiClient.patch('/users/me/password', payload, { skipAuthRedirect: true });
