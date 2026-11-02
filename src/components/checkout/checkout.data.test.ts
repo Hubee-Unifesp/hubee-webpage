@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  PIX_EXPIRATION_SECONDS,
   TAXA_DE_SERVICO,
+  formatPixCountdown,
+  gerarPixSimulado,
   numeroDoPedido,
   toApiPaymentMethod,
   toCheckoutOrder,
@@ -83,6 +86,24 @@ describe("toApiPaymentMethod", () => {
   it("traduz o metodo do formulario para o enum da API", () => {
     expect(toApiPaymentMethod("pix")).toBe("pix");
     expect(toApiPaymentMethod("card")).toBe("cartao_credito");
+  });
+});
+
+describe("gerarPixSimulado", () => {
+  it("identifica a cobranca como simulacao, com o pedido e o valor", () => {
+    const pix = gerarPixSimulado("a1b2c3d4-0000-4000-8000-000000000001", 40);
+
+    expect(pix.startsWith("SIMULACAO")).toBe(true);
+    expect(pix).toContain("pedido=a1b2c3d4-0000-4000-8000-000000000001");
+    expect(pix).toContain("valor=40.00");
+  });
+});
+
+describe("formatPixCountdown", () => {
+  it("formata o prazo em MM:SS e nao fica negativo", () => {
+    expect(formatPixCountdown(PIX_EXPIRATION_SECONDS)).toBe("15:00");
+    expect(formatPixCountdown(899)).toBe("14:59");
+    expect(formatPixCountdown(-5)).toBe("00:00");
   });
 });
 

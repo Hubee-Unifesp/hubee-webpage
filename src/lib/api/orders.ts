@@ -375,3 +375,15 @@ export async function getTicketsDoPedido(pedidoId: string): Promise<IngressoEmit
     ticketTypeId: ticket.ticketTypeId,
   }));
 }
+
+/**
+ * Cancela um pedido pendente (`DELETE /orders/:id`). Na API, pedido pendente reserva o
+ * saldo do lote, então cancelar quem desistiu na tela do PIX devolve os ingressos ao estoque.
+ */
+export async function cancelOrder(pedidoId: string): Promise<void> {
+  try {
+    await apiClient.delete(`/orders/${pedidoId}`);
+  } catch (error) {
+    throw toCompraError(error, "Não foi possível cancelar o pedido.");
+  }
+}

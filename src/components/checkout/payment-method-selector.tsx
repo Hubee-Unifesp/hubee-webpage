@@ -96,8 +96,9 @@ export function PaymentMethodSelector({
                 </div>
 
                 <p className="text-xs leading-relaxed text-hubee-750 dark:text-hubee-200">
-                  Ao clicar em &apos;Confirmar e Pagar&apos;, o pagamento é processado e seus
-                  ingressos são emitidos na hora.
+                  Ao clicar em &apos;Confirmar e Pagar&apos;, geramos o QR Code e o código PIX
+                  Copia e Cola. Você terá 15 minutos para concluir o pagamento, e os ingressos
+                  são emitidos assim que ele for confirmado.
                 </p>
               </div>
             </div>

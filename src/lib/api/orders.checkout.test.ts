@@ -1,12 +1,12 @@
 import { AxiosError } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { authPost } = vi.hoisted(() => ({ authPost: vi.fn() }));
+const { authPost, authDelete } = vi.hoisted(() => ({ authPost: vi.fn(), authDelete: vi.fn() }));
 
-vi.mock("./apiClient", () => ({ apiClient: { get: vi.fn(), post: authPost } }));
+vi.mock("./apiClient", () => ({ apiClient: { get: vi.fn(), post: authPost, delete: authDelete } }));
 vi.mock("./client", () => ({ apiClient: { get: vi.fn() } }));
 
-import { CompraError, createOrder, processPayment } from "./orders";
+import { CompraError, cancelOrder, createOrder, processPayment } from "./orders";
 
 const ORDER_ID = "a1b2c3d4-0000-4000-8000-000000000001";
 const TYPE_ID = "t0000000-0000-4000-8000-000000000001";
@@ -27,6 +27,7 @@ const negocio = (status: number, message: string) => apiError(status, { statusCo
 
 beforeEach(() => {
   authPost.mockReset();
+  authDelete.mockReset();
 });
 
 describe("createOrder", () => {
@@ -184,6 +185,24 @@ describe("processPayment", () => {
     authPost.mockRejectedValue(negocio(404, `Pedido ${ORDER_ID} não encontrado`));
 
     const error = await processPayment(ORDER_ID, "pix").catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ tipo: "pedido-indisponivel" });
+  });
+});
+
+describe("cancelOrder", () => {
+  it("cancela o pedido pela rota do comprador", async () => {
+    authDelete.mockResolvedValue({ status: 204 });
+
+    await cancelOrder(ORDER_ID);
+
+    expect(authDelete).toHaveBeenCalledWith(`/orders/${ORDER_ID}`);
+  });
+
+  it("avisa quando o pedido ja foi pago e nao pode ser cancelado", async () => {
+    authDelete.mockRejectedValue(negocio(422, "Pedido pago não pode ser cancelado; registre um estorno"));
+
+    const error = await cancelOrder(ORDER_ID).catch((e: unknown) => e);
 
     expect(error).toMatchObject({ tipo: "pedido-indisponivel" });
   });

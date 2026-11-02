@@ -10,7 +10,14 @@ import { ContaPageTitle } from "@/components/conta/conta-card";
 import { useToast } from "@/components/toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import { CompraError, createOrder, getTicketsDoPedido, processPayment } from "@/lib/api/orders";
+import {
+  CompraError,
+  cancelOrder,
+  createOrder,
+  getTicketsDoPedido,
+  processPayment,
+  type PedidoCriado,
+} from "@/lib/api/orders";
 import { paraItensDoPedido } from "@/lib/carrinho";
 import {
   checkoutSchema,
@@ -20,22 +27,30 @@ import {
 } from "@/lib/validations/checkout.schema";
 import { BuyerIdentificationCard } from "./buyer-identification-card";
 import { CheckoutOrderSummary } from "./checkout-order-summary";
+import { CheckoutPixPaymentView } from "./checkout-pix-payment-view";
 import { CheckoutSkeleton } from "./checkout-skeleton";
 import { CheckoutSuccessView } from "./checkout-success-view";
 import {
+  PIX_EXPIRATION_SECONDS,
+  gerarPixSimulado,
   numeroDoPedido,
   toApiPaymentMethod,
   toCheckoutOrder,
   toIngressosDaCompra,
   type CheckoutBuyerSummary,
   type CompraConcluida,
+  type PedidoAguardandoPix,
 } from "./checkout.data";
 import { PaymentMethodSelector } from "./payment-method-selector";
 
 /**
- * Checkout ligado à API. São duas chamadas: `POST /orders` cria o pedido com os lotes do
- * carrinho (e é lá que o estoque é conferido), e `POST /payments` paga, marca como pago e
- * emite os ingressos numa transaction só. Por isso não há tela de espera de pagamento.
+ * Checkout ligado à API. `POST /orders` cria o pedido com os lotes do carrinho (e confere o
+ * estoque), e `POST /payments` paga, marca como pago e emite os ingressos numa transaction.
+ *
+ * No cartão as duas chamadas acontecem em sequência. No PIX o pedido é criado e a pessoa vê
+ * a cobrança (simulada) antes de pagar; o pagamento só sai em "Já realizei o pagamento".
+ * Pedido pendente reserva o estoque na API, então voltar ou deixar o prazo vencer cancela o
+ * pedido para devolver os ingressos.
  */
 export function CheckoutContent() {
   const router = useRouter();
@@ -45,6 +60,8 @@ export function CheckoutContent() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [compra, setCompra] = useState<CompraConcluida | null>(null);
   const [buyer, setBuyer] = useState<CheckoutBuyerSummary | null>(null);
+  const [pixPendente, setPixPendente] = useState<PedidoAguardandoPix | null>(null);
+  const [pixSecondsRemaining, setPixSecondsRemaining] = useState(PIX_EXPIRATION_SECONDS);
 
   const accountPhone = user?.phone ? formatPhone(user.phone) : "";
 
@@ -91,6 +108,24 @@ export function CheckoutContent() {
     if (carregado && itens.length === 0 && !compra) router.replace("/carrinho");
   }, [carregado, itens.length, compra, router]);
 
+  // Contagem regressiva da cobrança PIX. Para em zero; o cancelamento fica no efeito abaixo.
+  const pixPedidoId = pixPendente?.pedidoId ?? null;
+  useEffect(() => {
+    if (!pixPedidoId) return;
+    const interval = window.setInterval(() => {
+      setPixSecondsRemaining((previous) => (previous <= 1 ? 0 : previous - 1));
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [pixPedidoId]);
+
+  // Prazo vencido: cancela o pedido para liberar o estoque. Falha aqui não bloqueia a tela,
+  // a pessoa ainda pode gerar um novo PIX.
+  const pixExpirado = pixPedidoId !== null && pixSecondsRemaining === 0;
+  useEffect(() => {
+    if (!pixExpirado || !pixPedidoId) return;
+    cancelOrder(pixPedidoId).catch(() => undefined);
+  }, [pixExpirado, pixPedidoId]);
+
   function handleToggleAccountData(checked: boolean) {
     setValue("useAccountData", checked, { shouldValidate: false });
     if (!checked || !user) return;
@@ -110,39 +145,102 @@ export function CheckoutContent() {
     setValue("acceptTerms", checked, { shouldValidate: true });
   }
 
+  function abrirCobrancaPix(pedido: PedidoCriado) {
+    setPixPendente({
+      pedidoId: pedido.id,
+      numero: numeroDoPedido(pedido.id),
+      total: pedido.total,
+      pixCopiaECola: gerarPixSimulado(pedido.id, pedido.total),
+    });
+    setPixSecondsRemaining(PIX_EXPIRATION_SECONDS);
+  }
+
   async function onSubmit(data: CheckoutFormInputs) {
-    const order = toCheckoutOrder(itens);
+    setBuyer({
+      fullName: data.fullName.trim(),
+      email: data.email.trim(),
+      cpf: data.cpf,
+      paymentMethod: data.paymentMethod,
+    });
     setIsProcessing(true);
 
     try {
       const pedido = await createOrder(paraItensDoPedido(itens));
-      const pagamento = await processPayment(pedido.id, toApiPaymentMethod(data.paymentMethod));
 
-      // O pagamento já emitiu os ingressos; se a leitura falhar, a compra valeu do mesmo jeito
-      // e a tela de sucesso remete a "Meus Ingressos" em vez de mostrar a lista.
-      const ingressos = await getTicketsDoPedido(pedido.id).catch(() => []);
+      if (data.paymentMethod === "pix") {
+        abrirCobrancaPix(pedido);
+        return;
+      }
 
-      setBuyer({
-        fullName: data.fullName.trim(),
-        email: data.email.trim(),
-        cpf: data.cpf,
-        paymentMethod: data.paymentMethod,
-      });
-      setCompra({
-        pedidoId: pedido.id,
-        numero: numeroDoPedido(pedido.id),
-        total: pedido.total,
-        pagoEm: pagamento.pagoEm,
-        items: order.items,
-        ingressos: toIngressosDaCompra(ingressos, order.items),
-      });
-      limpar();
-      toast.success("Compra confirmada! Seus ingressos já estão disponíveis.");
+      await pagarEConcluir(pedido.id, pedido.total, data.paymentMethod);
     } catch (error) {
       tratarFalha(error);
     } finally {
       setIsProcessing(false);
     }
+  }
+
+  async function handleConfirmPixPayment() {
+    if (!pixPendente) return;
+    setIsProcessing(true);
+    try {
+      await pagarEConcluir(pixPendente.pedidoId, pixPendente.total, "pix");
+      setPixPendente(null);
+    } catch (error) {
+      tratarFalha(error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  /** Volta ao formulário cancelando o pedido pendente, para não segurar o estoque. */
+  async function handleBackFromPix() {
+    if (!pixPendente) return;
+    const { pedidoId } = pixPendente;
+    setIsProcessing(true);
+    try {
+      // Depois de expirado o pedido já foi cancelado pelo efeito do prazo.
+      if (!pixExpirado) await cancelOrder(pedidoId);
+    } catch {
+      // Se o cancelamento falhar, o pedido fica pendente; a volta não deve ficar presa nisso.
+    } finally {
+      setPixPendente(null);
+      setIsProcessing(false);
+    }
+  }
+
+  /** Prazo vencido: o pedido anterior já foi cancelado, então cria outro com o mesmo carrinho. */
+  async function handleRegeneratePix() {
+    setIsProcessing(true);
+    try {
+      const pedido = await createOrder(paraItensDoPedido(itens));
+      abrirCobrancaPix(pedido);
+    } catch (error) {
+      setPixPendente(null);
+      tratarFalha(error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  async function pagarEConcluir(pedidoId: string, total: number, metodo: PaymentMethod) {
+    const order = toCheckoutOrder(itens);
+    const pagamento = await processPayment(pedidoId, toApiPaymentMethod(metodo));
+
+    // O pagamento já emitiu os ingressos; se a leitura falhar, a compra valeu do mesmo jeito
+    // e a tela de sucesso remete a "Meus Ingressos" em vez de mostrar a lista.
+    const ingressos = await getTicketsDoPedido(pedidoId).catch(() => []);
+
+    setCompra({
+      pedidoId,
+      numero: numeroDoPedido(pedidoId),
+      total,
+      pagoEm: pagamento.pagoEm,
+      items: order.items,
+      ingressos: toIngressosDaCompra(ingressos, order.items),
+    });
+    limpar();
+    toast.success("Compra confirmada! Seus ingressos já estão disponíveis.");
   }
 
   function tratarFalha(error: unknown) {
@@ -166,6 +264,20 @@ export function CheckoutContent() {
 
   if (compra && buyer) {
     return <CheckoutSuccessView compra={compra} buyer={buyer} />;
+  }
+
+  if (pixPendente && buyer) {
+    return (
+      <CheckoutPixPaymentView
+        pedido={pixPendente}
+        buyer={buyer}
+        secondsRemaining={pixSecondsRemaining}
+        isProcessing={isProcessing}
+        onConfirmPixPayment={handleConfirmPixPayment}
+        onBackToForm={handleBackFromPix}
+        onRegeneratePix={handleRegeneratePix}
+      />
+    );
   }
 
   if (!carregado || itens.length === 0) {

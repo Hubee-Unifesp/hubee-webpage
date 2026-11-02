@@ -95,6 +95,35 @@ export function toIngressosDaCompra(
   });
 }
 
+/** Prazo da cobrança PIX simulada, em segundos. */
+export const PIX_EXPIRATION_SECONDS = 15 * 60;
+
+/** Formata segundos restantes no padrão `MM:SS` (ex.: `900` -> `15:00`). */
+export function formatPixCountdown(secondsRemaining: number): string {
+  const safeSeconds = Math.max(0, Math.floor(secondsRemaining));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+/** Pedido criado e aguardando o pagamento PIX. */
+export interface PedidoAguardandoPix {
+  pedidoId: string;
+  numero: string;
+  total: number;
+  /** Código copia e cola da cobrança simulada. */
+  pixCopiaECola: string;
+}
+
+/**
+ * Cobrança PIX de demonstração. A API não tem gateway, então não existe chave nem
+ * cobrança real: o texto identifica o pedido e o valor, e começa com `SIMULACAO` para
+ * que ninguém o confunda com um PIX pagável.
+ */
+export function gerarPixSimulado(pedidoId: string, total: number): string {
+  return `SIMULACAO-HUBEE|pedido=${pedidoId}|valor=${total.toFixed(2)}`;
+}
+
 /** Código curto do pedido, o mesmo formato da tela de pedidos. */
 export function numeroDoPedido(pedidoId: string): string {
   return pedidoId.slice(0, 8).toUpperCase();
