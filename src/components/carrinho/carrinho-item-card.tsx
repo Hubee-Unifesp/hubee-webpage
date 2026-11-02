@@ -64,7 +64,7 @@ export function CarrinhoItemCard({
           <div
             role="group"
             aria-label={`Quantidade de ${item.title}`}
-            className="inline-flex h-9 items-center gap-3 rounded-full border border-hubee-200 bg-white px-2 text-hubee-800 shadow-2xs dark:border-hubee-700 dark:bg-white dark:text-hubee-800"
+            className="inline-flex h-9 items-center gap-3 rounded-full border border-hubee-200 bg-white px-2 text-hubee-800 shadow-2xs dark:border-hubee-700 dark:bg-hubee-800 dark:text-hubee-50"
           >
             <button
               type="button"
@@ -78,7 +78,7 @@ export function CarrinhoItemCard({
 
             <span
               aria-live="polite"
-              className="min-w-4 text-center text-xs font-semibold tabular-nums text-hubee-800"
+              className="min-w-4 text-center text-xs font-semibold tabular-nums text-hubee-800 dark:text-hubee-50"
             >
               {item.quantity}
             </span>

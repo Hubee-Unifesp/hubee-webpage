@@ -67,7 +67,7 @@ export function CarrinhoResumo({
             onChange={(event) => setCouponInput(event.target.value)}
             placeholder={DEFAULT_COUPON_CODE}
             aria-label="Código de cupom de desconto"
-            className="h-10 min-w-0 flex-1 rounded-xl border border-hubee-200 bg-white px-3 text-xs font-medium text-hubee-800 placeholder:text-hubee-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-hubee-500 dark:border-hubee-700 dark:bg-white dark:text-hubee-800"
+            className="h-10 min-w-0 flex-1 rounded-xl border border-hubee-200 bg-white px-3 text-xs font-medium text-hubee-800 placeholder:text-hubee-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-hubee-500 dark:border-hubee-700 dark:bg-hubee-800 dark:text-hubee-50 dark:placeholder:text-hubee-neutral-300"
           />
           <button
             type="submit"
