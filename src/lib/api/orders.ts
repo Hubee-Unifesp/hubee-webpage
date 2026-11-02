@@ -354,3 +354,24 @@ function missingProfileFields(error: unknown): string[] {
   const missing = errorData(error)?.missing;
   return Array.isArray(missing) ? missing.filter((field): field is string => typeof field === "string") : [];
 }
+
+/** Ingresso emitido, como vem em `GET /orders/:id/tickets` (sem evento ou lote aninhados). */
+export interface IngressoEmitido {
+  id: string;
+  codigo: string;
+  ticketTypeId: string;
+}
+
+/**
+ * Ingressos emitidos do pedido, para mostrar logo depois do pagamento. Rejeita em vez de
+ * devolver lista vazia: a tela de sucesso precisa distinguir "sem ingresso" de "não carregou".
+ */
+export async function getTicketsDoPedido(pedidoId: string): Promise<IngressoEmitido[]> {
+  const { data } = await apiClient.get<ApiTicket[]>(`/orders/${pedidoId}/tickets`);
+
+  return data.map((ticket) => ({
+    id: ticket.id,
+    codigo: ticket.qrCode,
+    ticketTypeId: ticket.ticketTypeId,
+  }));
+}
