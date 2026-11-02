@@ -253,6 +253,45 @@ describe("getEventById", () => {
 
     await expect(getEventById(EVENT_ID)).rejects.toThrow();
   });
+
+  it("repassa o JWT no header Authorization quando recebe token (SSR)", async () => {
+    authGet.mockResolvedValueOnce({ data: apiEventDetailFixture });
+    publicGet.mockResolvedValueOnce({ data: [] });
+
+    const result = await getEventById(EVENT_ID, { token: "jwt-organizador" });
+
+    expect(result?.id).toBe(EVENT_ID);
+    expect(authGet).toHaveBeenCalledTimes(1);
+    expect(authGet).toHaveBeenCalledWith(`/events/${EVENT_ID}`, {
+      skipAuthRedirect: true,
+      headers: { Authorization: "Bearer jwt-organizador" },
+    });
+  });
+
+  it("refaz a chamada sem token quando a API rejeita o JWT (401)", async () => {
+    authGet
+      .mockRejectedValueOnce(makeAxiosError(401, "Unauthorized"))
+      .mockResolvedValueOnce({ data: apiEventDetailFixture });
+    publicGet.mockResolvedValueOnce({ data: [] });
+
+    const result = await getEventById(EVENT_ID, { token: "jwt-expirado" });
+
+    expect(result?.id).toBe(EVENT_ID);
+    expect(authGet).toHaveBeenCalledTimes(2);
+    expect(authGet).toHaveBeenLastCalledWith(`/events/${EVENT_ID}`, {
+      skipAuthRedirect: true,
+    });
+  });
+
+  it("retorna null quando a API responde 403 (sem permissao)", async () => {
+    authGet.mockRejectedValueOnce(makeAxiosError(403, "Forbidden"));
+    publicGet.mockResolvedValueOnce({ data: [] });
+
+    await expect(
+      getEventById(EVENT_ID, { token: "jwt-sem-permissao" }),
+    ).resolves.toBeNull();
+    expect(authGet).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("getHomeEvents", () => {
