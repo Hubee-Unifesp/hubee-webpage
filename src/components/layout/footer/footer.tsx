@@ -1,12 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { FooterLinks } from "./links/footer-links";
 import { getFooterColumns } from "./links/footer-links.config";
-import type { FooterProps } from "./types";
+import type { FooterProps, FooterRole } from "./types";
 import { ThemedHubeeLogo } from "@/components/brand";
 
-export function Footer({ role = "guest", className, homeHref = "/" }: FooterProps) {
-  const columns = getFooterColumns(role, homeHref);
+export function Footer({ role, className, homeHref = "/" }: FooterProps) {
+  const { user, isOrganizer } = useAuth();
+  const currentRole: FooterRole =
+    role ?? (user ? (isOrganizer ? "organizer" : "user") : "guest");
+  const columns = getFooterColumns(currentRole, homeHref);
   const topHref = `${homeHref}#inicio`;
 
   return (

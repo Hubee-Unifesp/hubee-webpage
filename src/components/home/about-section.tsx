@@ -30,7 +30,15 @@ const features: readonly Feature[] = [
   },
 ];
 
-export function AboutSection({ organizerHref }: { organizerHref: string }) {
+export function AboutSection({
+  organizerHref,
+  ctaLabel = "Explorar eventos",
+  ctaHref = "#eventos",
+}: {
+  organizerHref: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+}) {
   return (
     <section
       id="institucional"
@@ -73,7 +81,7 @@ export function AboutSection({ organizerHref }: { organizerHref: string }) {
         className="mt-16 h-12 px-6 text-base font-semibold md:mt-32 hover:text-hubee-400 focus-visible:ring-hubee-400"
         asChild
       >
-        <Link href="#eventos">Explorar eventos</Link>
+        <Link href={ctaHref}>{ctaLabel}</Link>
       </Button>
       <p className="mt-6 text-sm text-hubee-750 dark:text-hubee-50">
         Vai organizar um evento?{" "}
