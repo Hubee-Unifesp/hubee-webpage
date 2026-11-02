@@ -4,13 +4,15 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { categoryConfig } from "@/components/home/events/categories.config";
 import { HexPattern } from "@/components/home/events/event-media";
 import { cn } from "@/lib/utils";
-import { formatCurrencyBRL, type CartItem } from "./carrinho.data";
+import type { CartItem } from "@/types/carrinho";
+import { formatCurrencyBRL } from "./carrinho.data";
 
 interface CarrinhoItemCardProps {
   item: CartItem;
-  onIncrement: (id: string) => void;
-  onDecrement: (id: string) => void;
-  onRemove: (id: string) => void;
+  /** Recebem o lote, que é o que identifica a linha do carrinho. */
+  onIncrement: (ticketTypeId: string) => void;
+  onDecrement: (ticketTypeId: string) => void;
+  onRemove: (ticketTypeId: string) => void;
 }
 
 export function CarrinhoItemCard({
@@ -68,7 +70,7 @@ export function CarrinhoItemCard({
           >
             <button
               type="button"
-              onClick={() => onDecrement(item.id)}
+              onClick={() => onDecrement(item.ticketTypeId)}
               disabled={isAtMin}
               aria-label={`Diminuir quantidade de ${item.title}`}
               className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full bg-hubee-800 text-hubee-50 transition-opacity outline-none hover:bg-hubee-900 focus-visible:ring-2 focus-visible:ring-hubee-500 disabled:cursor-not-allowed disabled:opacity-40"
@@ -85,7 +87,7 @@ export function CarrinhoItemCard({
 
             <button
               type="button"
-              onClick={() => onIncrement(item.id)}
+              onClick={() => onIncrement(item.ticketTypeId)}
               disabled={isAtMax}
               aria-label={`Aumentar quantidade de ${item.title}`}
               className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full bg-hubee-800 text-hubee-50 transition-opacity outline-none hover:bg-hubee-900 focus-visible:ring-2 focus-visible:ring-hubee-500 disabled:cursor-not-allowed disabled:opacity-40"
@@ -116,7 +118,7 @@ export function CarrinhoItemCard({
 
           <button
             type="button"
-            onClick={() => onRemove(item.id)}
+            onClick={() => onRemove(item.ticketTypeId)}
             aria-label={`Remover ${item.title} do carrinho`}
             className="inline-flex size-9 cursor-pointer items-center justify-center rounded-lg text-hubee-800 transition-colors outline-none hover:bg-hubee-200 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:text-hubee-50 dark:hover:bg-hubee-800"
           >
