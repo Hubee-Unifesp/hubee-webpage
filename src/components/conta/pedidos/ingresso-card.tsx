@@ -1,4 +1,6 @@
-import { QrCode } from "lucide-react";
+"use client";
+
+import { QRCodeSVG } from "qrcode.react";
 import { formatEventDate } from "@/components/home/events/format";
 import { cn } from "@/lib/utils";
 import type { IngressoPedido, StatusIngresso } from "@/types/pedido";
@@ -20,7 +22,7 @@ interface IngressoCardProps {
   participante: string;
 }
 
-/** Ingresso emitido: dados do participante, código e QR code (placeholder até haver biblioteca de QR). */
+/** Ingresso emitido: dados do participante, código e QR code de entrada. */
 export function IngressoCard({ ingresso, participante }: IngressoCardProps) {
   const { evento } = ingresso;
   const statusLabel = statusIngressoLabel[ingresso.status];
@@ -52,13 +54,20 @@ export function IngressoCard({ ingresso, participante }: IngressoCardProps) {
         <p className="text-xs">{statusLabel ?? "Apresente este código na entrada do evento."}</p>
       </div>
 
-      {/* TODO(orders-api): gerar o QR code real a partir do código do ingresso. */}
+      {/* Fundo branco e traço preto fixos: QR invertido não é lido na portaria. */}
       <div
         role="img"
         aria-label={`QR code do ingresso ${ingresso.codigo}`}
-        className="flex aspect-square w-full shrink-0 items-center justify-center rounded-xl border border-dashed border-hubee-600/60 bg-hubee-300 text-hubee-600 md:w-44"
+        className="flex aspect-square w-full shrink-0 items-center justify-center rounded-xl border border-dashed border-hubee-600/60 bg-white p-3 md:w-44"
       >
-        <QrCode aria-hidden="true" className="size-1/2" strokeWidth={1.5} />
+        <QRCodeSVG
+          value={ingresso.codigo}
+          level="M"
+          marginSize={0}
+          bgColor="#ffffff"
+          fgColor="#000000"
+          className="size-full"
+        />
       </div>
     </article>
   );

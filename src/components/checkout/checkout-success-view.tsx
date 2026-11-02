@@ -1,20 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Check, CheckCircle2, QrCode, Ticket } from "lucide-react";
+import { ArrowLeft, Check, CheckCircle2, Ticket } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { ContaCard } from "@/components/conta/conta-card";
 import { formatPrice } from "@/components/home/events/format";
 import { Button } from "@/components/ui/button";
 import { maskCpfForDisplay } from "@/lib/validations/checkout.schema";
-import type { CheckoutBuyerSummary, CheckoutOrderData } from "./checkout.data";
+import type { CheckoutBuyerSummary, CompraConcluida, IngressoDaCompra } from "./checkout.data";
 
 interface CheckoutSuccessViewProps {
-  order: CheckoutOrderData;
+  compra: CompraConcluida;
   buyer: CheckoutBuyerSummary;
 }
 
-/** Tela de confirmação de compra realizada com sucesso (GOL-180). */
-export function CheckoutSuccessView({ order, buyer }: CheckoutSuccessViewProps) {
+/** Tela de confirmação da compra, com os ingressos que a API emitiu. */
+export function CheckoutSuccessView({ compra, buyer }: CheckoutSuccessViewProps) {
   const paymentMethodLabel =
     buyer.paymentMethod === "pix" ? "PIX (Aprovado)" : "Cartão de Crédito (Aprovado)";
 
@@ -43,7 +44,7 @@ export function CheckoutSuccessView({ order, buyer }: CheckoutSuccessViewProps) 
 
         <div className="mt-1 flex flex-wrap items-center gap-2.5">
           <p className="text-base font-bold text-hubee-800 dark:text-hubee-50">
-            Pedido #{order.orderNumber}
+            Pedido #{compra.numero}
           </p>
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
             <Check aria-hidden="true" className="size-3" />
@@ -52,7 +53,7 @@ export function CheckoutSuccessView({ order, buyer }: CheckoutSuccessViewProps) 
         </div>
 
         <p className="text-xs text-hubee-neutral-300 dark:text-hubee-200">
-          Pedido confirmado em {order.confirmedAt} • Uma cópia foi enviada para {buyer.email}
+          Uma cópia foi enviada para {buyer.email}
         </p>
       </header>
 
@@ -67,11 +68,11 @@ export function CheckoutSuccessView({ order, buyer }: CheckoutSuccessViewProps) 
         <hr className="my-4 border-hubee-200 dark:border-hubee-50/15" />
 
         <ul className="flex flex-col gap-3 text-xs">
-          {order.items.map((item) => (
-            <li key={item.id} className="flex items-start justify-between gap-4">
-              <div>
+          {compra.items.map((item) => (
+            <li key={item.ticketTypeId} className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
                 <p className="font-medium text-hubee-800 dark:text-hubee-50">
-                  {item.successTitle} × {item.quantity}
+                  {item.title} × {item.quantity}
                 </p>
                 <p className="mt-0.5 text-hubee-neutral-300 dark:text-hubee-200">
                   {item.eventName}
@@ -82,13 +83,6 @@ export function CheckoutSuccessView({ order, buyer }: CheckoutSuccessViewProps) 
               </p>
             </li>
           ))}
-
-          <li className="flex items-center justify-between gap-4">
-            <p className="text-hubee-750 dark:text-hubee-200">Taxa de serviço</p>
-            <p className="shrink-0 font-medium text-hubee-800 dark:text-hubee-50">
-              {formatPrice(order.serviceFeeAmount)}
-            </p>
-          </li>
         </ul>
 
         <hr className="my-4 border-hubee-200 dark:border-hubee-50/15" />
@@ -96,42 +90,25 @@ export function CheckoutSuccessView({ order, buyer }: CheckoutSuccessViewProps) 
         <div className="flex items-center justify-between gap-4">
           <p className="text-xs font-bold text-hubee-800 dark:text-hubee-50">Total Pago</p>
           <p className="text-base font-extrabold text-hubee-600 dark:text-hubee-400">
-            {formatPrice(order.totalAmount)}
+            {formatPrice(compra.total)}
           </p>
         </div>
       </ContaCard>
 
       <ContaCard title="Seus Ingressos">
-        <article className="flex flex-col gap-5 rounded-xl border border-hubee-300 bg-hubee-100 p-5 text-hubee-750 md:flex-row md:items-center md:justify-between">
-          <div className="flex min-w-0 flex-col gap-1">
-            <h3 className="font-heading text-xl leading-tight font-bold text-hubee-800 sm:text-2xl">
-              {order.event.title}
-            </h3>
-            <p className="font-heading text-base font-semibold text-hubee-600 sm:text-lg">
-              {buyer.fullName}
-            </p>
-            <p className="text-sm font-medium text-hubee-750">
-              {order.items[0]?.ticketStubTitle ?? "Ingresso Inteira — 1º Lote"}
-            </p>
-            <p className="mt-2 text-xs font-medium text-hubee-750">
-              {order.event.ticketVenue} - {order.event.ticketDate}
-            </p>
-            <p className="mt-3 text-xs font-bold text-hubee-600">
-              Código: <span className="font-mono">{order.ticketCode}</span>
-            </p>
-            <p className="text-[11px] text-hubee-750">
-              Apresente este código na entrada do evento.
-            </p>
-          </div>
-
-          <div
-            role="img"
-            aria-label={`QR code do ingresso ${order.ticketCode}`}
-            className="flex aspect-square w-full shrink-0 items-center justify-center rounded-xl border border-dashed border-hubee-600/60 bg-hubee-300 text-hubee-600 md:w-44"
-          >
-            <QrCode aria-hidden="true" className="size-1/2" strokeWidth={1.5} />
-          </div>
-        </article>
+        {compra.ingressos.length === 0 ? (
+          <p className="text-xs text-hubee-750 dark:text-hubee-200">
+            Seus ingressos foram emitidos e já estão disponíveis em Meus Ingressos.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-4">
+            {compra.ingressos.map((ingresso) => (
+              <li key={ingresso.id}>
+                <IngressoCard ingresso={ingresso} titular={buyer.fullName} />
+              </li>
+            ))}
+          </ul>
+        )}
       </ContaCard>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -160,3 +137,36 @@ export function CheckoutSuccessView({ order, buyer }: CheckoutSuccessViewProps) 
   );
 }
 
+function IngressoCard({ ingresso, titular }: { ingresso: IngressoDaCompra; titular: string }) {
+  return (
+    <article className="flex flex-col gap-5 rounded-xl border border-hubee-300 bg-hubee-100 p-5 text-hubee-750 md:flex-row md:items-center md:justify-between">
+      <div className="flex min-w-0 flex-col gap-1">
+        <h3 className="font-heading text-xl leading-tight font-bold text-hubee-800 sm:text-2xl">
+          {ingresso.eventName}
+        </h3>
+        <p className="font-heading text-base font-semibold text-hubee-600 sm:text-lg">{titular}</p>
+        <p className="text-sm font-medium text-hubee-750">{ingresso.tipo}</p>
+        <p className="mt-3 text-xs font-bold text-hubee-600">
+          Código: <span className="font-mono break-all">{ingresso.codigo}</span>
+        </p>
+        <p className="text-[11px] text-hubee-750">Apresente este código na entrada do evento.</p>
+      </div>
+
+      {/* Fundo branco e traço preto fixos: QR invertido não é lido na portaria. */}
+      <div
+        role="img"
+        aria-label={`QR code do ingresso ${ingresso.codigo}`}
+        className="flex aspect-square w-full shrink-0 items-center justify-center rounded-xl border border-dashed border-hubee-600/60 bg-white p-3 md:w-44"
+      >
+        <QRCodeSVG
+          value={ingresso.codigo}
+          level="M"
+          marginSize={0}
+          bgColor="#ffffff"
+          fgColor="#000000"
+          className="size-full"
+        />
+      </div>
+    </article>
+  );
+}

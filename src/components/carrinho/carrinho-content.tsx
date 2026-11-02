@@ -1,101 +1,37 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
-import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
 import { CarrinhoItemCard } from "./carrinho-item-card";
 import { CarrinhoResumo } from "./carrinho-resumo";
-import {
-  DEFAULT_COUPON_CODE,
-  DEFAULT_COUPON_DISCOUNT,
-  INITIAL_CART_ITEMS,
-  calculateCartSummary,
-  type CartItem,
-} from "./carrinho.data";
+import { CarrinhoSkeleton } from "./carrinho-skeleton";
+import { calculateCartSummary } from "./carrinho.data";
 
-export function EmptyCartState({ onRestore }: { onRestore?: () => void }) {
+export function EmptyCartState() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <EmptyState
-        icon={ShoppingCart}
-        title="Seu carrinho está vazio"
-        description="Você ainda não selecionou nenhum ingresso. Explore os próximos eventos universitários e garanta sua participação."
-        action={{
-          label: "Explorar eventos",
-          onClick: () => router.push("/eventos"),
-        }}
-      />
-      {onRestore && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onRestore}
-          className="border-hubee-400 text-xs text-hubee-750 hover:bg-hubee-100 dark:border-hubee-500 dark:text-hubee-50 dark:hover:bg-hubee-750"
-        >
-          Restaurar itens de demonstração
-        </Button>
-      )}
-    </div>
+    <EmptyState
+      icon={ShoppingCart}
+      title="Seu carrinho está vazio"
+      description="Você ainda não selecionou nenhum ingresso. Explore os próximos eventos universitários e garanta sua participação."
+      action={{
+        label: "Explorar eventos",
+        onClick: () => router.push("/eventos"),
+      }}
+    />
   );
 }
 
 export function CarrinhoContent() {
-  const [items, setItems] = useState<CartItem[]>(() => [...INITIAL_CART_ITEMS]);
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(
-    DEFAULT_COUPON_CODE,
-  );
-  const [discountAmount, setDiscountAmount] = useState<number>(
-    DEFAULT_COUPON_DISCOUNT,
-  );
+  const { itens, carregado, alterarQuantidade, remover } = useCart();
 
-  const handleIncrement = (id: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id && item.quantity < item.maxQuantity
-          ? { ...item, quantity: item.quantity + 1 }
-          : item,
-      ),
-    );
-  };
+  // O carrinho só existe depois de ler a sessão: sem esperar, a tela piscaria "carrinho vazio".
+  if (!carregado) return <CarrinhoSkeleton />;
 
-  const handleDecrement = (id: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item,
-      ),
-    );
-  };
-
-  const handleRemove = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const handleApplyCoupon = (code: string, discount: number) => {
-    setAppliedCoupon(code);
-    setDiscountAmount(discount);
-  };
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setDiscountAmount(0);
-  };
-
-  const handleRestoreDefaults = () => {
-    setItems([...INITIAL_CART_ITEMS]);
-    setAppliedCoupon(DEFAULT_COUPON_CODE);
-    setDiscountAmount(DEFAULT_COUPON_DISCOUNT);
-  };
-
-  const summary = calculateCartSummary(items, discountAmount, 0);
-
-  if (items.length === 0) {
+  if (itens.length === 0) {
     return (
       <section aria-labelledby="carrinho-titulo" className="space-y-6">
         <h1
@@ -104,10 +40,12 @@ export function CarrinhoContent() {
         >
           Carrinho de compras
         </h1>
-        <EmptyCartState onRestore={handleRestoreDefaults} />
+        <EmptyCartState />
       </section>
     );
   }
+
+  const summary = calculateCartSummary(itens);
 
   return (
     <section aria-labelledby="carrinho-titulo" className="space-y-8">
@@ -137,25 +75,24 @@ export function CarrinhoContent() {
             aria-label="Ingressos selecionados no carrinho"
             className="flex max-h-[420px] flex-col gap-3 overflow-y-auto pr-1 md:max-h-none md:overflow-visible md:pr-0"
           >
-            {items.map((item) => (
-              <li key={item.id}>
+            {itens.map((item) => (
+              <li key={item.ticketTypeId}>
                 <CarrinhoItemCard
                   item={item}
-                  onIncrement={handleIncrement}
-                  onDecrement={handleDecrement}
-                  onRemove={handleRemove}
+                  onIncrement={(ticketTypeId) =>
+                    alterarQuantidade(ticketTypeId, item.quantity + 1)
+                  }
+                  onDecrement={(ticketTypeId) =>
+                    alterarQuantidade(ticketTypeId, item.quantity - 1)
+                  }
+                  onRemove={remover}
                 />
               </li>
             ))}
           </ul>
         </div>
 
-        <CarrinhoResumo
-          summary={summary}
-          appliedCoupon={appliedCoupon}
-          onApplyCoupon={handleApplyCoupon}
-          onRemoveCoupon={handleRemoveCoupon}
-        />
+        <CarrinhoResumo summary={summary} />
       </div>
 
       <footer
@@ -184,4 +121,3 @@ export function CarrinhoContent() {
     </section>
   );
 }
-

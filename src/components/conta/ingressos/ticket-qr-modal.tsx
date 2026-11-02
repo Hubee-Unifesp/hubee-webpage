@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Copy, QrCode } from "lucide-react";
+import { ArrowRight, Check, Copy } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { CategoryPill } from "@/components/home/events/event-media";
@@ -98,16 +99,22 @@ export function TicketQrModal({
           )}
         </div>
 
-        {/* QR Code visual central */}
+        {/*
+          QR Code do código do ingresso. O fundo branco e o traço preto são fixos, sem variante
+          de tema: no escuro o código sairia invertido e os leitores da portaria não leem.
+        */}
         <div
           role="img"
           aria-label={`QR code do ingresso ${ingresso.codigo}`}
-          className="mx-auto flex aspect-square w-48 max-w-full items-center justify-center rounded-2xl border-2 border-dashed border-hubee-400 bg-white p-4 shadow-inner dark:border-hubee-500 dark:bg-hubee-800"
+          className="mx-auto flex aspect-square w-48 max-w-full items-center justify-center rounded-2xl border-2 border-dashed border-hubee-400 bg-white p-4 shadow-inner dark:border-hubee-500"
         >
-          <QrCode
-            aria-hidden="true"
-            className="size-36 text-hubee-800 dark:text-hubee-50"
-            strokeWidth={1.5}
+          <QRCodeSVG
+            value={ingresso.codigo}
+            level="M"
+            marginSize={0}
+            bgColor="#ffffff"
+            fgColor="#000000"
+            className="size-full"
           />
         </div>
 

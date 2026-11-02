@@ -5,11 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { Skeleton } from "@/components/skeleton";
 import { Footer } from "@/components/layout/footer";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { LoggedHeader } from "./logged-header";
 
 /** Header da área logada com os dados da sessão. Enquanto carrega (ou se a sessão falhar), mostra só a barra. */
 export function SessionHeader() {
   const { user } = useAuth();
+  const { totalItens } = useCart();
 
   if (!user) {
     return (
@@ -19,8 +21,7 @@ export function SessionHeader() {
     );
   }
 
-  // TODO(cart-api): ligar o contador ao carrinho real quando a API existir.
-  return <LoggedHeader usuario={user} itensNoCarrinho={0} />;
+  return <LoggedHeader usuario={user} itensNoCarrinho={totalItens} />;
 }
 
 /** Footer da área logada. Só aparece com a sessão carregada, para não mostrar os links de visitante. */

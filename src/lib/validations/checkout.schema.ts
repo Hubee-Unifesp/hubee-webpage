@@ -74,7 +74,6 @@ export const checkoutSchema = z
     cardHolder: z.string(),
     cardExpiry: z.string(),
     cardCvv: z.string(),
-    installments: z.string(),
     acceptTerms: z.boolean().refine((value) => value === true, {
       error: "Você precisa aceitar os Termos de Uso e a Política de Cancelamento.",
     }),
@@ -111,14 +110,6 @@ export const checkoutSchema = z
         code: "custom",
         path: ["cardCvv"],
         message: "Informe o CVV de 3 ou 4 dígitos.",
-      });
-    }
-
-    if (!data.installments.trim()) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["installments"],
-        message: "Selecione uma opção de parcelamento.",
       });
     }
   });

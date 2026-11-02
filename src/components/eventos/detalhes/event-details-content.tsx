@@ -57,7 +57,11 @@ export function EventDetailsContent({ event }: { event: EventDetails }) {
             title="Ingressos"
             description="Escolha seu lugar nessa noite. O resto é com a música."
           >
-            <TicketTypeList ticketTypes={event.ticketTypes} highlightedId={highlightedTicketId} />
+            <TicketTypeList
+              ticketTypes={event.ticketTypes}
+              event={event}
+              highlightedId={highlightedTicketId}
+            />
           </Section>
         </div>
       </article>

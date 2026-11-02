@@ -1,22 +1,22 @@
 "use client";
 
-import { Calendar, Loader2, Lock, MapPin, Music, ShieldCheck } from "lucide-react";
+import { Loader2, Lock, Music, ShieldCheck } from "lucide-react";
 import { ContaCard } from "@/components/conta/conta-card";
 import { formatPrice } from "@/components/home/events/format";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import type { CheckoutOrderData } from "./checkout.data";
+import type { CheckoutOrder } from "./checkout.data";
 
 interface CheckoutOrderSummaryProps {
-  order: CheckoutOrderData;
+  order: CheckoutOrder;
   acceptTerms: boolean;
   onToggleTerms: (checked: boolean) => void;
   termsError?: string;
   isProcessing?: boolean;
 }
 
-/** Card lateral "Resumo do Pedido" com itens, taxas, aceite de termos e botão de pagamento (GOL-180). */
+/** Card lateral "Resumo do Pedido" com itens, total, aceite de termos e botão de pagamento. */
 export function CheckoutOrderSummary({
   order,
   acceptTerms,
@@ -37,16 +37,12 @@ export function CheckoutOrderSummary({
             </div>
 
             <div className="min-w-0 flex-1">
+              {/* Um pedido pode ter ingressos de mais de um evento. */}
               <h3 className="text-xs leading-snug font-bold text-hubee-800 dark:text-hubee-50">
-                {order.event.title}
+                {order.eventNames.join(" · ")}
               </h3>
-              <p className="mt-1 flex items-center gap-1.5 text-[11px] text-hubee-neutral-300 dark:text-hubee-200">
-                <Calendar aria-hidden="true" className="size-3 shrink-0" />
-                <span>{order.event.summaryDate}</span>
-              </p>
-              <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-hubee-neutral-300 dark:text-hubee-200">
-                <MapPin aria-hidden="true" className="size-3 shrink-0" />
-                <span>{order.event.summaryVenue}</span>
+              <p className="mt-1 text-[11px] text-hubee-neutral-300 dark:text-hubee-200">
+                {order.items.length === 1 ? "1 lote selecionado" : `${order.items.length} lotes selecionados`}
               </p>
             </div>
           </div>
@@ -56,11 +52,16 @@ export function CheckoutOrderSummary({
           <ul className="flex flex-col gap-2 text-xs">
             {order.items.map((item) => (
               <li
-                key={item.id}
+                key={item.ticketTypeId}
                 className="flex items-center justify-between gap-2 text-hubee-800 dark:text-hubee-50"
               >
-                <span className="font-medium">
-                  {item.title} × {item.quantity}
+                <span className="min-w-0 font-medium">
+                  <span className="block truncate">
+                    {item.title} × {item.quantity}
+                  </span>
+                  <span className="block truncate text-[11px] font-normal text-hubee-neutral-300 dark:text-hubee-200">
+                    {item.eventName}
+                  </span>
                 </span>
                 <span className="shrink-0 font-semibold">
                   {formatPrice(item.unitPrice * item.quantity)}
@@ -68,7 +69,7 @@ export function CheckoutOrderSummary({
               </li>
             ))}
             <li className="flex items-center justify-between gap-2 text-hubee-neutral-300 dark:text-hubee-200">
-              <span>{order.serviceFeeLabel}</span>
+              <span>Taxa de serviço</span>
               <span className="shrink-0">{formatPrice(order.serviceFeeAmount)}</span>
             </li>
           </ul>
@@ -145,4 +146,3 @@ export function CheckoutOrderSummary({
     </aside>
   );
 }
-

@@ -11,13 +11,6 @@ import {
 import { AuthField, AuthInput, fieldA11y } from "@/components/auth/auth-field";
 import { ContaCard } from "@/components/conta/conta-card";
 import { fieldInputClassName, fieldLabelClassName } from "@/components/conta/perfil/perfil-styles";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
@@ -27,25 +20,25 @@ import {
   type CheckoutFormInputs,
   type PaymentMethod,
 } from "@/lib/validations/checkout.schema";
-import type { CheckoutOrderData } from "./checkout.data";
 
 interface PaymentMethodSelectorProps {
   control: Control<CheckoutFormInputs>;
   errors: FieldErrors<CheckoutFormInputs>;
   paymentMethod: PaymentMethod;
   onPaymentMethodChange: (method: PaymentMethod) => void;
-  installments: CheckoutOrderData["installments"];
   transactionError?: string | null;
   disabled?: boolean;
 }
 
-/** Card "2. Forma de Pagamento" com abas PIX e Cartão de Crédito (GOL-180). */
+/**
+ * Card "2. Forma de Pagamento" com abas PIX e Cartão. Sem parcelamento: a API cobra sempre
+ * o total do pedido (`POST /payments` só recebe o pedido e o método).
+ */
 export function PaymentMethodSelector({
   control,
   errors,
   paymentMethod,
   onPaymentMethodChange,
-  installments,
   transactionError,
   disabled = false,
 }: PaymentMethodSelectorProps) {
@@ -103,9 +96,9 @@ export function PaymentMethodSelector({
                 </div>
 
                 <p className="text-xs leading-relaxed text-hubee-750 dark:text-hubee-200">
-                  Ao clicar em &apos;Confirmar e Pagar&apos;, um QR Code e um código PIX Copia e
-                  Cola serão gerados na próxima etapa. Você terá 15 minutos para concluir o
-                  pagamento e liberar seus ingressos instantaneamente.
+                  Ao clicar em &apos;Confirmar e Pagar&apos;, geramos o QR Code e o código PIX
+                  Copia e Cola. Você terá 15 minutos para concluir o pagamento, e os ingressos
+                  são emitidos assim que ele for confirmado.
                 </p>
               </div>
             </div>
@@ -232,42 +225,6 @@ export function PaymentMethodSelector({
                 </AuthField>
               </div>
 
-              <AuthField
-                id="checkout-installments"
-                label="Parcelamento"
-                labelClassName={fieldLabelClassName}
-                error={errors.installments?.message}
-              >
-                <Controller
-                  control={control}
-                  name="installments"
-                  render={({ field }) => (
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={disabled}
-                    >
-                      <SelectTrigger
-                        id="checkout-installments"
-                        aria-invalid={errors.installments ? true : undefined}
-                        aria-describedby={
-                          errors.installments ? "checkout-installments-error" : undefined
-                        }
-                        className="h-10 w-full border-hubee-neutral-50 bg-white text-xs text-hubee-800 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50"
-                      >
-                        <SelectValue placeholder="Selecione o parcelamento" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {installments.map((option) => (
-                          <SelectItem key={option.value} value={option.value} className="text-xs">
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </AuthField>
             </fieldset>
           </TabsContent>
         </Tabs>
