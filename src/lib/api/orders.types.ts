@@ -32,6 +32,32 @@ export interface ApiOrderWithItems extends ApiOrder {
   items: ApiOrderItem[];
 }
 
+/** Local do evento, como vem aninhado no ingresso do usuário. */
+export interface ApiTicketVenue {
+  id: string;
+  name: string;
+  address: { city?: string | null } | null;
+}
+
+/** Evento aninhado em `GET /users/me/tickets`. */
+export interface ApiTicketEvent {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  photoUrl?: string | null;
+  venue: ApiTicketVenue | null;
+}
+
+/**
+ * `GET /users/me/tickets` (`MyTicketResponseDto`): o ingresso já com evento, local e lote
+ * aninhados, o que dispensa buscar pedido, lote e local separadamente.
+ */
+export interface ApiMyTicket extends ApiTicket {
+  event: ApiTicketEvent;
+  ticketType: { id: string; batch: string; price: number | string };
+}
+
 /** Formas de pagamento aceitas pela API (enum `payment_method`). */
 export type ApiPaymentMethod =
   | "cartao_credito"
