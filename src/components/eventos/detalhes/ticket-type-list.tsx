@@ -1,19 +1,24 @@
-import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/components/home/events/format";
-import type { EventTicketType } from "@/lib/api/events";
+import { MAX_QUANTIDADE_POR_LOTE } from "@/lib/carrinho";
+import type { EventDetails, EventTicketType } from "@/lib/api/events";
 import { cn } from "@/lib/utils";
+import { BuyTicketButton } from "./buy-ticket-button";
 import { sectionCardClassName } from "./section-card";
+
+/** Dados do evento que acompanham o lote até o carrinho. */
+type EventoDoLote = Pick<EventDetails, "id" | "title" | "category" | "organizer">;
 
 interface TicketTypeListProps {
   ticketTypes: EventTicketType[];
+  event: EventoDoLote;
   /** Lote destacado com borda amarela (no protótipo, o último/VIP). */
   highlightedId?: string;
 }
 
 /** Cards de lotes com preço, status (disponível/esgotado) e botão de compra. */
-export function TicketTypeList({ ticketTypes, highlightedId }: TicketTypeListProps) {
+export function TicketTypeList({ ticketTypes, event, highlightedId }: TicketTypeListProps) {
   if (ticketTypes.length === 0) {
     return (
       <p className="text-sm text-hubee-neutral-300 dark:text-hubee-100">
@@ -27,7 +32,11 @@ export function TicketTypeList({ ticketTypes, highlightedId }: TicketTypeListPro
       <ul className="grid gap-3 md:grid-cols-3 md:gap-4">
         {ticketTypes.map((ticket) => (
           <li key={ticket.id}>
-            <TicketTypeCard ticket={ticket} highlighted={ticket.id === highlightedId} />
+            <TicketTypeCard
+              ticket={ticket}
+              event={event}
+              highlighted={ticket.id === highlightedId}
+            />
           </li>
         ))}
       </ul>
@@ -40,7 +49,15 @@ export function TicketTypeList({ ticketTypes, highlightedId }: TicketTypeListPro
   );
 }
 
-function TicketTypeCard({ ticket, highlighted }: { ticket: EventTicketType; highlighted: boolean }) {
+function TicketTypeCard({
+  ticket,
+  event,
+  highlighted,
+}: {
+  ticket: EventTicketType;
+  event: EventoDoLote;
+  highlighted: boolean;
+}) {
   const { soldOut } = ticket;
   const headingId = `lote-${ticket.id}`;
 
@@ -82,15 +99,22 @@ function TicketTypeCard({ ticket, highlighted }: { ticket: EventTicketType; high
           <span className="sr-only"> {ticket.batch} (esgotado)</span>
         </Button>
       ) : (
-        <Button
-          asChild
-          className="mt-5 h-10 w-full bg-hubee-400 text-sm font-semibold text-hubee-800 hover:bg-hubee-300 focus-visible:ring-hubee-400"
-        >
-          <Link href="/checkout">
-            Comprar
-            <span className="sr-only"> {ticket.batch}</span>
-          </Link>
-        </Button>
+        <BuyTicketButton
+          batch={ticket.batch}
+          lote={{
+            ticketTypeId: ticket.id,
+            eventId: event.id,
+            title: event.title,
+            organization: event.organizer?.name ?? "",
+            batchLabel: ticket.batch,
+            category: event.category,
+            unitPrice: ticket.price,
+            // `quantity` do lote na API é a capacidade total, não o saldo: o front não sabe
+            // quantos sobraram. O teto aqui é o máximo por lote do pedido, e quem recusa por
+            // falta de saldo é o `POST /orders`, que confere o estoque travando o lote.
+            maxQuantity: MAX_QUANTIDADE_POR_LOTE,
+          }}
+        />
       )}
     </article>
   );
