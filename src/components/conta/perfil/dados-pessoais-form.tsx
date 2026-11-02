@@ -11,12 +11,13 @@ import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { mapMessagesToFields, parseApiError } from "@/lib/api/errors";
-import { updateMe } from "@/lib/api/users";
+import { updateMe, uploadAvatar } from "@/lib/api/users";
 import { personalDataSchema, type PersonalDataInputs } from "@/lib/validations/profile.schema";
 import type { Usuario } from "@/types/usuario";
 import { fieldInputClassName, fieldLabelClassName, submitButtonClassName } from "./perfil-styles";
 
 const FORMATOS_FOTO = ["image/jpeg", "image/png"];
+const TAMANHO_MAXIMO_FOTO = 2 * 1024 * 1024;
 
 /** Campos do formulário que a API pode recusar, na ordem em que o texto da mensagem é testado. */
 const CAMPOS_DA_API = {
@@ -44,8 +45,8 @@ function toFormValues(usuario: Usuario): PersonalDataInputs {
 export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
   const toast = useToast();
   const { updateUserState } = useAuth();
-  // TODO(profile-api): a API ainda não tem endpoint de foto; a prévia vale só enquanto a página está aberta.
   const [foto, setFoto] = useState<string | null>(usuario.avatarUrl ?? null);
+  const [arquivoFoto, setArquivoFoto] = useState<File | null>(null);
   const {
     control,
     register,
@@ -77,6 +78,11 @@ export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
       toast.error("Formato inválido. Use uma imagem .jpg, .png ou .jpeg.");
       return;
     }
+    if (arquivo.size > TAMANHO_MAXIMO_FOTO) {
+      toast.error("A imagem deve ter no máximo 2MB.");
+      return;
+    }
+    setArquivoFoto(arquivo);
     setFoto(URL.createObjectURL(arquivo));
   }
 
@@ -88,6 +94,32 @@ export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
         // A API só aceita dígitos e recusa texto vazio; `null` apaga o telefone.
         phone: onlyDigits(dados.phone) || null,
       });
+
+      if (arquivoFoto) {
+        try {
+          const atualizadoComFoto = await uploadAvatar(arquivoFoto);
+          setArquivoFoto(null);
+          setFoto(atualizadoComFoto.avatarUrl ?? null);
+          updateUserState(atualizadoComFoto);
+          reset(toFormValues(atualizadoComFoto));
+          toast.success("Dados pessoais atualizados.");
+          return;
+        } catch (uploadError) {
+          setArquivoFoto(null);
+          setFoto(atualizado.avatarUrl ?? usuario.avatarUrl ?? null);
+          updateUserState(atualizado);
+          reset(toFormValues(atualizado));
+          const { messages } = parseApiError(uploadError);
+          const detalhe = messages[0];
+          toast.error(
+            detalhe
+              ? `Seus dados foram salvos, mas a foto não pôde ser atualizada: ${detalhe}`
+              : "Seus dados foram salvos, mas não foi possível atualizar a foto de perfil.",
+          );
+          return;
+        }
+      }
+
       updateUserState(atualizado);
       reset(toFormValues(atualizado));
       toast.success("Dados pessoais atualizados.");
