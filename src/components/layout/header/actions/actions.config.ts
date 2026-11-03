@@ -6,6 +6,7 @@ interface IconNavigationItem extends NavigationItem {
 }
 
 export const loginItem: NavigationItem = { href: "/login", label: "Entrar" };
+export const registerItem: NavigationItem = { href: "/cadastro", label: "Criar Conta" };
 
 export const accountActions: readonly IconNavigationItem[] = [
   { href: "/carrinho", label: "Carrinho", icon: ShoppingCart },

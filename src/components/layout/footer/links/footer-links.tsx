@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { isActiveRoute } from "@/components/layout/header/navigation/navigation.config";
+import { cn } from "@/lib/utils";
 import type { FooterColumn } from "../types";
 
 interface FooterLinksProps {
@@ -9,6 +12,8 @@ interface FooterLinksProps {
 }
 
 export function FooterLinks({ columns }: FooterLinksProps) {
+  const pathname = usePathname() ?? "";
+
   return (
     <>
       <div className="hidden gap-10 md:flex">
@@ -18,16 +23,25 @@ export function FooterLinks({ columns }: FooterLinksProps) {
               {column.title}
             </p>
             <ul className="mt-3 space-y-2.5">
-              {column.items.map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="rounded text-sm font-medium text-hubee-50 outline-none hover:text-hubee-400 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:text-hubee-800 dark:hover:text-hubee-600 dark:focus-visible:ring-hubee-800"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
+              {column.items.map(({ href, label }) => {
+                const isActive = isActiveRoute(pathname, href);
+
+                return (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      aria-current={isActive ? "page" : undefined}
+                      className={cn(
+                        "inline-flex items-center rounded px-1 py-0.5 text-sm font-medium text-hubee-50 outline-none hover:text-hubee-400 hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-hubee-400 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-800 dark:text-hubee-800 dark:hover:text-hubee-750 dark:focus-visible:ring-hubee-800 dark:focus-visible:ring-offset-hubee-400",
+                        isActive &&
+                          "border-l-2 border-hubee-400 pl-2.5 underline underline-offset-4 dark:border-hubee-800",
+                      )}
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
@@ -45,16 +59,25 @@ export function FooterLinks({ columns }: FooterLinksProps) {
             </AccordionTrigger>
             <AccordionContent>
               <ul className="space-y-2.5">
-                {column.items.map(({ href, label }) => (
-                  <li key={href}>
-                    <Link
-                      href={href}
-                      className="text-sm font-medium text-hubee-50/90 hover:text-hubee-400 dark:text-hubee-800/90 dark:hover:text-hubee-600"
-                    >
-                      {label}
-                    </Link>
-                  </li>
-                ))}
+                {column.items.map(({ href, label }) => {
+                  const isActive = isActiveRoute(pathname, href);
+
+                  return (
+                    <li key={href}>
+                      <Link
+                        href={href}
+                        aria-current={isActive ? "page" : undefined}
+                        className={cn(
+                          "inline-flex items-center rounded px-1 py-0.5 text-sm font-medium text-hubee-50/90 outline-none hover:text-hubee-400 hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:text-hubee-800/90 dark:hover:text-hubee-750 dark:focus-visible:ring-hubee-800",
+                          isActive &&
+                            "border-l-2 border-hubee-400 pl-2.5 font-semibold text-hubee-50 underline underline-offset-4 dark:border-hubee-800 dark:text-hubee-800",
+                        )}
+                      >
+                        {label}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </AccordionContent>
           </AccordionItem>

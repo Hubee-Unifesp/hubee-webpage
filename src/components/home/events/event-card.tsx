@@ -29,8 +29,8 @@ export function EventCard({ event, showSalesProgress = false, headingLevel: Head
       />
 
       <div className={cn("flex flex-1 flex-col p-3 md:p-4", soldOut && "opacity-70")}>
-        <CategoryPill category={event.category} className="hidden md:inline-flex" />
-        <Heading className="font-sans text-sm leading-snug font-semibold md:mt-3 md:text-base">
+        <CategoryPill category={event.category} />
+        <Heading className="mt-3 font-sans text-sm leading-snug font-semibold md:text-base">
           <Link
             href={href}
             className="rounded-sm outline-none hover:underline focus-visible:ring-3 focus-visible:ring-hubee-400"

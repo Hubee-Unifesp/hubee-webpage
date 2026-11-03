@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { themeInitScript } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
@@ -34,11 +36,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         "font-sans",
         inter.variable,
       )}
+      // O script abaixo pode adicionar `.dark` antes da hidratação.
+      suppressHydrationWarning
     >
-<body className="min-h-full flex flex-col">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            {/* No root, e não no layout logado: a página pública do evento também usa o carrinho. */}
+            <CartProvider>
+              {children}
+            </CartProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -15,14 +15,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
 import { formatShortOrganizerRoleLabel } from "@/types/organizacao";
 import type { Usuario } from "@/types/usuario";
-import { buyerAccountNavItems, organizerManageEventsNavItem } from "./account-nav.config";
+import { buyerAccountNavItems } from "./account-nav.config";
 import { UserAvatar } from "./user-avatar";
 
 export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
   const { logoutState, isOrganizer } = useAuth();
   const { organizacoes, organizacaoAtiva } = useOrganizacaoAtiva();
 
-  const ManageIcon = organizerManageEventsNavItem.icon;
   const activeOrg = organizacaoAtiva ?? organizacoes[0] ?? null;
 
   return (
@@ -72,18 +71,6 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
             </Link>
           </DropdownMenuItem>
         ))}
-
-        {isOrganizer && (
-          <DropdownMenuItem
-            asChild
-            className="mt-0.5 cursor-pointer gap-2.5 rounded-lg bg-hubee-100/80 px-2.5 py-2 text-sm font-medium text-hubee-800 focus:bg-hubee-200/70 focus:text-hubee-800 dark:bg-hubee-400/15 dark:text-hubee-50 dark:focus:bg-hubee-400/25 dark:focus:text-hubee-50"
-          >
-            <Link href={organizerManageEventsNavItem.href}>
-              <ManageIcon aria-hidden="true" className="size-4 text-current" />
-              {organizerManageEventsNavItem.label}
-            </Link>
-          </DropdownMenuItem>
-        )}
 
         <DropdownMenuSeparator className="my-1.5 bg-hubee-800/10 dark:bg-hubee-50/15" />
 

@@ -1,12 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { FooterLinks } from "./links/footer-links";
 import { getFooterColumns } from "./links/footer-links.config";
-import type { FooterProps } from "./types";
+import type { FooterProps, FooterRole } from "./types";
 import { ThemedHubeeLogo } from "@/components/brand";
 
-export function Footer({ role = "guest", className, homeHref = "/" }: FooterProps) {
-  const columns = getFooterColumns(role, homeHref);
+export function Footer({ role, className, homeHref = "/" }: FooterProps) {
+  const { user, isOrganizer } = useAuth();
+  const currentRole: FooterRole =
+    role ?? (user ? (isOrganizer ? "organizer" : "user") : "guest");
+  const columns = getFooterColumns(currentRole, homeHref);
   const topHref = `${homeHref}#inicio`;
 
   return (
@@ -34,7 +40,7 @@ export function Footer({ role = "guest", className, homeHref = "/" }: FooterProp
         <FooterLinks columns={columns} />
       </div>
 
-      <div className="mt-8 flex flex-col-reverse items-center gap-3 border-t border-hubee-50/15 pt-5 text-xs text-hubee-50/70 sm:flex-row sm:justify-between dark:border-hubee-800/15 dark:text-hubee-800/70">
+      <div className="flex flex-col-reverse items-center gap-3 border-t border-hubee-50/15 pt-5 text-xs text-hubee-50/70 sm:flex-row sm:justify-between md:mt-8 dark:border-hubee-800/15 dark:text-hubee-800/70">
         <p>© {new Date().getFullYear()} Hubee. Projeto acadêmico de Engenharia de Software — UNIFESP</p>
         <a
           href={topHref}

@@ -26,26 +26,40 @@ interface RegisterFormProps {
   onSubmit: (data: RegisterFormInputs) => void | Promise<void>;
   onEdit?: () => void;
   isLoading: boolean;
+  defaultIntent?: SignupIntent;
   error?: string | null;
   emailError?: string | null;
   successMessage?: string | null;
 }
 
-export function RegisterForm({ onSubmit, onEdit, isLoading, error, emailError, successMessage }: RegisterFormProps) {
+export function RegisterForm({
+  onSubmit,
+  onEdit,
+  isLoading,
+  defaultIntent = "BUY",
+  error,
+  emailError,
+  successMessage,
+}: RegisterFormProps) {
   const {
     control,
     register,
     handleSubmit,
     setError,
     setFocus,
+    setValue,
     formState: { errors },
   } = useForm<RegisterFormInputs>({
     resolver: zodResolver(registerSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
     shouldFocusError: true,
-    defaultValues: { signupIntent: "BUY", fullName: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { signupIntent: defaultIntent, fullName: "", email: "", password: "", confirmPassword: "" },
   });
+
+  useEffect(() => {
+    setValue("signupIntent", defaultIntent);
+  }, [defaultIntent, setValue]);
 
   const signupIntent = useWatch({ control, name: "signupIntent" });
   const isOrganizer = signupIntent === "ORGANIZE";

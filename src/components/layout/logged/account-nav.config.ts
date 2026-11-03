@@ -9,14 +9,14 @@ export interface AccountNavItem {
 }
 
 export const organizerEventsNavItem: AccountNavItem = {
-  href: "/conta/eventos",
+  href: "/meus-eventos",
   label: "Meus eventos",
   icon: CalendarDays,
   organizerOnly: true,
 };
 
 export const organizerManageEventsNavItem: AccountNavItem = {
-  href: "/conta/eventos",
+  href: "/meus-eventos",
   label: "Gerenciar eventos",
   icon: CalendarDays,
   organizerOnly: true,
@@ -28,15 +28,14 @@ export const buyerAccountNavItems: readonly AccountNavItem[] = [
   { href: "/conta/perfil", label: "Meu perfil", icon: User },
 ];
 
-/** Seções da conta. Usadas pelas abas mobile e pelo menu mobile. */
+/** Seções da conta pessoal. Usadas pelas abas mobile e pela sidebar da conta. */
 export const accountNavItems: readonly AccountNavItem[] = [
   ...buyerAccountNavItems,
-  organizerEventsNavItem,
 ];
 
-/** Seções da conta que a pessoa pode ver: o comprador não recebe as de organizador. */
-export function getAccountNavItems(isOrganizer: boolean): readonly AccountNavItem[] {
-  return accountNavItems.filter((item) => !item.organizerOnly || isOrganizer);
+/** Seções da conta pessoal que a pessoa usuária pode acessar. */
+export function getAccountNavItems(): readonly AccountNavItem[] {
+  return accountNavItems;
 }
 
 export const cartHref = "/carrinho";

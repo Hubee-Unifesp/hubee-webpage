@@ -4,7 +4,7 @@
 <Footer role="user" />
 ```
 
-- `role`: `guest` (padrão), `user` ou `organizer`. Controla apenas a apresentação da coluna "Sua conta", igual ao `Header`.
+- `role`: `guest`, `user` ou `organizer` (opcional). Quando omitido, o `Footer` lê a sessão ativa via `useAuth()`, igual ao `Header`. Controla apenas a apresentação da coluna "Sua conta".
 - `homeHref`: caminho da home para o logo, "Voltar ao topo" e os links com âncora (padrão `/`).
 - `className`: estilos adicionais para o container.
 

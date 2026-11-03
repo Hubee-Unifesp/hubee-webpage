@@ -1,0 +1,234 @@
+"use client";
+
+import { Controller, type Control, type FieldErrors } from "react-hook-form";
+import {
+  AlertCircle,
+  CreditCard,
+  Lock,
+  QrCode,
+  Zap,
+} from "lucide-react";
+import { AuthField, AuthInput, fieldA11y } from "@/components/auth/auth-field";
+import { ContaCard } from "@/components/conta/conta-card";
+import { fieldInputClassName, fieldLabelClassName } from "@/components/conta/perfil/perfil-styles";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import {
+  formatCardCvv,
+  formatCardExpiry,
+  formatCardNumber,
+  type CheckoutFormInputs,
+  type PaymentMethod,
+} from "@/lib/validations/checkout.schema";
+
+interface PaymentMethodSelectorProps {
+  control: Control<CheckoutFormInputs>;
+  errors: FieldErrors<CheckoutFormInputs>;
+  paymentMethod: PaymentMethod;
+  onPaymentMethodChange: (method: PaymentMethod) => void;
+  transactionError?: string | null;
+  disabled?: boolean;
+}
+
+/**
+ * Card "2. Forma de Pagamento" com abas PIX e Cartão. Sem parcelamento: a API cobra sempre
+ * o total do pedido (`POST /payments` só recebe o pedido e o método).
+ */
+export function PaymentMethodSelector({
+  control,
+  errors,
+  paymentMethod,
+  onPaymentMethodChange,
+  transactionError,
+  disabled = false,
+}: PaymentMethodSelectorProps) {
+  return (
+    <ContaCard title="2. Forma de Pagamento">
+      <div className="flex flex-col gap-4">
+        {transactionError && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="flex items-start gap-2.5 rounded-lg border border-red-700/30 bg-red-700/10 p-3 text-xs leading-relaxed text-red-700 dark:border-red-400/30 dark:bg-red-950/40 dark:text-red-300"
+          >
+            <AlertCircle aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+            <span>{transactionError}</span>
+          </div>
+        )}
+
+        <Tabs
+          value={paymentMethod}
+          onValueChange={(value) => {
+            if (value === "pix" || value === "card") {
+              onPaymentMethodChange(value);
+            }
+          }}
+        >
+          <TabsList aria-label="Selecione o método de pagamento">
+            <TabsTrigger value="pix" disabled={disabled}>
+              <QrCode aria-hidden="true" className="size-3.5" />
+              PIX
+            </TabsTrigger>
+            <TabsTrigger value="card" disabled={disabled}>
+              <CreditCard aria-hidden="true" className="size-3.5" />
+              Cartão
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pix">
+            <div className="flex items-start gap-3.5 rounded-xl border border-hubee-300 bg-hubee-100/80 p-4 text-hubee-800 sm:p-5 dark:border-hubee-700 dark:bg-hubee-800/70 dark:text-hubee-50">
+              <div
+                aria-hidden="true"
+                className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-hubee-300 text-hubee-800 dark:bg-hubee-400 dark:text-hubee-800"
+              >
+                <QrCode className="size-5" />
+              </div>
+
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-bold text-hubee-800 dark:text-hubee-50">
+                    PIX Aprovado na Hora
+                  </h3>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-hubee-300/80 px-2 py-0.5 text-[10px] font-semibold text-hubee-800 dark:bg-hubee-400 dark:text-hubee-800">
+                    <Zap aria-hidden="true" className="size-3" />
+                    Liberação imediata
+                  </span>
+                </div>
+
+                <p className="text-xs leading-relaxed text-hubee-750 dark:text-hubee-200">
+                  Ao clicar em &apos;Confirmar e Pagar&apos;, geramos o QR Code e o código PIX
+                  Copia e Cola. Você terá 15 minutos para concluir o pagamento, e os ingressos
+                  são emitidos assim que ele for confirmado.
+                </p>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="card">
+            <fieldset disabled={disabled} className="flex flex-col gap-4">
+              <legend className="sr-only">Dados do cartão de crédito</legend>
+
+              <AuthField
+                id="checkout-card-number"
+                label="Número do Cartão"
+                labelClassName={fieldLabelClassName}
+                error={errors.cardNumber?.message}
+              >
+                <Controller
+                  control={control}
+                  name="cardNumber"
+                  render={({ field }) => (
+                    <div className="relative">
+                      <AuthInput
+                        {...fieldA11y("checkout-card-number", errors.cardNumber?.message)}
+                        inputMode="numeric"
+                        autoComplete="cc-number"
+                        placeholder="0000 0000 0000 0000"
+                        className={cn(fieldInputClassName, "pr-10")}
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        onChange={(event) => field.onChange(formatCardNumber(event.target.value))}
+                      />
+                      <CreditCard
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-hubee-neutral-300 dark:text-hubee-400"
+                      />
+                    </div>
+                  )}
+                />
+              </AuthField>
+
+              <AuthField
+                id="checkout-card-holder"
+                label="Nome impresso no cartão"
+                labelClassName={fieldLabelClassName}
+                error={errors.cardHolder?.message}
+              >
+                <Controller
+                  control={control}
+                  name="cardHolder"
+                  render={({ field }) => (
+                    <AuthInput
+                      {...fieldA11y("checkout-card-holder", errors.cardHolder?.message)}
+                      autoComplete="cc-name"
+                      placeholder="COMO ESTÁ NO CARTÃO"
+                      className={cn(fieldInputClassName, "uppercase placeholder:normal-case")}
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      onChange={(event) => field.onChange(event.target.value.toUpperCase())}
+                    />
+                  )}
+                />
+              </AuthField>
+
+              <div className="grid grid-cols-2 gap-4">
+                <AuthField
+                  id="checkout-card-expiry"
+                  label="Validade"
+                  labelClassName={fieldLabelClassName}
+                  error={errors.cardExpiry?.message}
+                >
+                  <Controller
+                    control={control}
+                    name="cardExpiry"
+                    render={({ field }) => (
+                      <AuthInput
+                        {...fieldA11y("checkout-card-expiry", errors.cardExpiry?.message)}
+                        inputMode="numeric"
+                        autoComplete="cc-exp"
+                        placeholder="MM/AA"
+                        className={fieldInputClassName}
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        onChange={(event) => field.onChange(formatCardExpiry(event.target.value))}
+                      />
+                    )}
+                  />
+                </AuthField>
+
+                <AuthField
+                  id="checkout-card-cvv"
+                  label="CVV"
+                  labelClassName={fieldLabelClassName}
+                  error={errors.cardCvv?.message}
+                >
+                  <Controller
+                    control={control}
+                    name="cardCvv"
+                    render={({ field }) => (
+                      <div className="relative">
+                        <AuthInput
+                          {...fieldA11y("checkout-card-cvv", errors.cardCvv?.message)}
+                          inputMode="numeric"
+                          autoComplete="cc-csc"
+                          placeholder="123"
+                          className={cn(fieldInputClassName, "pr-9")}
+                          name={field.name}
+                          ref={field.ref}
+                          value={field.value}
+                          onBlur={field.onBlur}
+                          onChange={(event) => field.onChange(formatCardCvv(event.target.value))}
+                        />
+                        <Lock
+                          aria-hidden="true"
+                          className="pointer-events-none absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-hubee-neutral-300 dark:text-hubee-400"
+                        />
+                      </div>
+                    )}
+                  />
+                </AuthField>
+              </div>
+
+            </fieldset>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </ContaCard>
+  );
+}

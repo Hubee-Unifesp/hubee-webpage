@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { MeusIngressosContent } from "@/components/conta/ingressos/meus-ingressos-content";
 
 export const metadata: Metadata = { title: "Meus Ingressos | Hubee" };
 
-// Placeholder: o conteúdo desta página entra em uma próxima task.
-export default function Page() {
-  return <h1 className="text-2xl font-bold">Meus Ingressos</h1>;
+export default function MeusIngressosPage() {
+  return <MeusIngressosContent />;
 }

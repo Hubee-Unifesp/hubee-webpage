@@ -305,18 +305,40 @@ export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
  * Consulta em paralelo `GET /events/summary` (de forma resiliente) para inferir lotes esgotados
  * a partir de `capacity`, `ticketsSold` e `minPrice`, já que `ticket_types.quantity` na API
  * representa a capacidade total do lote (default 0) e não o saldo restante.
- * Retorna `null` quando o evento não existe, não está publicado (404) ou o ID é inválido (400).
+ * No SSR o `apiClient` não enxerga o token (fica no localStorage), então a página repassa o JWT
+ * lido do cookie em `options.token`. Assim organizadores conseguem ver eventos não publicados (GOL-186).
+ * Se a API rejeitar o token (401, ex.: expirado), refaz a chamada como anônima.
+ * Retorna `null` quando o evento não existe, não está publicado (404), o usuário não tem
+ * permissão (403) ou o ID é inválido (400).
  */
-export async function getEventById(id: string): Promise<EventDetails | null> {
+export async function getEventById(
+  id: string,
+  options: { token?: string } = {},
+): Promise<EventDetails | null> {
   const trimmedId = id.trim();
   if (!trimmedId) return null;
 
+  const path = `/events/${encodeURIComponent(trimmedId)}`;
+  const token = options.token?.trim();
+
+  const fetchDetail = async () => {
+    if (!token) {
+      return authClient.get<ApiEventDetail>(path, { skipAuthRedirect: true });
+    }
+    try {
+      return await authClient.get<ApiEventDetail>(path, {
+        skipAuthRedirect: true,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (error) {
+      if (parseApiError(error).status !== 401) throw error;
+      return authClient.get<ApiEventDetail>(path, { skipAuthRedirect: true });
+    }
+  };
+
   try {
     const [detailResponse, summaryList] = await Promise.all([
-      authClient.get<ApiEventDetail>(
-        `/events/${encodeURIComponent(trimmedId)}`,
-        { skipAuthRedirect: true },
-      ),
+      fetchDetail(),
       apiClient
         .get<ApiEventSummary[]>("/events/summary")
         .then((res) => (Array.isArray(res.data) ? res.data : []))
@@ -329,7 +351,7 @@ export async function getEventById(id: string): Promise<EventDetails | null> {
     return toEventDetails(detailResponse.data, matchingSummary);
   } catch (error) {
     const { status } = parseApiError(error);
-    if (status === 404 || status === 400) {
+    if (status === 404 || status === 403 || status === 400) {
       return null;
     }
     throw error;
