@@ -5,6 +5,7 @@ import {
   getAccountNavItems,
   organizerEventsNavItem,
   organizerManageEventsNavItem,
+  suppliersNavItem,
 } from "./account-nav.config";
 
 describe("account-nav.config", () => {
@@ -13,17 +14,25 @@ describe("account-nav.config", () => {
     expect(organizerManageEventsNavItem.href).toBe("/meus-eventos");
   });
 
-  it("mantém a navegação da conta pessoal restrita a pedidos e perfil", () => {
-    const items = getAccountNavItems();
-    const hrefs = items.map((i) => i.href);
-
-    expect(hrefs).toEqual(["/conta/pedidos", "/conta/perfil"]);
-    expect(hrefs).not.toContain("/conta/eventos");
-    expect(hrefs).not.toContain("/meus-eventos");
+  it("mostra só pedidos e perfil para quem não pertence a uma organização", () => {
+    expect(getAccountNavItems().map((i) => i.href)).toEqual(["/conta/pedidos", "/conta/perfil"]);
+    expect(getAccountNavItems(false)).toEqual(buyerAccountNavItems);
   });
 
-  it("garante consistência entre buyerAccountNavItems e getAccountNavItems", () => {
-    expect(getAccountNavItems()).toEqual(buyerAccountNavItems);
+  it("acrescenta Fornecedores para membros de organizações, depois das seções pessoais", () => {
+    expect(getAccountNavItems(true).map((i) => i.href)).toEqual([
+      "/conta/pedidos",
+      "/conta/perfil",
+      "/conta/fornecedores",
+    ]);
+    expect(suppliersNavItem.organizerOnly).toBe(true);
+  });
+
+  it("mantém Meus Eventos fora da navegação da conta, inclusive para organizadores", () => {
+    const hrefs = getAccountNavItems(true).map((i) => i.href);
+
+    expect(hrefs).not.toContain("/conta/eventos");
+    expect(hrefs).not.toContain("/meus-eventos");
   });
 
   it("formata o label do carrinho de acordo com a quantidade", () => {

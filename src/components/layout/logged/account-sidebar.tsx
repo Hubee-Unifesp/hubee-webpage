@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isActiveRoute } from "@/components/layout/header";
-import { buyerAccountNavItems } from "./account-nav.config";
+import { useAuth } from "@/contexts/AuthContext";
+import { getAccountNavItems } from "./account-nav.config";
 
 const navLinkClassName =
   "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium outline-none hover:bg-hubee-100 focus-visible:ring-3 focus-visible:ring-hubee-800 aria-[current=page]:bg-hubee-800 aria-[current=page]:font-semibold aria-[current=page]:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400 dark:aria-[current=page]:bg-hubee-400 dark:aria-[current=page]:text-hubee-800";
 
-/** Menu lateral da conta pessoal (desktop, a partir de 768px). */
+/** Menu lateral da conta (desktop, a partir de 768px). */
 export function AccountSidebar() {
   const pathname = usePathname();
+  const { isOrganizer } = useAuth();
 
   return (
     <nav aria-label="Conta" className="hidden md:block">
@@ -19,7 +21,7 @@ export function AccountSidebar() {
           Minha Conta
         </p>
         <ul className="flex flex-col gap-1">
-          {buyerAccountNavItems.map(({ href, label, icon: Icon }) => (
+          {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
             <li key={href}>
               <Link
                 href={href}
