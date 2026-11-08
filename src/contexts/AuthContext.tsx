@@ -23,6 +23,11 @@ type AuthContextType = {
   updateUserState: (userData: User) => void;
   /** Busca o usuário de novo (ex.: botão "Tentar novamente"). */
   refreshUser: () => Promise<void>;
+  /**
+   * Relê `GET /auth/me` em segundo plano, sem `isLoading`, para refletir vínculo ou permissão que mudou
+   * (ex.: depois de criar uma organização). Falha se a API não responder; o usuário atual é mantido.
+   */
+  syncUser: () => Promise<User>;
   logoutState: () => Promise<void>;
 };
 
@@ -69,6 +74,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
+  const syncUser = useCallback(async () => {
+    const fullUser = await getMe();
+    // Se a pessoa saiu da conta enquanto a chamada rodava, não recoloca o usuário na sessão.
+    if (getToken()) setUser(fullUser);
+    return fullUser;
+  }, []);
+
   const loginState = (userData: User) => {
     setSessionEnded(false);
     setUser(userData);
@@ -98,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loginState,
         updateUserState: setUser,
         refreshUser,
+        syncUser,
         logoutState,
       }}
     >
