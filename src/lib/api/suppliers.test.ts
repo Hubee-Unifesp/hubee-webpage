@@ -28,6 +28,7 @@ import {
   createSupplier,
   deleteSupplier,
   FornecedorDuplicadoError,
+  getSupplierById,
   getSuppliers,
   updateSupplier,
 } from "./suppliers";
@@ -97,6 +98,17 @@ describe("suppliers API", () => {
       await getSuppliers({ search: "   ", category: "" });
 
       expect(getMock).toHaveBeenCalledWith("/suppliers");
+    });
+  });
+
+  describe("getSupplierById", () => {
+    it("busca fornecedor por id em GET /suppliers/:id", async () => {
+      getMock.mockResolvedValueOnce({ data: mockSupplier });
+
+      const result = await getSupplierById("sup-1");
+
+      expect(getMock).toHaveBeenCalledWith("/suppliers/sup-1");
+      expect(result).toEqual(mockSupplier);
     });
   });
 

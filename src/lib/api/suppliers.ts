@@ -48,6 +48,11 @@ export async function getSuppliers(params?: GetSuppliersParams): Promise<Fornece
   return response.data;
 }
 
+export async function getSupplierById(id: string): Promise<Fornecedor> {
+  const response = await apiClient.get<Fornecedor>(`/suppliers/${id}`);
+  return response.data;
+}
+
 export async function createSupplier(payload: FornecedorPayload): Promise<Fornecedor> {
   try {
     const response = await apiClient.post<Fornecedor>("/suppliers", payload);
