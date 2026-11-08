@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, Info, Plus, SearchX, Truck } from "lucide-react";
 import { ContaPageTitle } from "@/components/conta/conta-card";
 import { EmptyState } from "@/components/empty-state";
+import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
-import { useFornecedores } from "@/hooks/useFornecedores";
-import type { Fornecedor } from "@/types/fornecedor";
+import { FornecedorDuplicadoError, useFornecedores } from "@/hooks/useFornecedores";
+import type { Fornecedor, FornecedorPayload } from "@/types/fornecedor";
+import { ExcluirFornecedorModal } from "./excluir-fornecedor-modal";
 import { FornecedorCard } from "./fornecedor-card";
+import { FornecedorFormModal, type ResultadoEnvio } from "./fornecedor-form-modal";
 import { canManageSuppliers } from "./fornecedores.data";
 import { FornecedoresFiltros } from "./fornecedores-filtros";
 import { FornecedoresSkeleton } from "./fornecedores-skeleton";
@@ -20,6 +24,11 @@ function Titulo() {
 /** Página "Fornecedores" da conta: listagem, busca, filtro por categoria e estados vazios. */
 export function FornecedoresContent() {
   const router = useRouter();
+  const toast = useToast();
+  const [formAberto, setFormAberto] = useState(false);
+  // Só muda ao abrir o modal, para o título não trocar durante a animação de saída.
+  const [editando, setEditando] = useState<Fornecedor | null>(null);
+  const [excluindo, setExcluindo] = useState<Fornecedor | null>(null);
   const {
     status,
     organizacaoAtiva,
@@ -32,6 +41,9 @@ export function FornecedoresContent() {
     setCategoria,
     limparFiltros,
     temFiltroAtivo,
+    criar,
+    atualizar,
+    excluir,
   } = useFornecedores();
 
   if (status === "loading") {
@@ -59,10 +71,43 @@ export function FornecedoresContent() {
 
   const podeGerenciar = canManageSuppliers(organizacaoAtiva.papel);
 
-  // Substituídos pelos modais de cadastro, edição e exclusão.
-  const abrirCadastro = () => {};
-  const abrirEdicao = (fornecedor: Fornecedor) => void fornecedor;
-  const abrirExclusao = (fornecedor: Fornecedor) => void fornecedor;
+  const abrirCadastro = () => {
+    setEditando(null);
+    setFormAberto(true);
+  };
+  const abrirEdicao = (fornecedor: Fornecedor) => {
+    setEditando(fornecedor);
+    setFormAberto(true);
+  };
+  const abrirExclusao = (fornecedor: Fornecedor) => setExcluindo(fornecedor);
+
+  async function salvar(payload: FornecedorPayload): Promise<ResultadoEnvio> {
+    try {
+      if (editando) {
+        await atualizar(editando.id, payload);
+        toast.success("Fornecedor atualizado com sucesso.");
+      } else {
+        await criar(payload);
+        toast.success("Fornecedor cadastrado com sucesso.");
+      }
+      setFormAberto(false);
+      return "ok";
+    } catch (error) {
+      if (error instanceof FornecedorDuplicadoError) return "duplicado";
+      toast.error("Não foi possível concluir a ação. Tente novamente.");
+      return "erro";
+    }
+  }
+
+  async function confirmarExclusao(fornecedor: Fornecedor) {
+    try {
+      await excluir(fornecedor.id);
+      setExcluindo(null);
+      toast.success("Fornecedor excluído com sucesso.");
+    } catch {
+      toast.error("Não foi possível concluir a ação. Tente novamente.");
+    }
+  }
 
   const acoes = { podeGerenciar, onEditar: abrirEdicao, onExcluir: abrirExclusao };
 
@@ -138,6 +183,23 @@ export function FornecedoresContent() {
             Mostrando {filtrados.length} de {todos.length} {todos.length === 1 ? "fornecedor" : "fornecedores"}
           </p>
         </div>
+      )}
+
+      {podeGerenciar && (
+        <>
+          <FornecedorFormModal
+            open={formAberto}
+            onOpenChange={setFormAberto}
+            fornecedor={editando}
+            categorias={categorias}
+            onSubmit={salvar}
+          />
+          <ExcluirFornecedorModal
+            fornecedor={excluindo}
+            onClose={() => setExcluindo(null)}
+            onConfirm={confirmarExclusao}
+          />
+        </>
       )}
     </div>
   );
