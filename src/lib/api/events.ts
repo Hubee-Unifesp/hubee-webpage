@@ -302,9 +302,9 @@ export async function getHomeEvents(now = new Date()): Promise<HomeEvents> {
 
 /**
  * Busca os detalhes completos de um evento publicado via `GET /events/:id`.
- * Consulta em paralelo `GET /events/summary` (de forma resiliente) para inferir lotes esgotados
- * a partir de `capacity`, `ticketsSold` e `minPrice`, já que `ticket_types.quantity` na API
- * representa a capacidade total do lote (default 0) e não o saldo restante.
+ * Cada lote traz `available` (saldo real calculado pela API), que define se está esgotado.
+ * `GET /events/summary` é consultado em paralelo (de forma resiliente) só como fallback para
+ * inferir lotes esgotados caso a API não envie `available`.
  * No SSR o `apiClient` não enxerga o token (fica no localStorage), então a página repassa o JWT
  * lido do cookie em `options.token`. Assim organizadores conseguem ver eventos não publicados (GOL-186).
  * Se a API rejeitar o token (401, ex.: expirado), refaz a chamada como anônima.
@@ -360,8 +360,12 @@ export async function getEventById(
 
 /**
  * Determina se um lote está esgotado.
- * Em `ticket_types`, `quantity` representa a capacidade total do lote (default 0),
- * e não o saldo restante:
+ * Quando a API envia `available` (saldo real do lote, já descontando vendas e reservas
+ * válidas — GOL-212), ele é a fonte da verdade: esgotado quando `available <= 0`, o mesmo
+ * critério que o `POST /orders` usa para recusar a compra.
+ *
+ * Sem `available` (API antiga), cai na heurística abaixo. Em `ticket_types`, `quantity`
+ * representa a capacidade total do lote (default 0), e não o saldo restante:
  * - Um lote com `quantity === 0` (criado sem `quantity`) NÃO é marcado como esgotado.
  * - Se a API informar `soldOut` ou `ticketsSold` no próprio lote, usamos esse valor.
  * - Caso contrário, usamos o resumo do evento (`GET /events/summary`): se o evento atingiu
@@ -372,6 +376,10 @@ export function isTicketTypeSoldOut(
   ticket: ApiTicketType,
   eventSummary?: Pick<ApiEventSummary, "capacity" | "ticketsSold" | "minPrice">,
 ): boolean {
+  if (typeof ticket.available === "number") {
+    return ticket.available <= 0;
+  }
+
   if (typeof ticket.soldOut === "boolean") {
     return ticket.soldOut;
   }
@@ -446,6 +454,10 @@ export function toEventDetails(
       batch: ticket.batch,
       price: Number(ticket.price),
       soldOut: isTicketTypeSoldOut(ticket, eventSummary),
+      available:
+        typeof ticket.available === "number"
+          ? Math.max(0, ticket.available)
+          : null,
     })),
   };
 }

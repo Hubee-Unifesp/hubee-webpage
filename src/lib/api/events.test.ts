@@ -169,12 +169,14 @@ describe("getEventById", () => {
           batch: "1º Lote",
           price: 60,
           soldOut: true,
+          available: null,
         },
         {
           id: "a1b2c3d4-0002-4a5b-8c6d-7e8f9a0b1c2d",
           batch: "2º Lote",
           price: 80,
           soldOut: false,
+          available: null,
         },
       ],
     });
@@ -220,6 +222,52 @@ describe("getEventById", () => {
         { capacity: 200, ticketsSold: 100, minPrice: 80 },
       ),
     ).toBe(true);
+  });
+
+  it("usa o saldo real (available) da API como fonte da verdade para esgotado (GOL-212)", () => {
+    // Saldo zerado por reservas pendentes válidas: esgotado, mesmo com o resumo dizendo o contrário.
+    expect(
+      isTicketTypeSoldOut(
+        { id: "1", batch: "Lote reservado", price: 50, quantity: 100, available: 0 },
+        { capacity: 100, ticketsSold: 0, minPrice: 50 },
+      ),
+    ).toBe(true);
+    // Reservas vencidas devolveram vagas: disponível, mesmo com a heurística apontando esgotado.
+    expect(
+      isTicketTypeSoldOut(
+        { id: "2", batch: "Lote liberado", price: 50, quantity: 100, available: 3 },
+        { capacity: 100, ticketsSold: 100, minPrice: 80 },
+      ),
+    ).toBe(false);
+    expect(
+      isTicketTypeSoldOut({
+        id: "3",
+        batch: "Lote com saldo negativo",
+        price: 50,
+        quantity: 10,
+        available: -2,
+      }),
+    ).toBe(true);
+  });
+
+  it("repassa o saldo real de cada lote para a página de detalhes", async () => {
+    authGet.mockResolvedValueOnce({
+      data: {
+        ...apiEventDetailFixture,
+        ticketTypes: [
+          { id: "lote-1", batch: "1º Lote", price: 60, quantity: 100, available: 0 },
+          { id: "lote-2", batch: "2º Lote", price: 80, quantity: 50, available: 7 },
+        ],
+      },
+    });
+    publicGet.mockResolvedValueOnce({ data: [] });
+
+    const result = await getEventById(EVENT_ID);
+
+    expect(result?.ticketTypes).toEqual([
+      { id: "lote-1", batch: "1º Lote", price: 60, soldOut: true, available: 0 },
+      { id: "lote-2", batch: "2º Lote", price: 80, soldOut: false, available: 7 },
+    ]);
   });
 
   it("retorna null quando a API responde 404 (evento inexistente ou nao publicado)", async () => {
