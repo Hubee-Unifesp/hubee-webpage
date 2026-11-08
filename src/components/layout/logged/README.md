@@ -63,3 +63,11 @@ O pedido da API tem só valor, status e data. O evento e os itens vêm dos ingre
 ### Permissões na interface
 
 `useAuth()` expõe `isOrganizer` (pertence a alguma organização) e `canCreateEvents` (`ADMIN` ou nível `write`/`manage`), calculados por `lib/permissions.ts` a partir de `user.role` e `user.organizations` (`GET /auth/me`). Marcar "organizar" no cadastro (`signupIntent`) não libera nada: só o vínculo com a organização. A resposta de login/cadastro não traz `organizations`, então o `loginState` busca o usuário completo em segundo plano. O card "Permissões e perfil" de `/conta/perfil` mostra esses dados.
+
+### Organização: cadastro e edição (GOL-200)
+
+- `OrganizacaoForm` (`components/conta/organizacao/`) é o único formulário. Cria com `POST /organizations` (o criador vira `admin`/`full` na própria API) e edita com `PATCH /organizations/:id` (nível `manage`). Ele aparece em `/organizacoes/nova` (rota logada) e no card de `/conta/perfil`.
+- Depois de salvar, o formulário chama `syncUser()` do `AuthContext`: relê `GET /auth/me` sem `isLoading`, então o vínculo vale na hora, sem relogar. Ao criar, a organização nova vira a ativa e a pessoa vai para `/meus-eventos` (destino de `/conta/eventos`).
+- A descrição não vem em `/auth/me`; na edição o formulário a busca em `GET /organizations/:id`.
+- Erros `400`, `401`, `403` e `404` viram texto em português via `getOrganizationErrorMessage` (`lib/api/organizations.ts`), mostrado no `FormAlert` e em toast. O `401` também derruba a sessão pelo interceptor do `apiClient`.
+- Quem se cadastra marcando "organizar" é levado a `/organizacoes/nova`. Não há como entrar numa organização existente sozinho: o vínculo vem por convite de um administrador dela.

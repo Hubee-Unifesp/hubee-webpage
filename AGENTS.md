@@ -75,6 +75,7 @@ hubee-webpage/
 │   │   │   ├── auth.ts          # Chamadas de /auth/login e /auth/register
 │   │   │   ├── events.ts        # Chamadas de /events
 │   │   │   ├── orders.ts        # Chamadas de /orders
+│   │   │   ├── organizations.ts # Chamadas de /organizations (criar, editar, buscar) e mensagens de erro
 │   │   │   └── users.ts         # Chamadas de /users/me
 │   │   ├── validations/         # Schemas Zod de validação de formulários
 │   │   └── utils.ts             # Funções auxiliares (cn, formatações de data/moeda)
