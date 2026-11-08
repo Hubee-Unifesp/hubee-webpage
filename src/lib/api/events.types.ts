@@ -109,7 +109,13 @@ export interface ApiTicketType {
   id: string;
   batch: string;
   price: number | string;
+  /** Capacidade total do lote (não é o saldo restante). */
   quantity?: number;
+  /**
+   * Saldo real do lote calculado pela API: capacidade menos vendidos e reservas de
+   * pedidos pendentes ainda no prazo (GOL-212).
+   */
+  available?: number;
   ticketsSold?: number;
   soldOut?: boolean;
 }
@@ -194,6 +200,8 @@ export interface EventTicketType {
   batch: string;
   price: number;
   soldOut: boolean;
+  /** Saldo real informado pela API; `null` quando a API não o envia. */
+  available: number | null;
 }
 
 /** Modelo da página de detalhes: `GET /events/:id` com local, organização e lotes resolvidos. */
