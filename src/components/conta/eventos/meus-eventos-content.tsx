@@ -71,9 +71,12 @@ export function MeusEventosContent() {
         <ContaPageTitle>Meus Eventos</ContaPageTitle>
         <EmptyState
           icon={Building2}
-          title="Acesso restrito a membros de organizações"
-          description="Você ainda não faz parte de nenhuma organização com convite aceito. Solicite um convite ao administrador da sua organização para acessar o painel de eventos."
-          action={{ label: "Ver eventos públicos", onClick: () => router.push("/#eventos") }}
+          title="Você ainda não faz parte de nenhuma organização"
+          description="Crie uma nova organização ou vincule-se a uma organização existente no seu perfil para publicar e gerenciar eventos na Hubee."
+          action={{
+            label: "Criar organização",
+            onClick: () => router.push("/conta/perfil?criarOrganizacao=1"),
+          }}
         />
       </div>
     );

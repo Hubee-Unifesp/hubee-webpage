@@ -18,6 +18,7 @@ export const signupIntents = ["BUY", "ORGANIZE"] as const;
 export const registerSchema = z
   .object({
     signupIntent: z.enum(signupIntents),
+    organizationId: z.string().optional(),
     fullName: z.string().trim().min(1, { message: "Informe seu nome." }),
     email: emailField,
     password: z
