@@ -1,0 +1,61 @@
+import type { AgeRating, EventCategory } from "@/lib/api/events.types";
+import type { StatusEvento } from "@/types/organizacao";
+
+export interface LocalEvento {
+  id: string;
+  nome: string;
+  capacidade: number;
+}
+
+export interface LocalPayload {
+  name: string;
+  maxCapacity: number;
+  address: {
+    zipCode: string;
+    street: string;
+    number: string;
+    complement?: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+  };
+}
+
+export interface LoteEvento {
+  id: string;
+  batch: string;
+  price: number;
+  quantity: number;
+}
+
+export interface EventoEditavel {
+  id: string;
+  organizerId: string;
+  status: StatusEvento;
+  name: string;
+  description: string | null;
+  category: EventCategory | null;
+  edition: string | null;
+  ageRating: AgeRating | null;
+  photoUrl: string | null;
+  startDate: string;
+  endDate: string;
+  salesStartDate: string | null;
+  venueId: string;
+  lotes: LoteEvento[];
+}
+
+export interface EventoPayload {
+  name: string;
+  organizerId: string;
+  venueId: string;
+  startDate: string;
+  endDate: string;
+  salesStartDate?: string;
+  description?: string;
+  category?: EventCategory;
+  edition?: string;
+  ageRating?: AgeRating;
+}
+
+export type AtualizacaoEventoPayload = Partial<Omit<EventoPayload, "organizerId">> & { status?: StatusEvento };

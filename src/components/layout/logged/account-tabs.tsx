@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isActiveRoute } from "@/components/layout/header";
 import { useAuth } from "@/contexts/AuthContext";
-import { getAccountNavItems } from "./account-nav.config";
+import { getAccountNavGroups } from "./account-nav.config";
 
 /** Abas da conta (mobile, abaixo de 768px). Rolam na horizontal se não couberem. */
 export function AccountTabs() {
@@ -17,7 +17,7 @@ export function AccountTabs() {
       className="-mx-4 mb-6 border-b border-hubee-800/20 sm:-mx-8 md:hidden dark:border-hubee-400/30"
     >
       <ul className="flex overflow-x-auto">
-        {getAccountNavItems(isOrganizer).map(({ href, label, icon: Icon }) => (
+        {getAccountNavGroups(isOrganizer).flatMap((group) => group.items).map(({ href, label, icon: Icon }) => (
           <li key={href} className="min-w-max flex-1">
             <Link
               href={href}

@@ -46,6 +46,20 @@ export function getAccountNavItems(isOrganizer = false): readonly AccountNavItem
   return accountNavItems.filter((item) => isOrganizer || !item.organizerOnly);
 }
 
+export interface AccountNavGroup {
+  label: string;
+  items: readonly AccountNavItem[];
+}
+
+export const organizationNavItems: readonly AccountNavItem[] = [organizerEventsNavItem, suppliersNavItem];
+
+/** Grupos da sidebar e das abas da conta: "Minha Conta" para todos e "Organização" só para organizadores. */
+export function getAccountNavGroups(isOrganizer = false): readonly AccountNavGroup[] {
+  const groups: AccountNavGroup[] = [{ label: "Minha Conta", items: buyerAccountNavItems }];
+  if (isOrganizer) groups.push({ label: "Organização", items: organizationNavItems });
+  return groups;
+}
+
 export const cartHref = "/carrinho";
 export const notificationsHref = "/notificacoes";
 

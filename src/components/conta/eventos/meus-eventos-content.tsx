@@ -6,7 +6,6 @@ import { Building2, CalendarDays, Info, ListFilter, Lock, Plus, Search } from "l
 import { ContaPageTitle } from "@/components/conta/conta-card";
 import { EmptyState } from "@/components/empty-state";
 import { ListMessage } from "@/components/home/events/list-states";
-import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,7 +38,6 @@ const papelBadgeStyle: Record<PapelOrganizador, string> = {
 /** Painel "Meus Eventos" para membros de organizações com convite aceito. */
 export function MeusEventosContent() {
   const router = useRouter();
-  const toast = useToast();
   const searchInputId = useId();
   const {
     status,
@@ -87,7 +85,7 @@ export function MeusEventosContent() {
   const temFiltroAtivo = filtroStatus !== "all" || busca.trim() !== "";
 
   const handleCriarEvento = () => {
-    toast.success("O fluxo de criação de eventos será disponibilizado em breve.");
+    router.push("/meus-eventos/novo");
   };
 
   return (

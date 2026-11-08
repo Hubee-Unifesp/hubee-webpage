@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { formatCpfCnpj, formatPhone, onlyDigits } from "./masks";
+import { formatCep, formatCpfCnpj, formatPhone, onlyDigits } from "./masks";
+
+describe("formatCep", () => {
+  it("aplica a máscara progressivamente e corta em 8 dígitos", () => {
+    expect(formatCep("0131")).toBe("0131");
+    expect(formatCep("013100")).toBe("01310-0");
+    expect(formatCep("01310100")).toBe("01310-100");
+    expect(formatCep("01310-1009")).toBe("01310-100");
+  });
+});
 
 describe("onlyDigits", () => {
   it("remove tudo que não é número", () => {

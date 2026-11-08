@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buyerAccountNavItems,
   formatCartLabel,
+  getAccountNavGroups,
   getAccountNavItems,
   organizerEventsNavItem,
   organizerManageEventsNavItem,
@@ -28,11 +29,20 @@ describe("account-nav.config", () => {
     expect(suppliersNavItem.organizerOnly).toBe(true);
   });
 
-  it("mantém Meus Eventos fora da navegação da conta, inclusive para organizadores", () => {
+  it("mantém Meus Eventos fora da lista plana usada no menu mobile, que já o mostra na navegação principal", () => {
     const hrefs = getAccountNavItems(true).map((i) => i.href);
 
     expect(hrefs).not.toContain("/conta/eventos");
     expect(hrefs).not.toContain("/meus-eventos");
+  });
+
+  it("agrupa a sidebar em Minha Conta e, para organizadores, Organização com Meus eventos", () => {
+    expect(getAccountNavGroups(false).map((group) => group.label)).toEqual(["Minha Conta"]);
+
+    const grupos = getAccountNavGroups(true);
+    expect(grupos.map((group) => group.label)).toEqual(["Minha Conta", "Organização"]);
+    expect(grupos[0].items).toEqual(buyerAccountNavItems);
+    expect(grupos[1].items.map((item) => item.href)).toEqual(["/meus-eventos", "/conta/fornecedores"]);
   });
 
   it("formata o label do carrinho de acordo com a quantidade", () => {
