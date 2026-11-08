@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Building2, Info, Plus, SearchX, Truck } from "lucide-react";
 import { ContaPageTitle } from "@/components/conta/conta-card";
 import { EmptyState } from "@/components/empty-state";
+import { ListMessage } from "@/components/home/events/list-states";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { FornecedorDuplicadoError, useFornecedores } from "@/hooks/useFornecedores";
@@ -41,6 +42,7 @@ export function FornecedoresContent() {
     setCategoria,
     limparFiltros,
     temFiltroAtivo,
+    retry,
     criar,
     atualizar,
     excluir,
@@ -64,6 +66,22 @@ export function FornecedoresContent() {
           title="Acesso restrito a membros de organizações"
           description="Você ainda não faz parte de nenhuma organização com convite aceito. Solicite um convite ao administrador da sua organização para gerenciar fornecedores."
           action={{ label: "Ver eventos públicos", onClick: () => router.push("/#eventos") }}
+        />
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="flex flex-col gap-5">
+        <Titulo />
+        <ListMessage
+          role="alert"
+          variant="primary"
+          title="Não foi possível carregar os fornecedores"
+          description="Verifique sua conexão e tente novamente."
+          actionLabel="Tentar novamente"
+          onAction={retry}
         />
       </div>
     );
