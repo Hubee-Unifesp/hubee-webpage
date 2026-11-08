@@ -169,7 +169,7 @@ export function FornecedoresContent() {
           ) : (
             <>
               <FornecedoresTabela fornecedores={filtrados} {...acoes} />
-              <ul className="grid gap-3 sm:grid-cols-2 lg:hidden">
+              <ul className="grid gap-3 sm:grid-cols-2 xl:hidden">
                 {filtrados.map((fornecedor) => (
                   <li key={fornecedor.id}>
                     <FornecedorCard fornecedor={fornecedor} {...acoes} />

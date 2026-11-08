@@ -19,24 +19,19 @@ export function Vazio({ label }: { label: string }) {
   );
 }
 
-const thClassName = "px-4 py-3 text-left text-xs font-semibold whitespace-nowrap";
-const tdClassName = "px-4 py-4 align-middle";
+const thClassName = "px-3 py-3 text-left font-semibold whitespace-nowrap";
+const tdClassName = "px-3 py-4 align-middle";
 
-/** Tabela de fornecedores (a partir de 1024px). Abaixo disso a página usa os cards. */
+/**
+ * Tabela de fornecedores (a partir de 1280px). Abaixo disso a página usa os cards.
+ * Layout automático: documento, telefone e categoria nunca quebram; nome e e-mail longos são truncados.
+ */
 export function FornecedoresTabela({ fornecedores, ...acoes }: FornecedoresTabelaProps) {
   return (
-    <div className="hidden overflow-x-auto rounded-xl border border-hubee-200 bg-hubee-neutral-25 lg:block dark:border-hubee-50/10 dark:bg-hubee-50/7">
-      <table className="w-full table-fixed text-sm">
+    <div className="hidden overflow-hidden rounded-xl border border-hubee-200 bg-hubee-neutral-25 xl:block dark:border-hubee-750 dark:bg-hubee-neutral-500">
+      <table className="w-full text-xs">
         <caption className="sr-only">Fornecedores cadastrados</caption>
-        <colgroup>
-          <col className="w-[26%]" />
-          <col className="w-[17%]" />
-          <col className="w-[14%]" />
-          <col className="w-[14%]" />
-          <col className="w-[19%]" />
-          <col className="w-[10%]" />
-        </colgroup>
-        <thead className="border-b border-hubee-200 dark:border-hubee-50/10">
+        <thead className="border-b border-hubee-200 dark:border-hubee-750">
           <tr>
             <th scope="col" className={thClassName}>
               Razão Social / Nome
@@ -53,27 +48,28 @@ export function FornecedoresTabela({ fornecedores, ...acoes }: FornecedoresTabel
             <th scope="col" className={thClassName}>
               E-mail
             </th>
-            <th scope="col" className={thClassName}>
+            <th scope="col" className={`${thClassName} w-0`}>
               Ações
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-hubee-200 dark:divide-hubee-50/10">
+        <tbody className="divide-y divide-hubee-200 dark:divide-hubee-750">
           {fornecedores.map((fornecedor) => (
-            <tr key={fornecedor.id} className="hover:bg-hubee-100 dark:hover:bg-hubee-750/60">
-              <th scope="row" className={`${tdClassName} text-left font-semibold`}>
+            <tr key={fornecedor.id} className="hover:bg-hubee-100 dark:hover:bg-hubee-750">
+              {/* `max-w-0` + largura em %: a célula encolhe para caber e o texto é truncado, sem rolagem lateral. */}
+              <th scope="row" className={`${tdClassName} w-[30%] max-w-0 text-left font-semibold`}>
                 <span className="block truncate" title={fornecedor.companyName}>
                   {fornecedor.companyName}
                 </span>
               </th>
               <td className={`${tdClassName} whitespace-nowrap tabular-nums`}>{formatCpfCnpj(fornecedor.cnpjCpf)}</td>
-              <td className={tdClassName}>
+              <td className={`${tdClassName} whitespace-nowrap`}>
                 <CategoriaBadge category={fornecedor.category} />
               </td>
               <td className={`${tdClassName} whitespace-nowrap tabular-nums`}>
                 {fornecedor.phone ? formatPhone(fornecedor.phone) : <Vazio label="Sem telefone" />}
               </td>
-              <td className={tdClassName}>
+              <td className={`${tdClassName} w-[25%] max-w-0`}>
                 {fornecedor.email ? (
                   <span className="block truncate" title={fornecedor.email}>
                     {fornecedor.email}

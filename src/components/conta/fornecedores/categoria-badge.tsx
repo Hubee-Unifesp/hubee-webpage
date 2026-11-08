@@ -14,7 +14,7 @@ export function CategoriaBadge({ category, className }: { category: string | nul
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center truncate rounded-full bg-hubee-200 px-2.5 py-0.5 text-xs font-semibold text-hubee-800 dark:bg-hubee-400/20 dark:text-hubee-100",
+        "inline-flex max-w-full items-center truncate rounded-full bg-hubee-200 px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-hubee-800 dark:bg-hubee-750 dark:text-hubee-50",
         className,
       )}
     >

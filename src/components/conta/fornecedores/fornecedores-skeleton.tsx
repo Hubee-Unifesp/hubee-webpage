@@ -17,12 +17,12 @@ export function FornecedoresSkeleton() {
         </div>
       </div>
 
-      <div className="hidden flex-col overflow-hidden rounded-xl border border-hubee-200 lg:flex dark:border-hubee-50/10">
+      <div className="hidden flex-col overflow-hidden rounded-xl border border-hubee-200 xl:flex dark:border-hubee-750">
         <Skeleton className="h-11 w-full rounded-none" />
         {Array.from({ length: 5 }, (_, index) => (
           <div
             key={index}
-            className="flex items-center gap-6 border-t border-hubee-200 px-4 py-5 dark:border-hubee-50/10"
+            className="flex items-center gap-6 border-t border-hubee-200 px-4 py-5 dark:border-hubee-750"
           >
             <Skeleton className="h-4 w-1/4 rounded-full" />
             <Skeleton className="h-4 w-1/6 rounded-full" />
@@ -34,7 +34,7 @@ export function FornecedoresSkeleton() {
         ))}
       </div>
 
-      <div className="flex flex-col gap-3 lg:hidden">
+      <div className="flex flex-col gap-3 xl:hidden">
         {Array.from({ length: 3 }, (_, index) => (
           <Skeleton key={index} className="h-44 w-full rounded-xl" />
         ))}
