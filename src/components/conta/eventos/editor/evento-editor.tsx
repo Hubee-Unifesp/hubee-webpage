@@ -247,7 +247,12 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
       )}
 
       {etapa === "lotes" && evento && (
-        <IngressosEvento evento={evento} onVoltar={() => setEtapa("dados")} onContinuar={() => setEtapa("revisao")} />
+        <IngressosEvento
+          evento={evento}
+          somenteLeitura={somenteLeitura}
+          onVoltar={() => setEtapa("dados")}
+          onContinuar={() => setEtapa("revisao")}
+        />
       )}
 
       {etapa === "revisao" && evento && (
