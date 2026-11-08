@@ -1,23 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import { Building2, Calendar, Plus, Ticket, type LucideIcon } from "lucide-react";
+import { Building2, Calendar, Ticket, type LucideIcon } from "lucide-react";
 import {
   PASSWORD_MIN_LENGTH,
   registerSchema,
   type RegisterFormInputs,
   type SignupIntent,
 } from "@/lib/validations/auth.schema";
-import { AuthField, AuthInput, authInputClassName, fieldA11y } from "./auth-field";
+import { AuthField, AuthInput, fieldA11y } from "./auth-field";
 import { AuthHeading, authLinkClassName } from "./auth-heading";
 import { AuthSubmitButton } from "./auth-submit-button";
-import {
-  CUSTOM_ORGANIZATIONS_STORAGE_KEY,
-  type StoredOrganization,
-} from "./create-organization-screen";
 import { FormAlert } from "./form-alert";
 import { PasswordInput } from "./password-input";
 
@@ -26,55 +22,14 @@ const intentOptions: readonly { value: SignupIntent; label: string; icon: Lucide
   { value: "ORGANIZE", label: "Quero organizar eventos", icon: Calendar },
 ];
 
-interface PublicOrganization {
-  id: string;
-  name: string;
-}
-
-const DEFAULT_ORGANIZATIONS: readonly PublicOrganization[] = [
-  { id: "org-atletica-unifesp", name: "Atlética Unifesp" },
-  { id: "org-coletivo-cultural", name: "Coletivo Cultural" },
-  { id: "org-hubee-producoes", name: "Hubee Produções" },
-  { id: "org-diretorio-academico", name: "Diretório Acadêmico" },
-];
-
 interface RegisterFormProps {
   onSubmit: (data: RegisterFormInputs) => void | Promise<void>;
   onEdit?: () => void;
   isLoading: boolean;
   defaultIntent?: SignupIntent;
-  defaultOrganizationId?: string;
   error?: string | null;
   emailError?: string | null;
   successMessage?: string | null;
-}
-
-function loadCustomOrganizations(): PublicOrganization[] {
-  try {
-    const raw = window.localStorage.getItem(CUSTOM_ORGANIZATIONS_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as StoredOrganization[];
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((org) => org && typeof org.id === "string" && typeof org.name === "string");
-  } catch {
-    return [];
-  }
-}
-
-function mergeOrganizations(...lists: (readonly PublicOrganization[])[]): PublicOrganization[] {
-  const seenNames = new Set<string>();
-  const seenIds = new Set<string>();
-  const result: PublicOrganization[] = [];
-  for (const list of lists) {
-    for (const org of list) {
-      const lowerName = org.name.toLowerCase();
-      if (seenIds.has(org.id) || seenNames.has(lowerName)) continue;
-      seenIds.add(org.id);
-      seenNames.add(lowerName);
-      result.push(org);
-    }
-  }
-  return result;
 }
 
 export function RegisterForm({
@@ -82,15 +37,10 @@ export function RegisterForm({
   onEdit,
   isLoading,
   defaultIntent = "BUY",
-  defaultOrganizationId = "",
   error,
   emailError,
   successMessage,
 }: RegisterFormProps) {
-  const [organizations] = useState<readonly PublicOrganization[]>(() =>
-    mergeOrganizations(loadCustomOrganizations(), DEFAULT_ORGANIZATIONS),
-  );
-
   const {
     control,
     register,
@@ -106,7 +56,6 @@ export function RegisterForm({
     shouldFocusError: true,
     defaultValues: {
       signupIntent: defaultIntent,
-      organizationId: defaultOrganizationId,
       fullName: "",
       email: "",
       password: "",
@@ -117,12 +66,6 @@ export function RegisterForm({
   useEffect(() => {
     setValue("signupIntent", defaultIntent);
   }, [defaultIntent, setValue]);
-
-  useEffect(() => {
-    if (defaultOrganizationId) {
-      setValue("organizationId", defaultOrganizationId);
-    }
-  }, [defaultOrganizationId, setValue]);
 
   const signupIntent = useWatch({ control, name: "signupIntent" });
   const isOrganizer = signupIntent === "ORGANIZE";
@@ -158,41 +101,10 @@ export function RegisterForm({
         </fieldset>
 
         {isOrganizer && (
-          <div className="space-y-3 rounded-xl border border-hubee-500/40 bg-hubee-100/60 p-4 dark:border-hubee-700 dark:bg-hubee-800/60">
-            <AuthField
-              id="register-organization"
-              label="Organização existente"
-              description="Selecione sua agremiação ou organização caso ela já esteja cadastrada."
-              error={errors.organizationId?.message}
-            >
-              <select
-                {...fieldA11y("register-organization", errors.organizationId?.message)}
-                className={`w-full rounded-md border px-3 py-1 text-sm outline-none focus-visible:ring-3 ${authInputClassName}`}
-                {...register("organizationId")}
-              >
-                <option value="">Selecione uma organização da lista...</option>
-                {organizations.map((org) => (
-                  <option key={org.id} value={org.id}>
-                    {org.name}
-                  </option>
-                ))}
-              </select>
-            </AuthField>
-
-            <div className="flex flex-col justify-between gap-3 border-t border-hubee-500/20 pt-3 sm:flex-row sm:items-center dark:border-hubee-700">
-              <p className="flex items-center gap-2 text-xs text-hubee-750 dark:text-hubee-100">
-                <Building2 aria-hidden="true" className="size-4 shrink-0 text-hubee-600 dark:text-hubee-400" />
-                Não encontrou sua organização na lista?
-              </p>
-              <Link
-                href="/organizacoes/nova"
-                className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-md bg-hubee-750 px-4 text-xs font-semibold text-hubee-50 transition-colors hover:bg-hubee-800 focus-visible:ring-3 focus-visible:ring-hubee-500/50 dark:bg-hubee-500 dark:text-hubee-900 dark:hover:bg-hubee-400"
-              >
-                <Plus aria-hidden="true" className="size-4" />
-                Criar organização
-              </Link>
-            </div>
-          </div>
+          <p className="flex items-start gap-2 rounded-xl border border-hubee-500/40 bg-hubee-100/60 p-4 text-xs text-hubee-750 dark:border-hubee-700 dark:bg-hubee-800/60 dark:text-hubee-100">
+            <Building2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-hubee-600 dark:text-hubee-400" />
+            Depois de criar a conta, você cadastra a sua organização e já passa a gerenciar os eventos dela.
+          </p>
         )}
 
         <div className="space-y-4">

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { CreateOrganizationScreen } from "@/components/auth/create-organization-screen";
+import { CriarOrganizacaoContent } from "@/components/conta/organizacao/criar-organizacao-content";
 
 export const metadata: Metadata = {
   title: "Criar organização | Hubee",
@@ -8,10 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function NovaOrganizacaoPage() {
-  return (
-    <Suspense fallback={<div>Carregando...</div>}>
-      <CreateOrganizationScreen />
-    </Suspense>
-  );
+  return <CriarOrganizacaoContent />;
 }
-
