@@ -1,4 +1,5 @@
 import type { AgeRating, EventCategory } from "@/lib/api/events.types";
+import type { LoteIngresso } from "@/types/lote-ingresso";
 import type { StatusEvento } from "@/types/organizacao";
 
 export interface LocalEvento {
@@ -21,12 +22,8 @@ export interface LocalPayload {
   };
 }
 
-export interface LoteEvento {
-  id: string;
-  batch: string;
-  price: number;
-  quantity: number;
-}
+/** Lote do evento: fonte única para o painel de ingressos, a Revisão e a checagem de capacidade. */
+export type LoteEvento = LoteIngresso;
 
 export interface EventoEditavel {
   id: string;

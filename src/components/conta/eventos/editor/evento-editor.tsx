@@ -77,6 +77,9 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
     salvarDados,
     publicar,
     cancelar,
+    criarLote,
+    editarLote,
+    excluirLote,
   } = useEventoEditor(eventoId);
 
   if (status === "loading") {
@@ -110,7 +113,7 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
           icon={Building2}
           title="Você ainda não faz parte de nenhuma organização"
           description="Crie uma organização ou vincule-se a uma existente no seu perfil para criar e gerenciar eventos."
-          action={{ label: "Criar organização", onClick: () => router.push("/conta/perfil?criarOrganizacao=1") }}
+          action={{ label: "Criar organização", onClick: () => router.push("/organizacoes/nova") }}
         />
       </div>
     );
@@ -247,7 +250,15 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
       )}
 
       {etapa === "lotes" && evento && (
-        <IngressosEvento evento={evento} onVoltar={() => setEtapa("dados")} onContinuar={() => setEtapa("revisao")} />
+        <IngressosEvento
+          evento={evento}
+          somenteLeitura={somenteLeitura}
+          onCriarLote={criarLote}
+          onEditarLote={editarLote}
+          onExcluirLote={excluirLote}
+          onVoltar={() => setEtapa("dados")}
+          onContinuar={() => setEtapa("revisao")}
+        />
       )}
 
       {etapa === "revisao" && evento && (

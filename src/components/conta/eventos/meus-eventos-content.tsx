@@ -73,7 +73,7 @@ export function MeusEventosContent() {
           description="Crie uma nova organização ou vincule-se a uma organização existente no seu perfil para publicar e gerenciar eventos na Hubee."
           action={{
             label: "Criar organização",
-            onClick: () => router.push("/conta/perfil?criarOrganizacao=1"),
+            onClick: () => router.push("/organizacoes/nova"),
           }}
         />
       </div>

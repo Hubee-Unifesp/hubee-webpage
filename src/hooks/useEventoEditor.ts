@@ -3,15 +3,19 @@ import {
   cancelarEvento,
   createEvento,
   createLocal,
+  createLote,
+  deleteLote,
   getEventoEditavel,
   getLocais,
   publicarEvento,
   updateEvento,
+  updateLote,
   uploadCapaEvento,
 } from "@/lib/api/event-editor";
 import { parseApiError } from "@/lib/api/errors";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
 import type { EventoEditavel, EventoPayload, LocalEvento, LocalPayload } from "@/types/evento-editor";
+import type { LotePayload } from "@/types/lote-ingresso";
 
 type EditorState =
   | { status: "loading" }
@@ -86,6 +90,34 @@ export function useEventoEditor(eventoId?: string) {
     atualizarEvento({ ...evento, status: "cancelled" });
   }, [evento, atualizarEvento]);
 
+  // Os lotes vivem em `evento.lotes`: é de lá que o painel, a Revisão e a checagem de capacidade leem.
+  const criarLote = useCallback(
+    async (payload: LotePayload) => {
+      if (!evento) throw new Error("Evento não carregado.");
+      const lote = await createLote(evento.id, payload);
+      atualizarEvento({ ...evento, lotes: [...evento.lotes, lote] });
+    },
+    [evento, atualizarEvento],
+  );
+
+  const editarLote = useCallback(
+    async (loteId: string, payload: LotePayload) => {
+      if (!evento) throw new Error("Evento não carregado.");
+      const lote = await updateLote(evento.id, loteId, payload);
+      atualizarEvento({ ...evento, lotes: evento.lotes.map((item) => (item.id === loteId ? lote : item)) });
+    },
+    [evento, atualizarEvento],
+  );
+
+  const excluirLote = useCallback(
+    async (loteId: string) => {
+      if (!evento) throw new Error("Evento não carregado.");
+      await deleteLote(evento.id, loteId);
+      atualizarEvento({ ...evento, lotes: evento.lotes.filter((item) => item.id !== loteId) });
+    },
+    [evento, atualizarEvento],
+  );
+
   const deOutraOrganizacao =
     evento !== null && organizacaoAtiva !== null && evento.organizerId !== organizacaoAtiva.orgId;
 
@@ -103,5 +135,8 @@ export function useEventoEditor(eventoId?: string) {
     salvarDados,
     publicar,
     cancelar,
+    criarLote,
+    editarLote,
+    excluirLote,
   };
 }

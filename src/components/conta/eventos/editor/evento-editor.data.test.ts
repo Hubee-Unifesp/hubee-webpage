@@ -11,7 +11,17 @@ import {
 } from "./evento-editor.data";
 
 function lote(overrides: Partial<LoteEvento>): LoteEvento {
-  return { id: "1", batch: "Lote", price: 100, quantity: 100, ...overrides };
+  return {
+    id: "1",
+    batch: "Lote",
+    modality: "inteira",
+    price: 100,
+    quantity: 100,
+    available: 100,
+    salesStartDate: null,
+    salesEndDate: null,
+    ...overrides,
+  };
 }
 
 const rascunho: EventoEditavel = {
