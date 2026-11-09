@@ -77,6 +77,9 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
     salvarDados,
     publicar,
     cancelar,
+    criarLote,
+    editarLote,
+    excluirLote,
   } = useEventoEditor(eventoId);
 
   if (status === "loading") {
@@ -250,6 +253,9 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
         <IngressosEvento
           evento={evento}
           somenteLeitura={somenteLeitura}
+          onCriarLote={criarLote}
+          onEditarLote={editarLote}
+          onExcluirLote={excluirLote}
           onVoltar={() => setEtapa("dados")}
           onContinuar={() => setEtapa("revisao")}
         />

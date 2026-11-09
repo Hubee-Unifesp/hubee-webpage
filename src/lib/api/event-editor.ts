@@ -5,7 +5,9 @@ import type {
   EventoPayload,
   LocalEvento,
   LocalPayload,
+  LoteEvento,
 } from "@/types/evento-editor";
+import type { LotePayload } from "@/types/lote-ingresso";
 
 
 const MOCK_DELAY_MS = 600;
@@ -35,9 +37,36 @@ const eventosMock = new Map<string, EventoEditavel>(
       salesStartDate: "2026-12-01T13:00:00.000Z",
       venueId: "mock-local-centro",
       lotes: [
-        { id: "mock-lote-1", batch: "Early Bird", price: 250, quantity: 300 },
-        { id: "mock-lote-2", batch: "1º Lote", price: 350, quantity: 900 },
-        { id: "mock-lote-3", batch: "Estudante", price: 120, quantity: 400 },
+        {
+          id: "mock-lote-1",
+          batch: "Early Bird",
+          modality: "inteira" as const,
+          price: 250,
+          quantity: 300,
+          available: 120,
+          salesStartDate: "2026-12-01T13:00:00.000Z",
+          salesEndDate: "2027-01-15T02:59:00.000Z",
+        },
+        {
+          id: "mock-lote-2",
+          batch: "1º Lote",
+          modality: "inteira" as const,
+          price: 350,
+          quantity: 900,
+          available: 900,
+          salesStartDate: "2027-01-15T03:00:00.000Z",
+          salesEndDate: null,
+        },
+        {
+          id: "mock-lote-3",
+          batch: "Estudante",
+          modality: "estudante" as const,
+          price: 120,
+          quantity: 400,
+          available: 400,
+          salesStartDate: null,
+          salesEndDate: null,
+        },
       ],
     },
     {
@@ -55,8 +84,26 @@ const eventosMock = new Map<string, EventoEditavel>(
       salesStartDate: "2026-10-15T13:00:00.000Z",
       venueId: "mock-local-teatro",
       lotes: [
-        { id: "mock-lote-4", batch: "Lote Único - Inteira", price: 80, quantity: 600 },
-        { id: "mock-lote-5", batch: "Lote Único - Meia", price: 40, quantity: 200 },
+        {
+          id: "mock-lote-4",
+          batch: "Lote Único - Inteira",
+          modality: "inteira" as const,
+          price: 80,
+          quantity: 600,
+          available: 0,
+          salesStartDate: "2026-10-15T13:00:00.000Z",
+          salesEndDate: null,
+        },
+        {
+          id: "mock-lote-5",
+          batch: "Lote Único - Meia",
+          modality: "meia" as const,
+          price: 40,
+          quantity: 200,
+          available: 75,
+          salesStartDate: "2026-10-15T13:00:00.000Z",
+          salesEndDate: null,
+        },
       ],
     },
   ].map((evento) => [evento.id, evento]),
@@ -66,15 +113,19 @@ function wait(ms = MOCK_DELAY_MS) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-function notFound(message: string): AxiosError {
+function apiError(status: number, statusText: string, message: string): AxiosError {
   const response = {
-    status: 404,
-    statusText: "Not Found",
-    data: { statusCode: 404, message },
+    status,
+    statusText,
+    data: { statusCode: status, message },
     headers: {},
     config: { headers: new AxiosHeaders() },
   } satisfies AxiosResponse;
   return new AxiosError(message, AxiosError.ERR_BAD_REQUEST, response.config, undefined, response);
+}
+
+function notFound(message: string): AxiosError {
+  return apiError(404, "Not Found", message);
 }
 
 function buscarEvento(id: string): EventoEditavel {
@@ -142,4 +193,40 @@ export function publicarEvento(id: string): Promise<EventoEditavel> {
 export async function cancelarEvento(id: string): Promise<void> {
   await wait();
   eventosMock.set(id, { ...buscarEvento(id), status: "cancelled" });
+}
+
+function buscarLote(evento: EventoEditavel, loteId: string): LoteEvento {
+  const lote = evento.lotes.find((item) => item.id === loteId);
+  if (!lote) throw notFound("Lote não encontrado");
+  return lote;
+}
+
+// Lotes: mock de `/events/:eventId/ticket-types`. Na Task 6 estas funções passam a chamar a API.
+export async function createLote(eventoId: string, payload: LotePayload): Promise<LoteEvento> {
+  await wait();
+  const evento = buscarEvento(eventoId);
+  const lote: LoteEvento = { ...payload, id: crypto.randomUUID(), available: payload.quantity };
+  salvarEvento({ ...evento, lotes: [...evento.lotes, lote] });
+  return { ...lote };
+}
+
+/** Mantém o já vendido ao mudar o total: o saldo disponível acompanha a diferença. */
+export async function updateLote(eventoId: string, loteId: string, payload: LotePayload): Promise<LoteEvento> {
+  await wait();
+  const evento = buscarEvento(eventoId);
+  const atual = buscarLote(evento, loteId);
+  const vendidos = Math.max(0, atual.quantity - atual.available);
+  if (payload.quantity < vendidos) {
+    throw apiError(400, "Bad Request", `A quantidade não pode ser menor que os ${vendidos} ingressos já vendidos.`);
+  }
+  const atualizado: LoteEvento = { ...atual, ...payload, available: payload.quantity - vendidos };
+  salvarEvento({ ...evento, lotes: evento.lotes.map((item) => (item.id === loteId ? atualizado : item)) });
+  return { ...atualizado };
+}
+
+export async function deleteLote(eventoId: string, loteId: string): Promise<void> {
+  await wait();
+  const evento = buscarEvento(eventoId);
+  buscarLote(evento, loteId);
+  salvarEvento({ ...evento, lotes: evento.lotes.filter((item) => item.id !== loteId) });
 }

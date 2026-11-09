@@ -1,4 +1,3 @@
-import type { LoteEvento } from "@/types/evento-editor";
 import type { LoteIngresso, ModalidadeLote } from "@/types/lote-ingresso";
 
 export const MODALIDADE_LABEL: Record<ModalidadeLote, string> = {
@@ -22,20 +21,6 @@ export const STATUS_VENDA_LABEL: Record<StatusVendaLote, string> = {
   encerrado: "Encerrado",
   esgotado: "Esgotado",
 };
-
-/** Converte o lote da API (só nome, preço e quantidade) no lote da tela, ainda sem modalidade nem janela de vendas. */
-export function adaptarLote(lote: LoteEvento): LoteIngresso {
-  return {
-    id: lote.id,
-    batch: lote.batch,
-    modality: "inteira",
-    price: lote.price,
-    quantity: lote.quantity,
-    available: lote.quantity,
-    salesStartDate: null,
-    salesEndDate: null,
-  };
-}
 
 export function getVendidos(lote: Pick<LoteIngresso, "quantity" | "available">): number {
   return Math.max(0, lote.quantity - lote.available);

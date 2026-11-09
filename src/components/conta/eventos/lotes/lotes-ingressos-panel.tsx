@@ -5,9 +5,7 @@ import { Plus, Ticket } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
-import { useLotesIngresso } from "@/hooks/useLotesIngresso";
 import { cn } from "@/lib/utils";
-import type { EventoEditavel } from "@/types/evento-editor";
 import type { LoteIngresso, LotePayload } from "@/types/lote-ingresso";
 import { botaoPrimarioClassName, cartaoClassName, hintClassName } from "../editor/estilos";
 import { ExcluirLoteModal } from "./excluir-lote-modal";
@@ -15,15 +13,19 @@ import { LoteCard } from "./lote-card";
 import { LoteFormModal } from "./lote-form-modal";
 
 interface LotesIngressosPanelProps {
-  evento: EventoEditavel;
+  /** Lotes do evento (`evento.lotes`), a mesma fonte lida pela Revisão. */
+  lotes: readonly LoteIngresso[];
   /** Papel Leitura ou evento cancelado: esconde a ação de criar e desabilita editar e excluir. */
   somenteLeitura: boolean;
+  /** Devem resolver depois de salvar. Se rejeitarem, o modal continua aberto (criar/editar) ou mostra o erro (excluir). */
+  onCriar: (payload: LotePayload) => Promise<void>;
+  onEditar: (loteId: string, payload: LotePayload) => Promise<void>;
+  onExcluir: (loteId: string) => Promise<void>;
 }
 
 /** Seção "Lotes de ingressos" da gestão do evento: lista, criação, edição e remoção. */
-export function LotesIngressosPanel({ evento, somenteLeitura }: LotesIngressosPanelProps) {
+export function LotesIngressosPanel({ lotes, somenteLeitura, onCriar, onEditar, onExcluir }: LotesIngressosPanelProps) {
   const toast = useToast();
-  const { lotes, criar, editar, excluir } = useLotesIngresso(evento);
   const [formAberto, setFormAberto] = useState(false);
   const [emEdicao, setEmEdicao] = useState<LoteIngresso | null>(null);
   const [emExclusao, setEmExclusao] = useState<LoteIngresso | null>(null);
@@ -40,10 +42,10 @@ export function LotesIngressosPanel({ evento, somenteLeitura }: LotesIngressosPa
 
   async function salvar(payload: LotePayload) {
     if (emEdicao) {
-      await editar(emEdicao.id, payload);
+      await onEditar(emEdicao.id, payload);
       toast.success("Lote atualizado com sucesso.");
     } else {
-      await criar(payload);
+      await onCriar(payload);
       toast.success("Lote criado com sucesso.");
     }
     setFormAberto(false);
@@ -51,7 +53,7 @@ export function LotesIngressosPanel({ evento, somenteLeitura }: LotesIngressosPa
 
   async function confirmarExclusao(lote: LoteIngresso) {
     try {
-      await excluir(lote.id);
+      await onExcluir(lote.id);
       toast.success("Lote excluído.");
       setEmExclusao(null);
     } catch {
