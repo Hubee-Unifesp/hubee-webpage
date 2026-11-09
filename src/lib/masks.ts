@@ -23,6 +23,11 @@ export function formatCpfCnpj(value: string): string {
     .replace(/\/(\d{4})(\d{1,2})$/, "/$1-$2");
 }
 
+export function formatCep(value: string): string {
+  const digits = onlyDigits(value).slice(0, 8);
+  return digits.length <= 5 ? digits : `${digits.slice(0, 5)}-${digits.slice(5)}`;
+}
+
 /** Máscara de telefone: `(00) 0000-0000` com 10 dígitos e `(00) 00000-0000` com 11. */
 export function formatPhone(value: string): string {
   const digits = onlyDigits(value).slice(0, 11);

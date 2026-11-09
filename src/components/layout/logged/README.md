@@ -25,7 +25,7 @@ A navegação da conta fica em `conta/layout.tsx` para que o carrinho use o mesm
 - `logged-session.tsx`: `SessionHeader` (header com o usuário da sessão) e `RequireSession` (sem sessão válida, vai para `/login?redirect=…`; falha de rede não derruba a sessão).
 - `logged-user-menu.tsx`: menu pessoal da conta com Meus pedidos, Meu perfil e Sair.
 - `mobile-menu.tsx`: menu lateral abaixo de 768px (Radix Dialog: Esc fecha, foco preso, fecha ao navegar).
-- `account-sidebar.tsx` / `account-tabs.tsx`: navegação da conta pessoal no desktop / mobile, com `aria-current="page"` no item ativo.
+- `account-sidebar.tsx` / `account-tabs.tsx`: navegação da conta no desktop / mobile, com `aria-current="page"` no item ativo. Organizadores veem também o grupo "Organização" (Meus eventos e Fornecedores), como no design da GOL-143.
 - `account-nav.config.ts`: **fonte única** das seções da conta pessoal e atalhos para páginas do organizador (`/meus-eventos`).
 
 ## Componentes compartilhados (em `src/components/`)
