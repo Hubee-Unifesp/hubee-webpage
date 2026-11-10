@@ -1,6 +1,6 @@
 import { AxiosError, type AxiosResponse } from "axios";
 import { describe, expect, it } from "vitest";
-import { mapMessagesToFields, parseApiError } from "./errors";
+import { getApiErrorMessage, mapMessagesToFields, parseApiError } from "./errors";
 
 function apiError(status: number, data: unknown) {
   return new AxiosError("falhou", "ERR_BAD_REQUEST", undefined, undefined, { status, data } as AxiosResponse);
@@ -64,5 +64,39 @@ describe("mapMessagesToFields", () => {
     expect(mapMessagesToFields(["A senha atual é obrigatória"], ordered).fields).toEqual({
       currentPassword: "A senha atual é obrigatória",
     });
+  });
+});
+
+describe("getApiErrorMessage", () => {
+  it("usa a mensagem da API em 400, 409 e 422", () => {
+    expect(getApiErrorMessage(apiError(400, { message: ["A data de término deve ser posterior"] }))).toBe(
+      "A data de término deve ser posterior",
+    );
+    expect(getApiErrorMessage(apiError(409, { message: "Lote com pedidos vinculados." }))).toBe(
+      "Lote com pedidos vinculados.",
+    );
+    expect(getApiErrorMessage(apiError(422, { message: "Cadastre ao menos um lote" }))).toBe(
+      "Cadastre ao menos um lote",
+    );
+  });
+
+  it("tem texto próprio para 403 e 404", () => {
+    expect(getApiErrorMessage(apiError(403, { message: "Forbidden resource" }))).toBe(
+      "Você não tem permissão para fazer isso nesta organização.",
+    );
+    expect(getApiErrorMessage(apiError(404, { message: "Evento x não encontrado" }))).toBe(
+      "Não encontramos o que você procura. Ele pode ter sido removido.",
+    );
+  });
+
+  it("explica quando a API não respondeu", () => {
+    const semResposta = new AxiosError("Network Error", "ERR_NETWORK");
+    expect(getApiErrorMessage(semResposta)).toMatch(/Verifique sua conexão/);
+  });
+
+  it("usa o fallback para 400 sem mensagem, 500 e erros que não são do axios", () => {
+    expect(getApiErrorMessage(apiError(400, {}))).toBe("Confira os dados informados e tente novamente.");
+    expect(getApiErrorMessage(apiError(500, {}), "Falhou.")).toBe("Falhou.");
+    expect(getApiErrorMessage(new Error("x"), "Falhou.")).toBe("Falhou.");
   });
 });
