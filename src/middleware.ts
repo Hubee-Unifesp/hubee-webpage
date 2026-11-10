@@ -12,7 +12,6 @@ export function middleware(request: NextRequest) {
   const isOpenRoute =
     pathname === '/' ||
     pathname === '/sobre' ||
-    pathname === '/organizacoes/nova' ||
     isPublicEventRoute;
 
   if (!token && !isPublicRoute && !isOpenRoute) {

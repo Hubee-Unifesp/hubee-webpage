@@ -19,8 +19,7 @@ export function RegisterScreen() {
   const { loginState } = useAuth();
 
   const intentParam = searchParams.get("intent");
-  const orgIdParam = searchParams.get("orgId") ?? "";
-  const defaultIntent: SignupIntent = intentParam === "ORGANIZE" || Boolean(orgIdParam) ? "ORGANIZE" : "BUY";
+  const defaultIntent: SignupIntent = intentParam === "ORGANIZE" ? "ORGANIZE" : "BUY";
 
   function clearMessages() {
     setError(null);
@@ -39,7 +38,8 @@ export function RegisterScreen() {
       setSuccessMessage("Cadastro efetuado com sucesso. Redirecionando...");
 
       if (data.signupIntent === "ORGANIZE") {
-        router.push("/meus-eventos");
+        // Quem quer organizar ainda não tem organização: leva direto ao cadastro dela.
+        router.push("/organizacoes/nova");
       } else {
         const redirectUrl = searchParams.get("redirect");
         if (redirectUrl && redirectUrl.startsWith("/")) {
@@ -69,7 +69,6 @@ export function RegisterScreen() {
       onEdit={clearMessages}
       isLoading={isLoading}
       defaultIntent={defaultIntent}
-      defaultOrganizationId={orgIdParam}
       error={error}
       emailError={emailError}
       successMessage={successMessage}

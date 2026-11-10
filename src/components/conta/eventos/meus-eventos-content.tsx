@@ -70,7 +70,7 @@ export function MeusEventosContent() {
         <EmptyState
           icon={Building2}
           title="Você ainda não faz parte de nenhuma organização"
-          description="Crie uma nova organização ou vincule-se a uma organização existente no seu perfil para publicar e gerenciar eventos na Hubee."
+          description="Crie sua organização para publicar e gerenciar eventos na Hubee, ou peça a um administrador de uma organização existente que convide você."
           action={{
             label: "Criar organização",
             onClick: () => router.push("/organizacoes/nova"),
