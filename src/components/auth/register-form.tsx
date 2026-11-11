@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { Building2, Calendar, Ticket, type LucideIcon } from "lucide-react";
 import {
+  PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
   registerSchema,
   type RegisterFormInputs,
@@ -132,7 +133,7 @@ export function RegisterForm({
             id="register-password"
             label="Senha"
             error={errors.password?.message}
-            description={`Mínimo de ${PASSWORD_MIN_LENGTH} caracteres`}
+            description={`De ${PASSWORD_MIN_LENGTH} a ${PASSWORD_MAX_LENGTH} caracteres`}
           >
             <PasswordInput
               {...fieldA11y("register-password", errors.password?.message)}

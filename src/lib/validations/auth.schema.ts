@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-export const PASSWORD_MIN_LENGTH = 6;
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_LENGTH = 72;
 
 export const emailField = z
   .string()
@@ -23,7 +24,8 @@ export const registerSchema = z
     password: z
       .string()
       .min(1, { message: "Informe sua senha." })
-      .min(PASSWORD_MIN_LENGTH, { message: `A senha deve ter no mínimo ${PASSWORD_MIN_LENGTH} caracteres.` }),
+      .min(PASSWORD_MIN_LENGTH, { message: `A senha deve ter no mínimo ${PASSWORD_MIN_LENGTH} caracteres.` })
+      .max(PASSWORD_MAX_LENGTH, { message: `A senha deve ter no máximo ${PASSWORD_MAX_LENGTH} caracteres.` }),
     confirmPassword: z.string().min(1, { message: "Confirme sua senha." }),
   })
   .refine((data) => data.confirmPassword === data.password, {
