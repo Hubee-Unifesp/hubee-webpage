@@ -35,6 +35,7 @@ export function FornecedoresContent() {
     organizacaoAtiva,
     todos,
     filtrados,
+    avaliacoes,
     categorias,
     busca,
     setBusca,
@@ -186,11 +187,11 @@ export function FornecedoresContent() {
             />
           ) : (
             <>
-              <FornecedoresTabela fornecedores={filtrados} {...acoes} />
+              <FornecedoresTabela fornecedores={filtrados} avaliacoes={avaliacoes} {...acoes} />
               <ul className="grid gap-3 sm:grid-cols-2 xl:hidden">
                 {filtrados.map((fornecedor) => (
                   <li key={fornecedor.id}>
-                    <FornecedorCard fornecedor={fornecedor} {...acoes} />
+                    <FornecedorCard fornecedor={fornecedor} avaliacao={avaliacoes[fornecedor.id]} {...acoes} />
                   </li>
                 ))}
               </ul>

@@ -12,9 +12,13 @@ import {
   getSuppliers,
   updateSupplier,
 } from "@/lib/api/suppliers";
+import { getSuppliersRating } from "@/lib/api/supplier-reviews";
 import type { Fornecedor, FornecedorPayload } from "@/types/fornecedor";
 
 export { FornecedorDuplicadoError };
+
+/** Média e total de avaliações de cada fornecedor, pelo id. */
+export type AvaliacoesPorFornecedor = Record<string, { media: number; total: number }>;
 
 type FornecedoresState =
   | { status: "loading"; data: null }
@@ -33,6 +37,7 @@ export function useFornecedores() {
   const [attempt, setAttempt] = useState(0);
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState<string>(TODAS_CATEGORIAS);
+  const [avaliacoes, setAvaliacoes] = useState<AvaliacoesPorFornecedor>({});
 
   const temOrganizacao = organizacaoAtiva !== null;
 
@@ -42,7 +47,14 @@ export function useFornecedores() {
     let active = true;
     getSuppliers()
       .then((data) => {
-        if (active) setState({ status: "ok", data });
+        if (!active) return;
+        setState({ status: "ok", data });
+        // Média das avaliações (GOL-244): carregada depois, sem atrasar a listagem.
+        getSuppliersRating(data.map((item) => item.id))
+          .then((ratings) => {
+            if (active) setAvaliacoes(ratings);
+          })
+          .catch(() => undefined);
       })
       .catch(() => {
         if (active) setState({ status: "error", data: null });
@@ -115,6 +127,7 @@ export function useFornecedores() {
     organizacaoAtiva,
     todos,
     filtrados,
+    avaliacoes,
     categorias,
     busca,
     setBusca,
