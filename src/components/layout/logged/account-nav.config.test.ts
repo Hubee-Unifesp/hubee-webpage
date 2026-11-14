@@ -36,13 +36,13 @@ describe("account-nav.config", () => {
     expect(hrefs).not.toContain("/meus-eventos");
   });
 
-  it("agrupa a sidebar em Minha Conta e, para organizadores, Organização com Meus eventos", () => {
+  it("agrupa a sidebar em Minha Conta e, para organizadores, Organização com Fornecedores", () => {
     expect(getAccountNavGroups(false).map((group) => group.label)).toEqual(["Minha Conta"]);
 
     const grupos = getAccountNavGroups(true);
     expect(grupos.map((group) => group.label)).toEqual(["Minha Conta", "Organização"]);
     expect(grupos[0].items).toEqual(buyerAccountNavItems);
-    expect(grupos[1].items.map((item) => item.href)).toEqual(["/meus-eventos", "/conta/fornecedores"]);
+    expect(grupos[1].items.map((item) => item.href)).toEqual(["/conta/fornecedores"]);
   });
 
   it("formata o label do carrinho de acordo com a quantidade", () => {
