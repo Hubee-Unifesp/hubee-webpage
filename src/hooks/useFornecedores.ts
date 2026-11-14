@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   filterFornecedores,
+  type FiltroAvaliacaoMinima,
   getCategorias,
+  ORDENACAO_PADRAO,
+  type OrdenacaoFornecedores,
+  TODAS_AVALIACOES,
   TODAS_CATEGORIAS,
 } from "@/components/conta/fornecedores/fornecedores.data";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
@@ -24,8 +28,8 @@ type FornecedoresState =
 const loadingState: FornecedoresState = { status: "loading", data: null };
 
 /**
- * Lista de fornecedores com busca, filtro por categoria e cadastro, edição e exclusão
- * integrada aos endpoints `/suppliers` da `hubee-api` (GOL-204).
+ * Lista de fornecedores com busca, filtro por categoria/avaliação mínima, ordenação
+ * e cadastro, edição e exclusão integrada aos endpoints `/suppliers` da `hubee-api` (GOL-204 / GOL-249).
  */
 export function useFornecedores() {
   const { authLoading, organizacaoAtiva } = useOrganizacaoAtiva();
@@ -33,6 +37,8 @@ export function useFornecedores() {
   const [attempt, setAttempt] = useState(0);
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState<string>(TODAS_CATEGORIAS);
+  const [avaliacaoMinima, setAvaliacaoMinima] = useState<FiltroAvaliacaoMinima>(TODAS_AVALIACOES);
+  const [ordenacao, setOrdenacao] = useState<OrdenacaoFornecedores>(ORDENACAO_PADRAO);
 
   const temOrganizacao = organizacaoAtiva !== null;
 
@@ -65,13 +71,15 @@ export function useFornecedores() {
       ? TODAS_CATEGORIAS
       : categoria;
   const filtrados = useMemo(
-    () => filterFornecedores(todos, busca, categoriaAtiva),
-    [todos, busca, categoriaAtiva],
+    () => filterFornecedores(todos, busca, categoriaAtiva, avaliacaoMinima, ordenacao),
+    [todos, busca, categoriaAtiva, avaliacaoMinima, ordenacao],
   );
 
   const limparFiltros = useCallback(() => {
     setBusca("");
     setCategoria(TODAS_CATEGORIAS);
+    setAvaliacaoMinima(TODAS_AVALIACOES);
+    setOrdenacao(ORDENACAO_PADRAO);
   }, []);
 
   /** @throws {FornecedorDuplicadoError} quando o CNPJ/CPF ou o e-mail já estão cadastrados. */
@@ -120,8 +128,15 @@ export function useFornecedores() {
     setBusca,
     categoria: categoriaAtiva,
     setCategoria,
+    avaliacaoMinima,
+    setAvaliacaoMinima,
+    ordenacao,
+    setOrdenacao,
     limparFiltros,
-    temFiltroAtivo: busca.trim() !== "" || categoriaAtiva !== TODAS_CATEGORIAS,
+    temFiltroAtivo:
+      busca.trim() !== "" ||
+      categoriaAtiva !== TODAS_CATEGORIAS ||
+      avaliacaoMinima !== TODAS_AVALIACOES,
     retry,
     criar,
     atualizar,
