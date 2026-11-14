@@ -11,8 +11,18 @@ export function FornecedoresSkeleton() {
           <Skeleton className="h-3 w-24 rounded-full" />
           <Skeleton className="h-10 w-full rounded-lg" />
         </div>
-        <div className="flex flex-col gap-1.5 sm:w-56">
-          <Skeleton className="h-3 w-16 rounded-full" />
+        <div className="grid grid-cols-2 gap-3 sm:contents">
+          <div className="flex flex-col gap-1.5 sm:w-44">
+            <Skeleton className="h-3 w-16 rounded-full" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+          <div className="flex flex-col gap-1.5 sm:w-44">
+            <Skeleton className="h-3 w-28 rounded-full" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-1.5 sm:w-48">
+          <Skeleton className="h-3 w-20 rounded-full" />
           <Skeleton className="h-10 w-full rounded-lg" />
         </div>
       </div>
@@ -24,9 +34,10 @@ export function FornecedoresSkeleton() {
             key={index}
             className="flex items-center gap-6 border-t border-hubee-200 px-4 py-5 dark:border-hubee-750"
           >
-            <Skeleton className="h-4 w-1/4 rounded-full" />
+            <Skeleton className="h-4 w-1/5 rounded-full" />
             <Skeleton className="h-4 w-1/6 rounded-full" />
             <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-5 w-24 rounded-full" />
             <Skeleton className="h-4 w-1/6 rounded-full" />
             <Skeleton className="h-4 flex-1 rounded-full" />
             <Skeleton className="h-6 w-16 rounded-md" />

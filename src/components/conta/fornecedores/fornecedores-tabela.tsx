@@ -2,6 +2,7 @@
 
 import { formatCpfCnpj, formatPhone } from "@/lib/masks";
 import type { Fornecedor } from "@/types/fornecedor";
+import { AvaliacaoBadge } from "./avaliacao-badge";
 import { CategoriaBadge } from "./categoria-badge";
 import { FornecedorAcoes, type FornecedorAcoesProps } from "./fornecedor-acoes";
 
@@ -24,14 +25,14 @@ const tdClassName = "px-3 py-4 align-middle";
 
 /**
  * Tabela de fornecedores (a partir de 1280px). Abaixo disso a página usa os cards.
- * Layout automático: documento, telefone e categoria nunca quebram; nome e e-mail longos são truncados.
+ * Layout automático: documento, telefone, avaliação e categoria nunca quebram; nome e e-mail longos são truncados.
  */
 export function FornecedoresTabela({ fornecedores, ...acoes }: FornecedoresTabelaProps) {
   return (
     <div className="hidden overflow-hidden rounded-xl border border-hubee-200 bg-hubee-neutral-25 xl:block dark:border-hubee-750 dark:bg-hubee-neutral-500">
       <table className="w-full text-xs">
         <caption className="sr-only">Fornecedores cadastrados</caption>
-        <thead className="border-b border-hubee-200 dark:border-hubee-750">
+        <thead className="border-b border-hubee-200 bg-hubee-100/70 dark:border-hubee-750 dark:bg-hubee-800/50">
           <tr>
             <th scope="col" className={thClassName}>
               Razão Social / Nome
@@ -41,6 +42,9 @@ export function FornecedoresTabela({ fornecedores, ...acoes }: FornecedoresTabel
             </th>
             <th scope="col" className={thClassName}>
               Categoria
+            </th>
+            <th scope="col" className={thClassName}>
+              Avaliação
             </th>
             <th scope="col" className={thClassName}>
               Telefone
@@ -57,7 +61,7 @@ export function FornecedoresTabela({ fornecedores, ...acoes }: FornecedoresTabel
           {fornecedores.map((fornecedor) => (
             <tr key={fornecedor.id} className="hover:bg-hubee-100 dark:hover:bg-hubee-750">
               {/* `max-w-0` + largura em %: a célula encolhe para caber e o texto é truncado, sem rolagem lateral. */}
-              <th scope="row" className={`${tdClassName} w-[30%] max-w-0 text-left font-semibold`}>
+              <th scope="row" className={`${tdClassName} w-[24%] max-w-0 text-left font-semibold`}>
                 <span className="block truncate" title={fornecedor.companyName}>
                   {fornecedor.companyName}
                 </span>
@@ -67,9 +71,12 @@ export function FornecedoresTabela({ fornecedores, ...acoes }: FornecedoresTabel
                 <CategoriaBadge category={fornecedor.category} />
               </td>
               <td className={`${tdClassName} whitespace-nowrap tabular-nums`}>
+                <AvaliacaoBadge fornecedor={fornecedor} />
+              </td>
+              <td className={`${tdClassName} whitespace-nowrap tabular-nums`}>
                 {fornecedor.phone ? formatPhone(fornecedor.phone) : <Vazio label="Sem telefone" />}
               </td>
-              <td className={`${tdClassName} w-[25%] max-w-0`}>
+              <td className={`${tdClassName} w-[20%] max-w-0`}>
                 {fornecedor.email ? (
                   <span className="block truncate" title={fornecedor.email}>
                     {fornecedor.email}
