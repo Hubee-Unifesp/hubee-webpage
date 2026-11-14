@@ -101,7 +101,7 @@ export function useFornecedores() {
       });
       setState((prev) => ({
         status: "ok",
-        data: (prev.data ?? []).map((item) => (item.id === id ? atualizado : item)),
+        data: (prev.data ?? []).map((item) => (item.id === id ? { ...item, ...atualizado } : item)),
       }));
       return atualizado;
     },
