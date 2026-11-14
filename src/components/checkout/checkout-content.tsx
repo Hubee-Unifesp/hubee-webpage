@@ -21,6 +21,7 @@ import {
 import { paraItensDoPedido } from "@/lib/carrinho";
 import {
   checkoutSchema,
+  formatCpf,
   formatPhone,
   type CheckoutFormInputs,
   type PaymentMethod,
@@ -64,6 +65,7 @@ export function CheckoutContent() {
   const [pixSecondsRemaining, setPixSecondsRemaining] = useState(PIX_EXPIRATION_SECONDS);
 
   const accountPhone = user?.phone ? formatPhone(user.phone) : "";
+  const accountCpf = user?.cpf ? formatCpf(user.cpf) : "";
 
   const {
     control,
@@ -81,7 +83,7 @@ export function CheckoutContent() {
       useAccountData: true,
       fullName: user?.fullName ?? "",
       email: user?.email ?? "",
-      cpf: "",
+      cpf: accountCpf,
       phone: accountPhone,
       paymentMethod: "pix",
       cardNumber: "",
@@ -100,6 +102,7 @@ export function CheckoutContent() {
     if (!user || !useAccountData) return;
     setValue("fullName", user.fullName ?? "");
     setValue("email", user.email ?? "");
+    if (user.cpf) setValue("cpf", formatCpf(user.cpf));
     if (user.phone) setValue("phone", formatPhone(user.phone));
   }, [user, useAccountData, setValue]);
 
@@ -131,6 +134,7 @@ export function CheckoutContent() {
     if (!checked || !user) return;
     setValue("fullName", user.fullName ?? "", { shouldValidate: true });
     setValue("email", user.email ?? "", { shouldValidate: true });
+    if (accountCpf) setValue("cpf", accountCpf, { shouldValidate: true });
     if (accountPhone) setValue("phone", accountPhone, { shouldValidate: true });
   }
 
