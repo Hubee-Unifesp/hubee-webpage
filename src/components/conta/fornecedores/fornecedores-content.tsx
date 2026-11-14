@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Info, Plus, SearchX, Truck } from "lucide-react";
+import { Building2, Info, Plus, SearchX, Star, Truck } from "lucide-react";
 import { ContaPageTitle } from "@/components/conta/conta-card";
 import { EmptyState } from "@/components/empty-state";
 import { ListMessage } from "@/components/home/events/list-states";
@@ -22,7 +22,7 @@ function Titulo() {
   return <ContaPageTitle>Fornecedores</ContaPageTitle>;
 }
 
-/** Página "Fornecedores" da conta: listagem, busca, filtro por categoria e estados vazios. */
+/** Página "Fornecedores" da conta: listagem, busca, filtro por categoria/avaliação, ordenação e estados vazios. */
 export function FornecedoresContent() {
   const router = useRouter();
   const toast = useToast();
@@ -40,6 +40,10 @@ export function FornecedoresContent() {
     setBusca,
     categoria,
     setCategoria,
+    avaliacaoMinima,
+    setAvaliacaoMinima,
+    ordenacao,
+    setOrdenacao,
     limparFiltros,
     temFiltroAtivo,
     retry,
@@ -175,6 +179,10 @@ export function FornecedoresContent() {
             categoria={categoria}
             onCategoriaChange={setCategoria}
             categorias={categorias}
+            avaliacaoMinima={avaliacaoMinima}
+            onAvaliacaoMinimaChange={setAvaliacaoMinima}
+            ordenacao={ordenacao}
+            onOrdenacaoChange={setOrdenacao}
           />
 
           {filtrados.length === 0 ? (
@@ -197,9 +205,20 @@ export function FornecedoresContent() {
             </>
           )}
 
-          <p role="status" className="text-xs text-hubee-750/75 dark:text-hubee-200">
-            Mostrando {filtrados.length} de {todos.length} {todos.length === 1 ? "fornecedor" : "fornecedores"}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-hubee-750/75 dark:text-hubee-200">
+            <p role="status">
+              Mostrando {filtrados.length} de {todos.length} {todos.length === 1 ? "fornecedor" : "fornecedores"}
+            </p>
+            {filtrados.length > 0 && ordenacao === "rating" && (
+              <span className="inline-flex items-center gap-1 text-hubee-750/75 dark:text-hubee-200">
+                <Star
+                  aria-hidden="true"
+                  className="size-3.5 fill-current text-hubee-500 stroke-hubee-600 dark:text-hubee-400 dark:stroke-hubee-400"
+                />
+                <span>Mais bem avaliados primeiro</span>
+              </span>
+            )}
+          </div>
         </div>
       )}
 

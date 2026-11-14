@@ -2,6 +2,7 @@
 
 import { FileText, Mail, Phone } from "lucide-react";
 import { formatCpfCnpj, formatPhone } from "@/lib/masks";
+import { AvaliacaoBadge } from "./avaliacao-badge";
 import { CategoriaBadge } from "./categoria-badge";
 import { FornecedorAcoes, type FornecedorAcoesProps } from "./fornecedor-acoes";
 import { Vazio } from "./fornecedores-tabela";
@@ -11,7 +12,10 @@ export function FornecedorCard({ fornecedor, ...acoes }: Omit<FornecedorAcoesPro
   return (
     <article className="flex flex-col gap-3 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 shadow-sm hover:border-hubee-400 dark:border-hubee-750 dark:bg-hubee-neutral-500 dark:hover:border-hubee-600">
       <div className="flex min-w-0 flex-col gap-1.5">
-        <h3 className="line-clamp-2 font-semibold break-words">{fornecedor.companyName}</h3>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="line-clamp-2 min-w-0 font-semibold break-words">{fornecedor.companyName}</h3>
+          <AvaliacaoBadge fornecedor={fornecedor} className="shrink-0" />
+        </div>
         <CategoriaBadge category={fornecedor.category} className="self-start" />
       </div>
 
