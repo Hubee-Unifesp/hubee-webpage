@@ -2,25 +2,21 @@
 
 import { FileText, Mail, Phone } from "lucide-react";
 import { formatCpfCnpj, formatPhone } from "@/lib/masks";
-import { NotaFornecedor } from "./avaliacoes/nota-fornecedor";
+import { AvaliacaoBadge } from "./avaliacao-badge";
 import { CategoriaBadge } from "./categoria-badge";
 import { FornecedorAcoes, type FornecedorAcoesProps } from "./fornecedor-acoes";
 import { Vazio } from "./fornecedores-tabela";
 
 /** Card de fornecedor da listagem em telas menores que 1280px. */
-export function FornecedorCard({
-  fornecedor,
-  avaliacao,
-  ...acoes
-}: Omit<FornecedorAcoesProps, "className"> & { avaliacao: { media: number; total: number } | undefined }) {
+export function FornecedorCard({ fornecedor, ...acoes }: Omit<FornecedorAcoesProps, "className">) {
   return (
     <article className="flex flex-col gap-3 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 shadow-sm hover:border-hubee-400 dark:border-hubee-750 dark:bg-hubee-neutral-500 dark:hover:border-hubee-600">
       <div className="flex min-w-0 flex-col gap-1.5">
-        <h3 className="line-clamp-2 font-semibold break-words">{fornecedor.companyName}</h3>
-        <CategoriaBadge category={fornecedor.category} className="self-start" />
-        <div className="text-xs">
-          <NotaFornecedor avaliacao={avaliacao} />
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="line-clamp-2 min-w-0 font-semibold break-words">{fornecedor.companyName}</h3>
+          <AvaliacaoBadge fornecedor={fornecedor} className="shrink-0" />
         </div>
+        <CategoriaBadge category={fornecedor.category} className="self-start" />
       </div>
 
       <dl className="flex flex-col gap-1.5 text-sm">

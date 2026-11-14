@@ -7,6 +7,10 @@ export interface Fornecedor {
   phone: string | null;
   email: string | null;
   category: string | null;
+  /** Nota média de 0 a 5 (ausente ou `null` quando ainda não avaliado). */
+  ratingAverage?: number | null;
+  /** Quantidade total de avaliações recebidas. */
+  ratingCount?: number;
   createdAt: string;
   updatedAt: string;
 }

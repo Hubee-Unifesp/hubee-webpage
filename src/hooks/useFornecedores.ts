@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   filterFornecedores,
+  type FiltroAvaliacaoMinima,
   getCategorias,
+  ORDENACAO_PADRAO,
+  type OrdenacaoFornecedores,
+  TODAS_AVALIACOES,
   TODAS_CATEGORIAS,
 } from "@/components/conta/fornecedores/fornecedores.data";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
@@ -12,13 +16,9 @@ import {
   getSuppliers,
   updateSupplier,
 } from "@/lib/api/suppliers";
-import { getSuppliersRating } from "@/lib/api/supplier-reviews";
 import type { Fornecedor, FornecedorPayload } from "@/types/fornecedor";
 
 export { FornecedorDuplicadoError };
-
-/** Média e total de avaliações de cada fornecedor, pelo id. */
-export type AvaliacoesPorFornecedor = Record<string, { media: number; total: number }>;
 
 type FornecedoresState =
   | { status: "loading"; data: null }
@@ -28,8 +28,8 @@ type FornecedoresState =
 const loadingState: FornecedoresState = { status: "loading", data: null };
 
 /**
- * Lista de fornecedores com busca, filtro por categoria e cadastro, edição e exclusão
- * integrada aos endpoints `/suppliers` da `hubee-api` (GOL-204).
+ * Lista de fornecedores com busca, filtro por categoria/avaliação mínima, ordenação
+ * e cadastro, edição e exclusão integrada aos endpoints `/suppliers` da `hubee-api` (GOL-204 / GOL-249).
  */
 export function useFornecedores() {
   const { authLoading, organizacaoAtiva } = useOrganizacaoAtiva();
@@ -37,7 +37,8 @@ export function useFornecedores() {
   const [attempt, setAttempt] = useState(0);
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState<string>(TODAS_CATEGORIAS);
-  const [avaliacoes, setAvaliacoes] = useState<AvaliacoesPorFornecedor>({});
+  const [avaliacaoMinima, setAvaliacaoMinima] = useState<FiltroAvaliacaoMinima>(TODAS_AVALIACOES);
+  const [ordenacao, setOrdenacao] = useState<OrdenacaoFornecedores>(ORDENACAO_PADRAO);
 
   const temOrganizacao = organizacaoAtiva !== null;
 
@@ -47,14 +48,7 @@ export function useFornecedores() {
     let active = true;
     getSuppliers()
       .then((data) => {
-        if (!active) return;
-        setState({ status: "ok", data });
-        // Média das avaliações (GOL-244): carregada depois, sem atrasar a listagem.
-        getSuppliersRating(data.map((item) => item.id))
-          .then((ratings) => {
-            if (active) setAvaliacoes(ratings);
-          })
-          .catch(() => undefined);
+        if (active) setState({ status: "ok", data });
       })
       .catch(() => {
         if (active) setState({ status: "error", data: null });
@@ -77,13 +71,15 @@ export function useFornecedores() {
       ? TODAS_CATEGORIAS
       : categoria;
   const filtrados = useMemo(
-    () => filterFornecedores(todos, busca, categoriaAtiva),
-    [todos, busca, categoriaAtiva],
+    () => filterFornecedores(todos, busca, categoriaAtiva, avaliacaoMinima, ordenacao),
+    [todos, busca, categoriaAtiva, avaliacaoMinima, ordenacao],
   );
 
   const limparFiltros = useCallback(() => {
     setBusca("");
     setCategoria(TODAS_CATEGORIAS);
+    setAvaliacaoMinima(TODAS_AVALIACOES);
+    setOrdenacao(ORDENACAO_PADRAO);
   }, []);
 
   /** @throws {FornecedorDuplicadoError} quando o CNPJ/CPF ou o e-mail já estão cadastrados. */
@@ -105,7 +101,7 @@ export function useFornecedores() {
       });
       setState((prev) => ({
         status: "ok",
-        data: (prev.data ?? []).map((item) => (item.id === id ? atualizado : item)),
+        data: (prev.data ?? []).map((item) => (item.id === id ? { ...item, ...atualizado } : item)),
       }));
       return atualizado;
     },
@@ -127,14 +123,20 @@ export function useFornecedores() {
     organizacaoAtiva,
     todos,
     filtrados,
-    avaliacoes,
     categorias,
     busca,
     setBusca,
     categoria: categoriaAtiva,
     setCategoria,
+    avaliacaoMinima,
+    setAvaliacaoMinima,
+    ordenacao,
+    setOrdenacao,
     limparFiltros,
-    temFiltroAtivo: busca.trim() !== "" || categoriaAtiva !== TODAS_CATEGORIAS,
+    temFiltroAtivo:
+      busca.trim() !== "" ||
+      categoriaAtiva !== TODAS_CATEGORIAS ||
+      avaliacaoMinima !== TODAS_AVALIACOES,
     retry,
     criar,
     atualizar,

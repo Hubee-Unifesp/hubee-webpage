@@ -51,7 +51,7 @@ export interface AccountNavGroup {
   items: readonly AccountNavItem[];
 }
 
-export const organizationNavItems: readonly AccountNavItem[] = [organizerEventsNavItem, suppliersNavItem];
+export const organizationNavItems: readonly AccountNavItem[] = [suppliersNavItem];
 
 /** Grupos da sidebar e das abas da conta: "Minha Conta" para todos e "Organização" só para organizadores. */
 export function getAccountNavGroups(isOrganizer = false): readonly AccountNavGroup[] {

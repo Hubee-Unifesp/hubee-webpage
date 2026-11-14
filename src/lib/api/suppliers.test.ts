@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   canManageSuppliers,
   filterFornecedores,
+  formatarNotaMedia,
   getCategorias,
+  temAvaliacao,
+  TODAS_AVALIACOES,
   TODAS_CATEGORIAS,
 } from "@/components/conta/fornecedores/fornecedores.data";
 import type { Fornecedor, FornecedorPayload } from "@/types/fornecedor";
@@ -225,5 +228,120 @@ describe("fornecedores.data helpers", () => {
     expect(filterFornecedores(lista, "producoes", TODAS_CATEGORIAS)).toEqual([lista[1]]);
     expect(filterFornecedores(lista, "", "Buffet")).toEqual([lista[0]]);
     expect(filterFornecedores(lista, "sabor", "Som e iluminação")).toEqual([]);
+  });
+
+  it("identifica corretamente fornecedores avaliados e formata nota com vírgula", () => {
+    expect(temAvaliacao({ ratingAverage: 4.8, ratingCount: 12 })).toBe(true);
+    expect(temAvaliacao({ ratingAverage: 4.8, ratingCount: 0 })).toBe(false);
+    expect(temAvaliacao({ ratingAverage: null, ratingCount: 5 })).toBe(false);
+    expect(temAvaliacao({})).toBe(false);
+    expect(formatarNotaMedia(4.8)).toBe("4,8");
+    expect(formatarNotaMedia(5)).toBe("5,0");
+  });
+
+  it("filtra por avaliação mínima (4+ e 3+ estrelas) e ordena por reputação ou ordem alfabética", () => {
+    const catalogoAvaliado: Fornecedor[] = [
+      {
+        ...mockSupplier,
+        id: "sup-sem-nota",
+        companyName: "Decora Festas & Flores",
+        category: "Decoração",
+        ratingAverage: null,
+        ratingCount: 0,
+      },
+      {
+        ...mockSupplier,
+        id: "sup-38",
+        companyName: "Segurança Total Eventos",
+        category: "Segurança",
+        ratingAverage: 3.8,
+        ratingCount: 5,
+      },
+      {
+        ...mockSupplier,
+        id: "sup-48-menor-volume",
+        companyName: "Estúdio Clique Certo",
+        category: "Fotografia",
+        ratingAverage: 4.8,
+        ratingCount: 8,
+      },
+      {
+        ...mockSupplier,
+        id: "sup-49",
+        companyName: "Buffet Sabor Real Ltda",
+        category: "Buffet",
+        ratingAverage: 4.9,
+        ratingCount: 24,
+      },
+      {
+        ...mockSupplier,
+        id: "sup-48-maior-volume",
+        companyName: "Luz & Som Produções",
+        category: "Som e iluminação",
+        ratingAverage: 4.8,
+        ratingCount: 12,
+      },
+    ];
+
+    // Ordenação padrão: Mais bem avaliados (maior média -> maior contagem -> nome A-Z; sem avaliação ao final)
+    const ordenadosPorNota = filterFornecedores(
+      catalogoAvaliado,
+      "",
+      TODAS_CATEGORIAS,
+      TODAS_AVALIACOES,
+      "rating",
+    );
+    expect(ordenadosPorNota.map((f) => f.id)).toEqual([
+      "sup-49",
+      "sup-48-maior-volume",
+      "sup-48-menor-volume",
+      "sup-38",
+      "sup-sem-nota",
+    ]);
+
+    // Filtro 4+ estrelas exclui 3.8 e sem avaliação
+    const quatroMais = filterFornecedores(
+      catalogoAvaliado,
+      "",
+      TODAS_CATEGORIAS,
+      "4",
+      "rating",
+    );
+    expect(quatroMais.map((f) => f.id)).toEqual([
+      "sup-49",
+      "sup-48-maior-volume",
+      "sup-48-menor-volume",
+    ]);
+
+    // Filtro 3+ estrelas inclui 3.8 e exclui sem avaliação
+    const tresMais = filterFornecedores(
+      catalogoAvaliado,
+      "",
+      TODAS_CATEGORIAS,
+      "3",
+      "rating",
+    );
+    expect(tresMais.map((f) => f.id)).toEqual([
+      "sup-49",
+      "sup-48-maior-volume",
+      "sup-48-menor-volume",
+      "sup-38",
+    ]);
+
+    // Ordenação alfabética (A–Z)
+    const ordenadosPorNome = filterFornecedores(
+      catalogoAvaliado,
+      "",
+      TODAS_CATEGORIAS,
+      TODAS_AVALIACOES,
+      "name",
+    );
+    expect(ordenadosPorNome.map((f) => f.companyName)).toEqual([
+      "Buffet Sabor Real Ltda",
+      "Decora Festas & Flores",
+      "Estúdio Clique Certo",
+      "Luz & Som Produções",
+      "Segurança Total Eventos",
+    ]);
   });
 });

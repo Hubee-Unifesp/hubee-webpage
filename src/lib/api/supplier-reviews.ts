@@ -111,20 +111,6 @@ export async function getSupplierReviews(supplierId: string): Promise<AvaliacaoF
   return [...avaliacoesDe(supplierId)];
 }
 
-/** Média e total de vários fornecedores de uma vez, para a coluna "Avaliação" da listagem. */
-export async function getSuppliersRating(
-  supplierIds: readonly string[],
-): Promise<Record<string, { media: number; total: number }>> {
-  await esperar();
-  return Object.fromEntries(
-    supplierIds.map((id) => {
-      const lista = avaliacoesDe(id);
-      const soma = lista.reduce((acc, item) => acc + item.nota, 0);
-      return [id, { total: lista.length, media: lista.length ? Math.round((soma / lista.length) * 10) / 10 : 0 }];
-    }),
-  );
-}
-
 export async function createSupplierReview(
   supplierId: string,
   payload: AvaliacaoFornecedorPayload,
