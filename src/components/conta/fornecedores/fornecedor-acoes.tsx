@@ -1,6 +1,7 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Pencil, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Fornecedor } from "@/types/fornecedor";
@@ -20,6 +21,17 @@ const semPermissao = "Apenas Administradores e Membros podem gerenciar fornecedo
 export function FornecedorAcoes({ fornecedor, podeGerenciar, onEditar, onExcluir, className }: FornecedorAcoesProps) {
   return (
     <div className={cn("flex items-center gap-1", className)}>
+      <Button
+        asChild
+        variant="ghost"
+        size="icon-sm"
+        title="Avaliações"
+        className="cursor-pointer text-hubee-800 hover:bg-hubee-200 hover:text-hubee-800 focus-visible:ring-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400"
+      >
+        <Link href={`/conta/fornecedores/${fornecedor.id}/avaliacoes`} aria-label={`Avaliações de ${fornecedor.companyName}`}>
+          <Star aria-hidden="true" />
+        </Link>
+      </Button>
       <Button
         type="button"
         variant="ghost"
