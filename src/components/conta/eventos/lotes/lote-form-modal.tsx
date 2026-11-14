@@ -28,6 +28,7 @@ import {
   selectClassName,
 } from "../editor/estilos";
 import { getVendidos, MODALIDADES_OPCOES } from "./lotes.data";
+import { getApiErrorMessage } from "@/lib/api/errors";
 
 interface LoteFormModalProps {
   open: boolean;
@@ -83,8 +84,8 @@ export function LoteFormModal({ open, onOpenChange, lote, onSubmit }: LoteFormMo
   async function enviar(values: TicketTypeFormValues) {
     try {
       await onSubmit(toLotePayload(values));
-    } catch {
-      setError("root", { message: "Não foi possível salvar o lote. Tente novamente." });
+    } catch (error) {
+      setError("root", { message: getApiErrorMessage(error, "Não foi possível salvar o lote. Tente novamente.") });
     }
   }
 

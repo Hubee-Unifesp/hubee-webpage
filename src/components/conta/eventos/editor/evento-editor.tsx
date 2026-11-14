@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { useEventoEditor } from "@/hooks/useEventoEditor";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import { canCancelEvent } from "@/types/organizacao";
 import type { EventoPayload, LocalEvento, LocalPayload } from "@/types/evento-editor";
 import { StatusEventoBadge } from "../status-evento-badge";
@@ -19,8 +20,6 @@ import { EtapasEvento } from "./etapas-evento";
 import { canEditEvent, type EtapaEvento } from "./evento-editor.data";
 import { IngressosEvento } from "./ingressos-evento";
 import { RevisaoEvento } from "./revisao-evento";
-
-const ERRO_GENERICO = "Não foi possível concluir a ação. Tente novamente.";
 
 const avisoClassName =
   "flex items-center gap-2.5 rounded-xl border border-hubee-400/60 bg-hubee-100 px-4 py-3 text-xs font-medium text-hubee-800 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-200";
@@ -155,15 +154,19 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
   async function handleSalvarDados(payload: EventoPayload, capa: File | null) {
     const criando = evento === null;
     try {
-      const salvo = await salvarDados(payload, capa);
-      toast.success(criando ? "Rascunho criado com sucesso." : "Dados do evento salvos.");
+      const { evento: salvo, erroCapa } = await salvarDados(payload, capa);
+      if (erroCapa) {
+        toast.error(`${criando ? "Rascunho criado" : "Dados salvos"}, mas a capa não foi enviada: ${erroCapa}`);
+      } else {
+        toast.success(criando ? "Rascunho criado com sucesso." : "Dados do evento salvos.");
+      }
       if (criando) {
         router.replace(`/meus-eventos/${salvo.id}/editar?etapa=lotes`);
         return;
       }
       setEtapa("lotes");
-    } catch {
-      toast.error(ERRO_GENERICO);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
     }
   }
 
@@ -172,8 +175,8 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
       const novo = await criarLocal(payload);
       toast.success("Local cadastrado com sucesso.");
       return novo;
-    } catch {
-      toast.error(ERRO_GENERICO);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Não foi possível cadastrar o local. Tente novamente."));
       return null;
     }
   }
@@ -190,8 +193,8 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
         toast.success("Evento cancelado.");
       }
       setAcao(null);
-    } catch {
-      toast.error(ERRO_GENERICO);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
     }
   }
 

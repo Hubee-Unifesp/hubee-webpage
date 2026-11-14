@@ -34,3 +34,24 @@ export function mapMessagesToFields<Field extends string>(
 
   return { fields, rest };
 }
+
+const MENSAGENS_POR_STATUS: Record<number, string> = {
+  400: 'Confira os dados informados e tente novamente.',
+  403: 'Você não tem permissão para fazer isso nesta organização.',
+  404: 'Não encontramos o que você procura. Ele pode ter sido removido.',
+};
+
+/**
+ * Mensagem em português para mostrar ao usuário. 400, 409 e 422 usam o texto da API (as regras de
+ * negócio já respondem em pt-BR); 403 e 404 têm texto fixo, porque a API não explica o motivo.
+ */
+export function getApiErrorMessage(
+  error: unknown,
+  fallback = 'Não foi possível concluir a ação. Tente novamente.',
+): string {
+  if (!isAxiosError(error)) return fallback;
+  const { status, messages } = parseApiError(error);
+  if (status === undefined) return 'Não foi possível conectar à Hubee. Verifique sua conexão e tente novamente.';
+  if ((status === 400 || status === 409 || status === 422) && messages.length > 0) return messages[0];
+  return MENSAGENS_POR_STATUS[status] ?? fallback;
+}

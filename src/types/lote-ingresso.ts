@@ -1,10 +1,9 @@
-/** Modalidade do ingresso de um lote. A `hubee-api` ainda não expõe esse campo (ver Task 6). */
+/** Modalidade do ingresso de um lote (`ticket_type_modality` na `hubee-api`). */
 export type ModalidadeLote = "inteira" | "meia" | "estudante" | "vip" | "cortesia";
 
 /**
  * Lote de ingressos (`ticket-types`) como a tela de gestão do evento o exibe.
- * `batch`, `price` e `quantity` existem na API; `modality`, `available` e a janela de vendas
- * são previstos pela task GOL-209 e hoje só existem no front.
+ * Espelha o `TicketTypeResponseDto` da `hubee-api` (GOL-210).
  */
 export interface LoteIngresso {
   id: string;
