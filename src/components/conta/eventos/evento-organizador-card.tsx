@@ -84,12 +84,12 @@ export function EventoOrganizadorCard({ evento, papel, onAlterado }: EventoOrgan
   };
 
   return (
-    <article className="flex h-full overflow-hidden rounded-xl border border-hubee-400 bg-hubee-100 text-hubee-750 shadow-sm dark:border-hubee-500/60 dark:bg-hubee-750/35 dark:text-hubee-100">
+    <article className="flex h-full flex-col overflow-hidden rounded-xl border border-hubee-400 bg-hubee-100 text-hubee-750 shadow-sm sm:flex-row dark:border-hubee-500/60 dark:bg-hubee-750/35 dark:text-hubee-100">
       <EventMedia
         category={evento.categoria}
         startDate={evento.dataInicio}
         soldOut={evento.capacidade > 0 && evento.ingressosVendidos >= evento.capacidade}
-        className="min-h-44 w-2/5 shrink-0"
+        className="h-36 w-full shrink-0 sm:h-auto sm:min-h-44 sm:w-2/5"
       />
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-3 md:p-4">
@@ -140,9 +140,9 @@ export function EventoOrganizadorCard({ evento, papel, onAlterado }: EventoOrgan
           </div>
         </div>
 
-        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-          <p className="flex flex-col leading-tight">
-            <span className="text-[10px]">
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-2 pt-2">
+          <p className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate text-[10px]">
               {evento.loteMinimo ? `a partir de (${evento.loteMinimo})` : "a partir de"}
             </span>
             <span className="text-base font-bold text-hubee-800 dark:text-hubee-50">
@@ -150,7 +150,7 @@ export function EventoOrganizadorCard({ evento, papel, onAlterado }: EventoOrgan
             </span>
           </p>
 
-          <div className="flex items-center gap-1.5">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
             {papel === "leitura" ? (
               <Button
                 asChild
