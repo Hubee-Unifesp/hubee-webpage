@@ -1,3 +1,6 @@
+/** Critérios de ordenação aceitos por `GET /suppliers` na `hubee-api` (`QuerySupplierDto`). */
+export type SupplierSortBy = "rating" | "companyName" | "createdAt";
+
 /** Fornecedor como a `hubee-api` devolve em `/suppliers` (`SupplierResponseDto`). */
 export interface Fornecedor {
   id: string;
@@ -7,10 +10,14 @@ export interface Fornecedor {
   phone: string | null;
   email: string | null;
   category: string | null;
-  /** Nota média de 0 a 5 (ausente ou `null` quando ainda não avaliado). */
+  /** Nota média de 1 a 5 (ausente ou `null` quando ainda não avaliado). */
   ratingAverage?: number | null;
   /** Quantidade total de avaliações recebidas. */
   ratingCount?: number;
+  /** Alias de `ratingAverage` para compatibilidade de contrato (`GOL-253`). */
+  averageRating?: number | null;
+  /** Alias de `ratingCount` para compatibilidade de contrato (`GOL-253`). */
+  reviewsCount?: number;
   createdAt: string;
   updatedAt: string;
 }

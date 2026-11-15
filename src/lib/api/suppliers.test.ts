@@ -8,6 +8,8 @@ import {
   temAvaliacao,
   TODAS_AVALIACOES,
   TODAS_CATEGORIAS,
+  toMinRatingParam,
+  toSortByParam,
 } from "@/components/conta/fornecedores/fornecedores.data";
 import type { Fornecedor, FornecedorPayload } from "@/types/fornecedor";
 
@@ -101,6 +103,67 @@ describe("suppliers API", () => {
       await getSuppliers({ search: "   ", category: "" });
 
       expect(getMock).toHaveBeenCalledWith("/suppliers");
+    });
+
+    it("envia minRating e sortBy quando informados (GOL-253)", async () => {
+      const ratedSupplier: Fornecedor = {
+        ...mockSupplier,
+        ratingAverage: 4.8,
+        ratingCount: 12,
+      };
+      getMock.mockResolvedValueOnce({ data: [ratedSupplier] });
+
+      const result = await getSuppliers({
+        search: "Buffet",
+        category: "Buffet",
+        minRating: 4,
+        sortBy: "rating",
+      });
+
+      expect(getMock).toHaveBeenCalledWith("/suppliers", {
+        params: {
+          search: "Buffet",
+          category: "Buffet",
+          minRating: 4,
+          sortBy: "rating",
+        },
+      });
+      expect(result).toEqual([ratedSupplier]);
+    });
+
+    it("suporta sortBy companyName e createdAt e ignora minRating fora do intervalo 1..5", async () => {
+      getMock.mockResolvedValueOnce({ data: [mockSupplier] });
+
+      await getSuppliers({ minRating: 0, sortBy: "companyName" });
+
+      expect(getMock).toHaveBeenCalledWith("/suppliers", {
+        params: { sortBy: "companyName" },
+      });
+
+      getMock.mockResolvedValueOnce({ data: [mockSupplier] });
+
+      await getSuppliers({ minRating: 6, sortBy: "createdAt" });
+
+      expect(getMock).toHaveBeenCalledWith("/suppliers", {
+        params: { sortBy: "createdAt" },
+      });
+    });
+
+    it("normaliza averageRating e reviewsCount para ratingAverage e ratingCount quando retornados pela API", async () => {
+      getMock.mockResolvedValueOnce({
+        data: [
+          {
+            ...mockSupplier,
+            averageRating: 4.9,
+            reviewsCount: 24,
+          },
+        ],
+      });
+
+      const [first] = await getSuppliers({ sortBy: "rating" });
+
+      expect(first.ratingAverage).toBe(4.9);
+      expect(first.ratingCount).toBe(24);
     });
   });
 
@@ -232,11 +295,20 @@ describe("fornecedores.data helpers", () => {
 
   it("identifica corretamente fornecedores avaliados e formata nota com vírgula", () => {
     expect(temAvaliacao({ ratingAverage: 4.8, ratingCount: 12 })).toBe(true);
+    expect(temAvaliacao({ averageRating: 4.8, reviewsCount: 12 })).toBe(true);
     expect(temAvaliacao({ ratingAverage: 4.8, ratingCount: 0 })).toBe(false);
     expect(temAvaliacao({ ratingAverage: null, ratingCount: 5 })).toBe(false);
     expect(temAvaliacao({})).toBe(false);
     expect(formatarNotaMedia(4.8)).toBe("4,8");
     expect(formatarNotaMedia(5)).toBe("5,0");
+  });
+
+  it("converte filtros de nota mínima e ordenação para query params da API (GOL-253)", () => {
+    expect(toMinRatingParam(TODAS_AVALIACOES)).toBeUndefined();
+    expect(toMinRatingParam("4")).toBe(4);
+    expect(toMinRatingParam("3")).toBe(3);
+    expect(toSortByParam("rating")).toBe("rating");
+    expect(toSortByParam("name")).toBe("companyName");
   });
 
   it("filtra por avaliação mínima (4+ e 3+ estrelas) e ordena por reputação ou ordem alfabética", () => {
