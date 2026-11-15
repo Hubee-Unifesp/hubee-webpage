@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   changePasswordSchema,
+  completeProfileSchema,
+  formatCpf,
+  isValidCpf,
   NEW_PASSWORD_MAX_LENGTH,
   NEW_PASSWORD_MIN_LENGTH,
   personalDataSchema,
@@ -63,5 +66,85 @@ describe("personalDataSchema", () => {
     expect(
       personalDataSchema.safeParse({ fullName: "Maria Silva", email: "maria@email.com", phone: "9876-5432" }).success,
     ).toBe(false);
+  });
+
+  it("aceita CPF e data de nascimento opcionais vazios ou válidos", () => {
+    expect(
+      personalDataSchema.safeParse({
+        fullName: "Maria Silva",
+        email: "maria@email.com",
+        phone: "",
+        cpf: "",
+        birthDate: "",
+      }).success,
+    ).toBe(true);
+
+    expect(
+      personalDataSchema.safeParse({
+        fullName: "Maria Silva",
+        email: "maria@email.com",
+        phone: "",
+        cpf: "529.982.247-25",
+        birthDate: "1998-05-15",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("recusa CPF inválido ou data de nascimento futura quando preenchidos", () => {
+    expect(
+      personalDataSchema.safeParse({
+        fullName: "Maria Silva",
+        email: "maria@email.com",
+        phone: "",
+        cpf: "529.982.247-24",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      personalDataSchema.safeParse({
+        fullName: "Maria Silva",
+        email: "maria@email.com",
+        phone: "",
+        birthDate: "2099-01-01",
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("completeProfileSchema e utilitários de CPF", () => {
+  it("valida dígitos verificadores de CPF corretamente e formata com máscara", () => {
+    expect(formatCpf("52998224725")).toBe("529.982.247-25");
+    expect(isValidCpf("52998224725")).toBe(true);
+    expect(isValidCpf("529.982.247-25")).toBe(true);
+    expect(isValidCpf("111.111.111-11")).toBe(false);
+    expect(isValidCpf("52998224724")).toBe(false);
+  });
+
+  it("aceita CPF válido e data de nascimento não futura", () => {
+    expect(
+      completeProfileSchema.safeParse({
+        cpf: "529.982.247-25",
+        birthDate: "1998-05-15",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("exige CPF e data de nascimento e recusa valores inválidos", () => {
+    const empty = completeProfileSchema.safeParse({ cpf: "", birthDate: "" });
+    expect(empty.success).toBe(false);
+    if (!empty.success) {
+      const messages = Object.fromEntries(empty.error.issues.map((i) => [i.path[0], i.message]));
+      expect(messages.cpf).toBe("Informe seu CPF.");
+      expect(messages.birthDate).toBe("Informe sua data de nascimento.");
+    }
+
+    const shortCpf = completeProfileSchema.safeParse({ cpf: "123.456", birthDate: "1998-05-15" });
+    expect(shortCpf.success).toBe(false);
+
+    const invalidCpf = completeProfileSchema.safeParse({ cpf: "529.982.247-24", birthDate: "1998-05-15" });
+    expect(invalidCpf.success).toBe(false);
+
+    const futureDate = completeProfileSchema.safeParse({ cpf: "529.982.247-25", birthDate: "2099-12-31" });
+    expect(futureDate.success).toBe(false);
   });
 });

@@ -2,10 +2,14 @@ import { apiClient } from './apiClient';
 import type { User } from './auth';
 
 export type UpdateMePayload = {
-  fullName: string;
-  email: string;
+  fullName?: string;
+  email?: string;
   /** Só dígitos: a API recusa a máscara. `null` apaga o telefone. */
-  phone: string | null;
+  phone?: string | null;
+  /** Só dígitos (11 caracteres): a API recusa a máscara e não permite alterar depois de salvo. */
+  cpf?: string;
+  /** Data de nascimento no formato `YYYY-MM-DD`, não futura. */
+  birthDate?: string;
 };
 
 export type ChangePasswordPayload = {
