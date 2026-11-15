@@ -52,6 +52,7 @@ export function MeusEventosContent() {
     setBusca,
     limparFiltros,
     retry,
+    recarregar,
   } = useMeusEventos();
 
   if (status === "loading") {
@@ -260,7 +261,7 @@ export function MeusEventosContent() {
             <ul className="grid gap-4 md:grid-cols-2">
               {eventosFiltrados.map((evento) => (
                 <li key={evento.id}>
-                  <EventoOrganizadorCard evento={evento} papel={papel} />
+                  <EventoOrganizadorCard evento={evento} papel={papel} onAlterado={recarregar} />
                 </li>
               ))}
             </ul>

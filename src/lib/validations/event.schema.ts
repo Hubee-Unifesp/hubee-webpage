@@ -110,6 +110,10 @@ export function toEventFormValues(evento: EventoEditavel | null): EventFormInput
   };
 }
 
+/**
+ * Opcionais vazios vão como `null`, e não omitidos: na edição o `PATCH` só muda o que vem no corpo,
+ * então omitir um campo apagado manteria o valor antigo gravado.
+ */
 export function toEventPayload(values: EventFormValues, organizerId: string): EventoPayload {
   return {
     name: values.name,
@@ -117,10 +121,10 @@ export function toEventPayload(values: EventFormValues, organizerId: string): Ev
     venueId: values.venueId,
     startDate: new Date(values.startDate).toISOString(),
     endDate: new Date(values.endDate).toISOString(),
-    ...(values.salesStartDate && { salesStartDate: new Date(values.salesStartDate).toISOString() }),
-    ...(values.description && { description: values.description }),
-    ...(values.category && { category: values.category }),
-    ...(values.edition && { edition: values.edition }),
-    ...(values.ageRating && { ageRating: values.ageRating }),
+    salesStartDate: values.salesStartDate ? new Date(values.salesStartDate).toISOString() : null,
+    description: values.description || null,
+    category: values.category || null,
+    edition: values.edition || null,
+    ageRating: values.ageRating || null,
   };
 }

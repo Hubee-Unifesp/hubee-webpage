@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Ban, Copy, ExternalLink, MoreHorizontal } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Ban, Copy, ExternalLink, MoreHorizontal, Pencil, Send, Ticket } from "lucide-react";
 import { CategoryPill, EventMedia } from "@/components/home/events/event-media";
 import { formatEventDate, formatPrice } from "@/components/home/events/format";
 import { useToast } from "@/components/toast";
@@ -22,36 +24,63 @@ import {
   type EventoOrganizador,
   type PapelOrganizador,
 } from "@/types/organizacao";
+import { getApiErrorMessage } from "@/lib/api/errors";
+import { cancelarEvento, duplicarEvento, publicarEvento } from "@/lib/api/organizer-events";
+import { ConfirmarAcaoEventoModal, type AcaoEvento } from "./editor/confirmar-acao-evento-modal";
+import { canEditEvent } from "./editor/evento-editor.data";
 import { StatusEventoBadge } from "./status-evento-badge";
 
 interface EventoOrganizadorCardProps {
   evento: EventoOrganizador;
   papel: PapelOrganizador;
+  /** Chamado depois de publicar, duplicar ou cancelar, para a listagem buscar os dados novos. */
+  onAlterado: () => void;
 }
 
 /** Cartão de evento na listagem do painel do organizador ("Meus Eventos"). */
-export function EventoOrganizadorCard({ evento, papel }: EventoOrganizadorCardProps) {
+export function EventoOrganizadorCard({ evento, papel, onAlterado }: EventoOrganizadorCardProps) {
+  const router = useRouter();
   const toast = useToast();
+  const [acao, setAcao] = useState<AcaoEvento | null>(null);
   const primaryLabel = getPrimaryEventActionLabel(papel, evento.status);
   const showQuickActionsMenu = canCreateOrEditEvent(papel);
   const showPublicLink = canViewPublicPage(evento.status);
+  const showEdit = canEditEvent(papel, evento.status);
+  const showPublish = showEdit && evento.status === "draft";
   const showDuplicate = canDuplicateEvent(papel);
   const showCancel = canCancelEvent(papel, evento.status);
+  const editarHref = `/meus-eventos/${evento.id}/editar`;
 
   const handlePrimaryAction = () => {
-    if (evento.status === "draft") {
-      toast.success(`O formulário de edição de "${evento.nome}" estará disponível em breve.`);
-      return;
+    router.push(evento.status === "draft" ? editarHref : `${editarHref}?etapa=lotes`);
+  };
+
+  const handleDuplicate = async () => {
+    try {
+      const copia = await duplicarEvento(evento.id);
+      toast.success(`"${evento.nome}" duplicado como rascunho.`);
+      onAlterado();
+      router.push(`/meus-eventos/${copia.id}/editar`);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Não foi possível duplicar o evento. Tente novamente."));
     }
-    toast.success(`O painel detalhado de gestão de "${evento.nome}" estará disponível em breve.`);
   };
 
-  const handleDuplicate = () => {
-    toast.success(`Duplicação de "${evento.nome}" solicitada.`);
-  };
-
-  const handleCancel = () => {
-    toast.error(`O cancelamento de "${evento.nome}" exige confirmação no painel do evento.`);
+  /** Erro sobe para o modal continuar aberto; o toast explica o motivo (ex.: evento sem lotes). */
+  const confirmarAcao = async (escolhida: AcaoEvento) => {
+    try {
+      if (escolhida === "publicar") {
+        await publicarEvento(evento.id, []);
+        toast.success(`"${evento.nome}" publicado com sucesso.`);
+      } else {
+        await cancelarEvento(evento.id);
+        toast.success(`"${evento.nome}" cancelado.`);
+      }
+      setAcao(null);
+      onAlterado();
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    }
   };
 
   return (
@@ -165,6 +194,28 @@ export function EventoOrganizadorCard({ evento, papel }: EventoOrganizadorCardPr
                       </Link>
                     </DropdownMenuItem>
                   )}
+                  {showEdit && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href={editarHref}>
+                          <Pencil aria-hidden="true" />
+                          Editar evento
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href={`${editarHref}?etapa=lotes`}>
+                          <Ticket aria-hidden="true" />
+                          Gerenciar lotes
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {showPublish && (
+                    <DropdownMenuItem onSelect={() => setAcao("publicar")}>
+                      <Send aria-hidden="true" />
+                      Publicar evento
+                    </DropdownMenuItem>
+                  )}
                   {showDuplicate && (
                     <DropdownMenuItem onSelect={handleDuplicate}>
                       <Copy aria-hidden="true" />
@@ -174,7 +225,7 @@ export function EventoOrganizadorCard({ evento, papel }: EventoOrganizadorCardPr
                   {showCancel && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem variant="destructive" onSelect={handleCancel}>
+                      <DropdownMenuItem variant="destructive" onSelect={() => setAcao("cancelar")}>
                         <Ban aria-hidden="true" />
                         Cancelar evento
                       </DropdownMenuItem>
@@ -186,6 +237,12 @@ export function EventoOrganizadorCard({ evento, papel }: EventoOrganizadorCardPr
           </div>
         </div>
       </div>
+      <ConfirmarAcaoEventoModal
+        acao={acao}
+        nomeEvento={evento.nome}
+        onClose={() => setAcao(null)}
+        onConfirm={confirmarAcao}
+      />
     </article>
   );
 }

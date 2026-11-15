@@ -5,6 +5,7 @@ import { Plus, Ticket } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 import type { LoteIngresso, LotePayload } from "@/types/lote-ingresso";
 import { botaoPrimarioClassName, cartaoClassName, hintClassName } from "../editor/estilos";
@@ -56,8 +57,8 @@ export function LotesIngressosPanel({ lotes, somenteLeitura, onCriar, onEditar, 
       await onExcluir(lote.id);
       toast.success("Lote excluído.");
       setEmExclusao(null);
-    } catch {
-      toast.error("Não foi possível excluir o lote. Tente novamente.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Não foi possível excluir o lote. Tente novamente."));
     }
   }
 

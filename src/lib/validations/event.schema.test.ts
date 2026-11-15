@@ -103,7 +103,7 @@ describe("eventSchema", () => {
 });
 
 describe("toEventPayload", () => {
-  it("converte as datas para ISO e omite os opcionais vazios", () => {
+  it("converte as datas para ISO e manda null nos opcionais vazios, para a edição apagá-los", () => {
     const values = eventSchema.parse({ ...valid, name: "  Hubee Tech Summit  " });
 
     expect(toEventPayload(values, "org-1")).toEqual({
@@ -112,6 +112,11 @@ describe("toEventPayload", () => {
       venueId: "mock-local-centro",
       startDate: new Date("2027-03-20T09:00").toISOString(),
       endDate: new Date("2027-03-20T18:00").toISOString(),
+      salesStartDate: null,
+      description: null,
+      category: null,
+      edition: null,
+      ageRating: null,
     });
   });
 

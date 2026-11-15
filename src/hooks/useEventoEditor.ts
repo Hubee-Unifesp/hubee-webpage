@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { getApiErrorMessage, parseApiError } from "@/lib/api/errors";
 import {
   cancelarEvento,
   createEvento,
-  createLocal,
-  createLote,
-  deleteLote,
   getEventoEditavel,
-  getLocais,
   publicarEvento,
   updateEvento,
-  updateLote,
   uploadCapaEvento,
-} from "@/lib/api/event-editor";
-import { parseApiError } from "@/lib/api/errors";
+} from "@/lib/api/organizer-events";
+import { createLote, deleteLote, updateLote } from "@/lib/api/ticket-types";
+import { createLocal, getLocais } from "@/lib/api/venues";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
 import type { EventoEditavel, EventoPayload, LocalEvento, LocalPayload } from "@/types/evento-editor";
 import type { LotePayload } from "@/types/lote-ingresso";
@@ -24,6 +21,12 @@ type EditorState =
   | { status: "ok"; evento: EventoEditavel | null; locais: LocalEvento[] };
 
 const loadingState: EditorState = { status: "loading" };
+
+export interface ResultadoSalvarDados {
+  evento: EventoEditavel;
+  /** Preenchido quando os dados foram salvos, mas o envio da capa falhou. */
+  erroCapa: string | null;
+}
 
 export function useEventoEditor(eventoId?: string) {
   const { authLoading, organizacoes, organizacaoAtiva } = useOrganizacaoAtiva();
@@ -66,22 +69,36 @@ export function useEventoEditor(eventoId?: string) {
     return novo;
   }, []);
 
+  /**
+   * O evento salvo entra no estado antes do upload da capa: se o upload falhar, uma nova tentativa
+   * edita o mesmo rascunho em vez de criar outro.
+   */
   const salvarDados = useCallback(
-    async (payload: EventoPayload, capa: File | null): Promise<EventoEditavel> => {
+    async (payload: EventoPayload, capa: File | null): Promise<ResultadoSalvarDados> => {
       const { organizerId, ...alteracoes } = payload;
       let salvo = evento
-        ? await updateEvento(evento.id, alteracoes)
+        ? await updateEvento(evento.id, alteracoes, evento.lotes)
         : await createEvento({ ...alteracoes, organizerId });
-      if (capa) salvo = await uploadCapaEvento(salvo.id, capa);
       atualizarEvento(salvo);
-      return salvo;
+
+      if (!capa) return { evento: salvo, erroCapa: null };
+      try {
+        salvo = await uploadCapaEvento(salvo.id, capa, salvo.lotes);
+        atualizarEvento(salvo);
+        return { evento: salvo, erroCapa: null };
+      } catch (error) {
+        return {
+          evento: salvo,
+          erroCapa: getApiErrorMessage(error, "Não foi possível enviar a capa. Tente novamente."),
+        };
+      }
     },
     [evento, atualizarEvento],
   );
 
   const publicar = useCallback(async () => {
     if (!evento) throw new Error("Evento não carregado.");
-    atualizarEvento(await publicarEvento(evento.id));
+    atualizarEvento(await publicarEvento(evento.id, evento.lotes));
   }, [evento, atualizarEvento]);
 
   const cancelar = useCallback(async () => {

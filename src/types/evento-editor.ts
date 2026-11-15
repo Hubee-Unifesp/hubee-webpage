@@ -48,11 +48,12 @@ export interface EventoPayload {
   venueId: string;
   startDate: string;
   endDate: string;
-  salesStartDate?: string;
-  description?: string;
-  category?: EventCategory;
-  edition?: string;
-  ageRating?: AgeRating;
+  /** `null` apaga o valor na edição (o `PATCH` mantém o que não vem no corpo). */
+  salesStartDate?: string | null;
+  description?: string | null;
+  category?: EventCategory | null;
+  edition?: string | null;
+  ageRating?: AgeRating | null;
 }
 
 export type AtualizacaoEventoPayload = Partial<Omit<EventoPayload, "organizerId">> & { status?: StatusEvento };
