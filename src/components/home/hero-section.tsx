@@ -55,13 +55,13 @@ export function HeroSection({
     >
       <div className="relative grid gap-10 md:grid-cols-2 md:items-center">
         <div className="flex flex-col items-start text-left">
-          <span className="inline-flex items-center gap-2 rounded-full border border-hubee-400 bg-hubee-50 px-4 py-1.5 text-sm font-medium text-hubee-750 dark:border-hubee-400 dark:bg-transparent dark:text-hubee-400">
-            🐝 A nova forma de organizar eventos
-          </span>
+          <p className="text-xs font-medium tracking-[0.18em] text-hubee-750 uppercase sm:text-sm dark:text-hubee-400">
+            A NOVA FORMA DE ORGANIZAR EVENTOS
+          </p>
 
           <h1
             id="hero-titulo"
-            className="mt-4 font-heading text-3xl font-bold tracking-tight text-hubee-800 md:text-5xl dark:text-hubee-100"
+            className="mt-3 font-heading text-3xl font-bold tracking-tight text-hubee-800 md:text-5xl dark:text-hubee-100"
           >
             Gerencie seus eventos com a organização de uma colmeia.
           </h1>
