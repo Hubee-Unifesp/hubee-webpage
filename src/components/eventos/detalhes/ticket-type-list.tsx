@@ -87,7 +87,6 @@ function TicketTypeCard({
           formatPrice(ticket.price)
         )}
       </p>
-      <p className="mt-1 text-[11px] text-hubee-neutral-300 dark:text-hubee-100">+ taxa de serviço</p>
 
       {soldOut ? (
         <Button
