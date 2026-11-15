@@ -1,12 +1,15 @@
 import type { StatusEvento } from "@/types/organizacao";
 
-export type EventCategory =
-  | "festas"
-  | "shows"
-  | "palestras"
-  | "esportes"
-  | "academicos"
-  | "outros";
+export const EVENT_CATEGORIES = [
+  "festas",
+  "shows",
+  "palestras",
+  "esportes",
+  "academicos",
+  "outros",
+] as const;
+
+export type EventCategory = (typeof EVENT_CATEGORIES)[number];
 
 export interface EventSummary {
   id: string;
