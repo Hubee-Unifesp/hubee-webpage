@@ -8,33 +8,33 @@ import {
   type OrganizacaoVinculada,
 } from "@/types/organizacao";
 import type { UsuarioOrganizacao } from "@/types/usuario";
-import type {
-  AgeRating,
-  ApiEventDetail,
-  ApiEventListItem,
-  ApiEventPage,
-  ApiEventSummary,
-  ApiTicketType,
-  CategorySummary,
-  EventCategory,
-  EventDetails,
-  EventSearchFilters,
-  EventSummary,
-  GetOrganizerEventsParams,
-  HomeEvents,
+import {
+  EVENT_CATEGORIES,
+  type AgeRating,
+  type ApiEventDetail,
+  type ApiEventListItem,
+  type ApiEventPage,
+  type ApiEventSummary,
+  type ApiTicketType,
+  type CategorySummary,
+  type EventCategory,
+  type EventDetails,
+  type EventSearchFilters,
+  type EventSummary,
+  type GetOrganizerEventsParams,
+  type HomeEvents,
 } from "./events.types";
 
 export type * from "./events.types";
 
 export const SELLING_OUT_THRESHOLD = 0.8;
 
-const CATEGORY_ORDER: readonly EventCategory[] = [
-  "festas",
-  "shows",
-  "palestras",
-  "esportes",
-  "academicos",
-  "outros",
+const CATEGORY_PREFIXES: readonly [string, EventCategory][] = [
+  ["festa", "festas"],
+  ["show", "shows"],
+  ["palestra", "palestras"],
+  ["esporte", "esportes"],
+  ["academic", "academicos"],
 ];
 
 const AGE_RATINGS: readonly AgeRating[] = ["L", "10", "12", "14", "16", "18"];
@@ -546,12 +546,8 @@ export function toCategory(value: string | null): EventCategory {
     .toLowerCase()
     .trim();
 
-  if (text.startsWith("festa")) return "festas";
-  if (text.startsWith("show")) return "shows";
-  if (text.startsWith("palestra")) return "palestras";
-  if (text.startsWith("esporte")) return "esportes";
-  if (text.startsWith("academic")) return "academicos";
-  return "outros";
+  const match = CATEGORY_PREFIXES.find(([prefix]) => text.startsWith(prefix));
+  return match ? match[1] : "outros";
 }
 
 function buildHomeEvents(
@@ -582,7 +578,7 @@ function buildHomeEvents(
       .filter((event) => soldRatio(event) >= SELLING_OUT_THRESHOLD)
       .toSorted((a, b) => soldRatio(b) - soldRatio(a)),
     free: available.filter((event) => event.price === 0),
-    categories: CATEGORY_ORDER.map<CategorySummary>((category) => ({
+    categories: EVENT_CATEGORIES.map<CategorySummary>((category) => ({
       category,
       count: upcoming.filter((event) => event.category === category).length,
     })),

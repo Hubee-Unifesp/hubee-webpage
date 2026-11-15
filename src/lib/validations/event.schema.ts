@@ -1,12 +1,11 @@
 import { z } from "zod";
-import type { AgeRating, EventCategory } from "@/lib/api/events.types";
+import { EVENT_CATEGORIES, type AgeRating } from "@/lib/api/events.types";
 import type { EventoEditavel, EventoPayload } from "@/types/evento-editor";
 
 export const EVENT_NAME_MAX_LENGTH = 255;
 export const EVENT_EDITION_MAX_LENGTH = 100;
 
-export const EVENT_CATEGORIES = ["festas", "shows", "palestras", "esportes", "academicos", "outros"] as const satisfies
-  readonly EventCategory[];
+export { EVENT_CATEGORIES };
 
 export const AGE_RATINGS = ["L", "10", "12", "14", "16", "18"] as const satisfies readonly AgeRating[];
 
