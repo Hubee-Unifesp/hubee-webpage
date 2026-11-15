@@ -1,4 +1,4 @@
-import type { Fornecedor } from "@/types/fornecedor";
+import type { Fornecedor, SupplierSortBy } from "@/types/fornecedor";
 import type { PapelOrganizador } from "@/types/organizacao";
 
 /** Valor do filtro de categoria que mostra todos os fornecedores. */
@@ -36,19 +36,36 @@ export function getCategorias(fornecedores: readonly Fornecedor[]): string[] {
   return [...categorias].sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
+/** Converte o filtro visual de avaliação mínima para o query param `minRating` da `hubee-api` (`GOL-253`). */
+export function toMinRatingParam(avaliacaoMinima: FiltroAvaliacaoMinima): number | undefined {
+  if (avaliacaoMinima === "4") return 4;
+  if (avaliacaoMinima === "3") return 3;
+  return undefined;
+}
+
+/** Converte a opção visual de ordenação para o query param `sortBy` da `hubee-api` (`GOL-253`). */
+export function toSortByParam(ordenacao: OrdenacaoFornecedores): SupplierSortBy {
+  return ordenacao === "name" ? "companyName" : "rating";
+}
+
+type FornecedorAvaliavel = Pick<
+  Fornecedor,
+  "ratingAverage" | "ratingCount" | "averageRating" | "reviewsCount"
+>;
+
+export function getNotaMedia(fornecedor: FornecedorAvaliavel): number | null {
+  const nota = fornecedor.ratingAverage ?? fornecedor.averageRating;
+  return typeof nota === "number" && Number.isFinite(nota) ? nota : null;
+}
+
+export function getTotalAvaliacoes(fornecedor: FornecedorAvaliavel): number {
+  const total = fornecedor.ratingCount ?? fornecedor.reviewsCount;
+  return typeof total === "number" && Number.isFinite(total) && total > 0 ? total : 0;
+}
+
 /** Verifica se o fornecedor possui ao menos uma avaliação válida registrada. */
-export function temAvaliacao(
-  fornecedor: Pick<Fornecedor, "ratingAverage" | "ratingCount">,
-): fornecedor is Pick<Fornecedor, "ratingAverage" | "ratingCount"> & {
-  ratingAverage: number;
-  ratingCount: number;
-} {
-  return (
-    typeof fornecedor.ratingAverage === "number" &&
-    Number.isFinite(fornecedor.ratingAverage) &&
-    typeof fornecedor.ratingCount === "number" &&
-    fornecedor.ratingCount > 0
-  );
+export function temAvaliacao(fornecedor: FornecedorAvaliavel): boolean {
+  return getNotaMedia(fornecedor) !== null && getTotalAvaliacoes(fornecedor) > 0;
 }
 
 /** Formata a nota média com 1 casa decimal separada por vírgula (ex.: `4.8` -> `"4,8"`). */
@@ -69,18 +86,22 @@ function compareFornecedores(
     return a.companyName.localeCompare(b.companyName, "pt-BR");
   }
 
-  const aAvaliado = temAvaliacao(a);
-  const bAvaliado = temAvaliacao(b);
+  const aNota = getNotaMedia(a);
+  const bNota = getNotaMedia(b);
+  const aTotal = getTotalAvaliacoes(a);
+  const bTotal = getTotalAvaliacoes(b);
+  const aAvaliado = aNota !== null && aTotal > 0;
+  const bAvaliado = bNota !== null && bTotal > 0;
 
   if (aAvaliado && !bAvaliado) return -1;
   if (!aAvaliado && bAvaliado) return 1;
 
   if (aAvaliado && bAvaliado) {
-    if (b.ratingAverage !== a.ratingAverage) {
-      return b.ratingAverage - a.ratingAverage;
+    if (bNota !== aNota) {
+      return bNota - aNota;
     }
-    if (b.ratingCount !== a.ratingCount) {
-      return b.ratingCount - a.ratingCount;
+    if (bTotal !== aTotal) {
+      return bTotal - aTotal;
     }
   }
 
@@ -99,14 +120,15 @@ export function filterFornecedores(
   ordenacao: OrdenacaoFornecedores = ORDENACAO_PADRAO,
 ): Fornecedor[] {
   const termo = normalize(busca);
-  const notaMinima = avaliacaoMinima === "4" ? 4 : avaliacaoMinima === "3" ? 3 : null;
+  const notaMinima = toMinRatingParam(avaliacaoMinima) ?? null;
 
   return fornecedores
     .filter((fornecedor) => {
       const bateBusca = termo === "" || normalize(fornecedor.companyName).includes(termo);
       const bateCategoria = categoria === TODAS_CATEGORIAS || fornecedor.category === categoria;
+      const nota = getNotaMedia(fornecedor);
       const bateAvaliacao =
-        notaMinima === null || (temAvaliacao(fornecedor) && fornecedor.ratingAverage >= notaMinima);
+        notaMinima === null || (temAvaliacao(fornecedor) && nota !== null && nota >= notaMinima);
       return bateBusca && bateCategoria && bateAvaliacao;
     })
     .sort((a, b) => compareFornecedores(a, b, ordenacao));

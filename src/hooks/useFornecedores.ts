@@ -7,6 +7,8 @@ import {
   type OrdenacaoFornecedores,
   TODAS_AVALIACOES,
   TODAS_CATEGORIAS,
+  toMinRatingParam,
+  toSortByParam,
 } from "@/components/conta/fornecedores/fornecedores.data";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
 import {
@@ -29,11 +31,12 @@ const loadingState: FornecedoresState = { status: "loading", data: null };
 
 /**
  * Lista de fornecedores com busca, filtro por categoria/avaliação mínima, ordenação
- * e cadastro, edição e exclusão integrada aos endpoints `/suppliers` da `hubee-api` (GOL-204 / GOL-249).
+ * e cadastro, edição e exclusão integrada aos endpoints `/suppliers` da `hubee-api` (GOL-204 / GOL-249 / GOL-253).
  */
 export function useFornecedores() {
   const { authLoading, organizacaoAtiva } = useOrganizacaoAtiva();
   const [state, setState] = useState<FornecedoresState>(loadingState);
+  const [catalogo, setCatalogo] = useState<Fornecedor[]>([]);
   const [attempt, setAttempt] = useState(0);
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState<string>(TODAS_CATEGORIAS);
@@ -46,9 +49,16 @@ export function useFornecedores() {
     if (authLoading || !temOrganizacao) return;
 
     let active = true;
-    getSuppliers()
+    const minRating = toMinRatingParam(avaliacaoMinima);
+    const sortBy = toSortByParam(ordenacao);
+
+    getSuppliers({ minRating, sortBy })
       .then((data) => {
-        if (active) setState({ status: "ok", data });
+        if (!active) return;
+        setState({ status: "ok", data });
+        if (minRating === undefined) {
+          setCatalogo(data);
+        }
       })
       .catch(() => {
         if (active) setState({ status: "error", data: null });
@@ -57,22 +67,26 @@ export function useFornecedores() {
     return () => {
       active = false;
     };
-  }, [authLoading, temOrganizacao, attempt]);
+  }, [authLoading, temOrganizacao, attempt, avaliacaoMinima, ordenacao]);
 
   const retry = useCallback(() => {
     setState(loadingState);
     setAttempt((value) => value + 1);
   }, []);
 
-  const todos = useMemo(() => state.data ?? [], [state.data]);
+  const resultados = useMemo(() => state.data ?? [], [state.data]);
+  const todos = useMemo(
+    () => (catalogo.length > 0 ? catalogo : resultados),
+    [catalogo, resultados],
+  );
   const categorias = useMemo(() => getCategorias(todos), [todos]);
   const categoriaAtiva =
     categoria !== TODAS_CATEGORIAS && !categorias.includes(categoria)
       ? TODAS_CATEGORIAS
       : categoria;
   const filtrados = useMemo(
-    () => filterFornecedores(todos, busca, categoriaAtiva, avaliacaoMinima, ordenacao),
-    [todos, busca, categoriaAtiva, avaliacaoMinima, ordenacao],
+    () => filterFornecedores(resultados, busca, categoriaAtiva, avaliacaoMinima, ordenacao),
+    [resultados, busca, categoriaAtiva, avaliacaoMinima, ordenacao],
   );
 
   const limparFiltros = useCallback(() => {
@@ -85,6 +99,7 @@ export function useFornecedores() {
   /** @throws {FornecedorDuplicadoError} quando o CNPJ/CPF ou o e-mail já estão cadastrados. */
   const criar = useCallback(async (payload: FornecedorPayload): Promise<Fornecedor> => {
     const novo = await createSupplier(payload);
+    setCatalogo((prev) => [novo, ...prev]);
     setState((prev) => ({ status: "ok", data: [novo, ...(prev.data ?? [])] }));
     return novo;
   }, []);
@@ -99,6 +114,9 @@ export function useFornecedores() {
         email: payload.email ?? null,
         category: payload.category ?? null,
       });
+      setCatalogo((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...atualizado } : item)),
+      );
       setState((prev) => ({
         status: "ok",
         data: (prev.data ?? []).map((item) => (item.id === id ? { ...item, ...atualizado } : item)),
@@ -110,6 +128,7 @@ export function useFornecedores() {
 
   const excluir = useCallback(async (id: string): Promise<void> => {
     await deleteSupplier(id);
+    setCatalogo((prev) => prev.filter((item) => item.id !== id));
     setState((prev) => ({
       status: "ok",
       data: (prev.data ?? []).filter((item) => item.id !== id),
@@ -130,13 +149,16 @@ export function useFornecedores() {
     setCategoria,
     avaliacaoMinima,
     setAvaliacaoMinima,
+    notaMinima: avaliacaoMinima,
+    setNotaMinima: setAvaliacaoMinima,
     ordenacao,
     setOrdenacao,
     limparFiltros,
     temFiltroAtivo:
       busca.trim() !== "" ||
       categoriaAtiva !== TODAS_CATEGORIAS ||
-      avaliacaoMinima !== TODAS_AVALIACOES,
+      avaliacaoMinima !== TODAS_AVALIACOES ||
+      ordenacao !== ORDENACAO_PADRAO,
     retry,
     criar,
     atualizar,

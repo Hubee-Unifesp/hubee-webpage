@@ -1,10 +1,19 @@
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Fornecedor } from "@/types/fornecedor";
-import { formatarNotaMedia, NOTA_DESTAQUE, temAvaliacao } from "./fornecedores.data";
+import {
+  formatarNotaMedia,
+  getNotaMedia,
+  getTotalAvaliacoes,
+  NOTA_DESTAQUE,
+  temAvaliacao,
+} from "./fornecedores.data";
 
 interface AvaliacaoBadgeProps {
-  fornecedor: Pick<Fornecedor, "ratingAverage" | "ratingCount">;
+  fornecedor: Pick<
+    Fornecedor,
+    "ratingAverage" | "ratingCount" | "averageRating" | "reviewsCount"
+  >;
   className?: string;
 }
 
@@ -15,7 +24,10 @@ interface AvaliacaoBadgeProps {
  * - sem avaliações: rótulo neutro `Sem avaliações`
  */
 export function AvaliacaoBadge({ fornecedor, className }: AvaliacaoBadgeProps) {
-  if (!temAvaliacao(fornecedor)) {
+  const notaMedia = getNotaMedia(fornecedor);
+  const total = getTotalAvaliacoes(fornecedor);
+
+  if (!temAvaliacao(fornecedor) || notaMedia === null) {
     return (
       <span
         className={cn(
@@ -28,12 +40,11 @@ export function AvaliacaoBadge({ fornecedor, className }: AvaliacaoBadgeProps) {
     );
   }
 
-  const notaFormatada = formatarNotaMedia(fornecedor.ratingAverage);
-  const total = fornecedor.ratingCount;
+  const notaFormatada = formatarNotaMedia(notaMedia);
   const labelAcessivel = `Avaliação ${notaFormatada} de 5 estrelas (${total} ${
     total === 1 ? "avaliação" : "avaliações"
   })`;
-  const destaque = fornecedor.ratingAverage >= NOTA_DESTAQUE;
+  const destaque = notaMedia >= NOTA_DESTAQUE;
 
   if (destaque) {
     return (
