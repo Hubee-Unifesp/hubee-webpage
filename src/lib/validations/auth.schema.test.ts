@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  loginSchema,
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
   registerSchema,
@@ -34,5 +35,24 @@ describe("registerSchema (limites de senha unificados)", () => {
   it("recusa senha com 73 caracteres", () => {
     const password = "a".repeat(PASSWORD_MAX_LENGTH + 1);
     expect(registerPasswordError(password)).toBe("A senha deve ter no máximo 72 caracteres.");
+  });
+});
+
+describe("loginSchema", () => {
+  it("aceita rememberMe opcional como booleano", () => {
+    expect(
+      loginSchema.safeParse({
+        email: "maria@email.com",
+        password: "Password1!",
+        rememberMe: true,
+      }).success,
+    ).toBe(true);
+
+    expect(
+      loginSchema.safeParse({
+        email: "maria@email.com",
+        password: "Password1!",
+      }).success,
+    ).toBe(true);
   });
 });

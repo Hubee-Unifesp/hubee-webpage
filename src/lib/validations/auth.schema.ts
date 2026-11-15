@@ -12,6 +12,7 @@ export const emailField = z
 export const loginSchema = z.object({
   email: emailField,
   password: z.string().min(1, { message: "Informe sua senha." }),
+  rememberMe: z.boolean().optional(),
 });
 
 export const signupIntents = ["BUY", "ORGANIZE"] as const;

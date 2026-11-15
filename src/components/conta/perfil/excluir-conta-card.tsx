@@ -32,7 +32,7 @@ export function ExcluirContaCard() {
     <>
       <ContaCard title="Excluir Conta" tone="danger">
         <p className="text-xs text-hubee-neutral-300 dark:text-hubee-200">
-          Ao excluir sua conta, todos os seus dados serão apagados permanentemente.
+          Ao excluir sua conta, seu cadastro será desativado e seu acesso à plataforma será encerrado imediatamente.
         </p>
         <Button type="button" onClick={() => setAberto(true)} className={`${submitButtonClassName} mt-4`}>
           Excluir Conta
@@ -43,8 +43,8 @@ export function ExcluirContaCard() {
         open={aberto}
         onOpenChange={setAberto}
         dismissible={!excluindo}
-        title="Você deseja excluir sua conta permanentemente?"
-        description="Esta ação não pode ser desfeita."
+        title="Você deseja excluir sua conta?"
+        description="Seu cadastro será desativado imediatamente e você perderá o acesso à conta. Esta ação não pode ser desfeita pelo painel."
         tone="warning"
         footer={
           <>

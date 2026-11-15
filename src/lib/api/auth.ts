@@ -12,8 +12,9 @@ type AuthResponse = {
 };
 
 export const login = async (data: LoginFormInputs): Promise<AuthResponse> => {
-  const response = await apiClient.post<AuthResponse>('/auth/login', data);
-  saveSession(response.data.access_token);
+  const { rememberMe = false, ...credentials } = data;
+  const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+  saveSession(response.data.access_token, { rememberMe });
   return response.data;
 };
 

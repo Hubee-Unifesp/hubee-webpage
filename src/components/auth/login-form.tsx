@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { loginSchema, PASSWORD_MIN_LENGTH, type LoginFormInputs } from "@/lib/validations/auth.schema";
@@ -22,6 +22,7 @@ interface LoginFormProps {
 
 export function LoginForm({ onSubmit, onEdit, isLoading, error, successMessage }: LoginFormProps) {
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -30,7 +31,7 @@ export function LoginForm({ onSubmit, onEdit, isLoading, error, successMessage }
     mode: "onSubmit",
     reValidateMode: "onChange",
     shouldFocusError: true,
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: "", password: "", rememberMe: false },
   });
 
   return (
@@ -68,7 +69,18 @@ export function LoginForm({ onSubmit, onEdit, isLoading, error, successMessage }
             htmlFor="login-remember-me"
             className="flex items-center gap-2 text-sm font-normal text-hubee-800 dark:text-hubee-50"
           >
-            <Checkbox id="login-remember-me" name="remember-me" />
+            <Controller
+              control={control}
+              name="rememberMe"
+              render={({ field }) => (
+                <Checkbox
+                  id="login-remember-me"
+                  name={field.name}
+                  checked={Boolean(field.value)}
+                  onCheckedChange={(checked) => field.onChange(checked === true)}
+                />
+              )}
+            />
             Lembre-me
           </Label>
           <span
