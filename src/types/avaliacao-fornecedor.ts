@@ -1,34 +1,25 @@
-/** Critérios avaliados em cada prestação de serviço de um fornecedor. */
-export type CriterioAvaliacao = "qualidade" | "pontualidade" | "comunicacao" | "custoBeneficio";
-
 /** Nota de 1 a 5 estrelas. */
 export type NotaEstrela = 1 | 2 | 3 | 4 | 5;
 
-export type NotasPorCriterio = Record<CriterioAvaliacao, NotaEstrela>;
-
-/** Avaliação de um fornecedor feita por um membro da organização após um evento. */
+/** Avaliação de um fornecedor como a `hubee-api` devolve em `GET /suppliers/:id/reviews`. */
 export interface AvaliacaoFornecedor {
   id: string;
   supplierId: string;
-  eventId: string;
-  eventName: string;
-  /** Data de início do evento avaliado (ISO). */
-  eventDate: string;
-  authorName: string;
-  notas: NotasPorCriterio;
-  /** Média dos critérios, de 1 a 5, com uma casa decimal. */
-  nota: number;
-  recomenda: boolean;
-  comentario: string | null;
+  /** Id do usuário autor da avaliação. */
+  userId: string;
+  /** Nome do usuário autor, exibido no card. */
+  userName: string;
+  /** Nota de 1 a 5 (inteiro). */
+  rating: NotaEstrela;
+  comment: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
-/** Corpo de criação de uma avaliação. */
+/** Corpo de criação/atualização (`POST /suppliers/:id/reviews`). Upsert por (fornecedor, usuário). */
 export interface AvaliacaoFornecedorPayload {
-  eventId: string;
-  notas: NotasPorCriterio;
-  recomenda: boolean;
-  comentario?: string;
+  rating: NotaEstrela;
+  comment?: string;
 }
 
 /** Números consolidados das avaliações de um fornecedor. */
@@ -36,9 +27,6 @@ export interface ResumoAvaliacoes {
   total: number;
   /** Média geral (0 quando não há avaliações). */
   media: number;
-  /** Quantidade de avaliações por nota arredondada (1 a 5). */
+  /** Quantidade de avaliações por nota (1 a 5). */
   distribuicao: Record<NotaEstrela, number>;
-  mediasPorCriterio: Record<CriterioAvaliacao, number>;
-  /** Percentual (0–100) de avaliações que recomendam o fornecedor. */
-  percentualRecomenda: number;
 }
