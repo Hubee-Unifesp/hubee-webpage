@@ -26,9 +26,8 @@ import {
   toOrganizacoesVinculadas,
 } from "@/types/organizacao";
 
-const { getAuthMock, getPublicMock, postMock, patchMock, deleteMock } = vi.hoisted(() => ({
+const { getAuthMock, postMock, patchMock, deleteMock } = vi.hoisted(() => ({
   getAuthMock: vi.fn(),
-  getPublicMock: vi.fn(),
   postMock: vi.fn(),
   patchMock: vi.fn(),
   deleteMock: vi.fn(),
@@ -36,10 +35,6 @@ const { getAuthMock, getPublicMock, postMock, patchMock, deleteMock } = vi.hoist
 
 vi.mock("./apiClient", () => ({
   apiClient: { get: getAuthMock, post: postMock, patch: patchMock, delete: deleteMock },
-}));
-
-vi.mock("./client", () => ({
-  apiClient: { get: getPublicMock },
 }));
 
 describe("organizacao helpers (RBAC e cálculos)", () => {
@@ -182,45 +177,44 @@ describe("resolveUserOrganizations", () => {
 describe("getOrganizerEvents & toEventoOrganizador", () => {
   beforeEach(() => {
     getAuthMock.mockReset();
-    getPublicMock.mockReset();
   });
 
   it("mapeia resposta paginada de /events quando capacity já está presente", async () => {
-    getAuthMock.mockResolvedValueOnce({
-      data: {
-        data: [
-          {
-            id: "evt-1",
-            name: "Festa do Bixo",
-            description: "Recepção",
-            organizerId: "org-1",
-            venueId: "ven-1",
-            startDate: "2026-05-10T22:00:00.000Z",
-            endDate: "2026-05-11T04:00:00.000Z",
-            status: "published",
-            category: "Festas",
-            featured: true,
-            venueName: "Quadra",
-            venueCity: "São José dos Campos",
-            minPrice: "45.00",
-            minPriceBatch: "1º Lote",
-            capacity: 200,
-            ticketsSold: 50,
-          },
-        ],
-        meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
-      },
-    });
-
-    getPublicMock.mockResolvedValueOnce({ data: [] });
+    getAuthMock
+      .mockResolvedValueOnce({
+        data: {
+          data: [
+            {
+              id: "evt-1",
+              name: "Festa do Bixo",
+              description: "Recepção",
+              organizerId: "org-1",
+              venueId: "ven-1",
+              startDate: "2026-05-10T22:00:00.000Z",
+              endDate: "2026-05-11T04:00:00.000Z",
+              status: "published",
+              category: "Festas",
+              featured: true,
+              venueName: "Quadra",
+              venueCity: "São José dos Campos",
+              minPrice: "45.00",
+              minPriceBatch: "1º Lote",
+              capacity: 200,
+              ticketsSold: 50,
+            },
+          ],
+          meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
+        },
+      })
+      .mockResolvedValueOnce({ data: [] });
 
     const events = await getOrganizerEvents({ organizerId: "org-1" });
 
     expect(getAuthMock).toHaveBeenCalledWith("/events", {
       params: { limit: 50, organizerId: "org-1" },
     });
-    expect(getPublicMock).toHaveBeenCalledWith("/events/summary");
-    expect(getPublicMock).not.toHaveBeenCalledWith(expect.stringContaining("/ticket-types"));
+    expect(getAuthMock).toHaveBeenCalledWith("/events/summary");
+    expect(getAuthMock).not.toHaveBeenCalledWith(expect.stringContaining("/ticket-types"));
     expect(events).toEqual([
       {
         id: "evt-1",
@@ -241,30 +235,30 @@ describe("getOrganizerEvents & toEventoOrganizador", () => {
   });
 
   it("enriquece a capacidade via /events/:id/ticket-types quando capacity não vem em /events nem em summary", async () => {
-    getAuthMock.mockResolvedValueOnce({
-      data: {
-        data: [
-          {
-            id: "evt-2",
-            name: "Workshop IA",
-            description: null,
-            organizerId: "org-1",
-            venueId: "ven-2",
-            startDate: "2026-06-01T14:00:00.000Z",
-            endDate: "2026-06-01T18:00:00.000Z",
-            status: "draft",
-            category: "Palestras",
-            featured: false,
-            venueName: "Auditório",
-            venueCity: "São Paulo",
-            minPrice: null,
-            minPriceBatch: null,
-          },
-        ],
-        meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
-      },
-    });
-    getPublicMock
+    getAuthMock
+      .mockResolvedValueOnce({
+        data: {
+          data: [
+            {
+              id: "evt-2",
+              name: "Workshop IA",
+              description: null,
+              organizerId: "org-1",
+              venueId: "ven-2",
+              startDate: "2026-06-01T14:00:00.000Z",
+              endDate: "2026-06-01T18:00:00.000Z",
+              status: "draft",
+              category: "Palestras",
+              featured: false,
+              venueName: "Auditório",
+              venueCity: "São Paulo",
+              minPrice: null,
+              minPriceBatch: null,
+            },
+          ],
+          meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
+        },
+      })
       .mockResolvedValueOnce({ data: [] })
       .mockResolvedValueOnce({
         data: [
@@ -275,62 +269,63 @@ describe("getOrganizerEvents & toEventoOrganizador", () => {
 
     const events = await getOrganizerEvents({ organizerId: "org-1" });
 
-    expect(getPublicMock).toHaveBeenCalledWith("/events/summary");
-    expect(getPublicMock).toHaveBeenCalledWith("/events/evt-2/ticket-types");
+    expect(getAuthMock).toHaveBeenCalledWith("/events/summary");
+    expect(getAuthMock).toHaveBeenCalledWith("/events/evt-2/ticket-types");
     expect(events[0]?.capacidade).toBe(100);
     expect(events[0]?.precoMinimo).toBe(20);
     expect(events[0]?.loteMinimo).toBe("Lote Promocional");
   });
 
   it("mescla capacity e ticketsSold a partir de /events/summary para evento publicado sem chamar /ticket-types", async () => {
-    getAuthMock.mockResolvedValueOnce({
-      data: {
+    getAuthMock
+      .mockResolvedValueOnce({
+        data: {
+          data: [
+            {
+              id: "evt-published",
+              name: "Festival de Inverno",
+              description: null,
+              organizerId: "org-1",
+              venueId: "ven-3",
+              startDate: "2026-07-15T20:00:00.000Z",
+              endDate: "2026-07-16T02:00:00.000Z",
+              status: "published",
+              category: "Shows",
+              featured: false,
+              venueName: "Parque",
+              venueCity: "Campos do Jordão",
+              minPrice: "50.00",
+              minPriceBatch: "1º Lote",
+            },
+          ],
+          meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
+        },
+      })
+      .mockResolvedValueOnce({
         data: [
           {
             id: "evt-published",
             name: "Festival de Inverno",
             description: null,
-            organizerId: "org-1",
-            venueId: "ven-3",
+            category: "Shows",
             startDate: "2026-07-15T20:00:00.000Z",
             endDate: "2026-07-16T02:00:00.000Z",
-            status: "published",
-            category: "Shows",
             featured: false,
+            organizerName: "Org 1",
             venueName: "Parque",
             venueCity: "Campos do Jordão",
-            minPrice: "50.00",
+            minPrice: 50,
             minPriceBatch: "1º Lote",
+            capacity: 500,
+            ticketsSold: 350,
           },
         ],
-        meta: { page: 1, limit: 50, total: 1, totalPages: 1 },
-      },
-    });
-    getPublicMock.mockResolvedValueOnce({
-      data: [
-        {
-          id: "evt-published",
-          name: "Festival de Inverno",
-          description: null,
-          category: "Shows",
-          startDate: "2026-07-15T20:00:00.000Z",
-          endDate: "2026-07-16T02:00:00.000Z",
-          featured: false,
-          organizerName: "Org 1",
-          venueName: "Parque",
-          venueCity: "Campos do Jordão",
-          minPrice: 50,
-          minPriceBatch: "1º Lote",
-          capacity: 500,
-          ticketsSold: 350,
-        },
-      ],
-    });
+      });
 
     const events = await getOrganizerEvents({ organizerId: "org-1" });
 
-    expect(getPublicMock).toHaveBeenCalledWith("/events/summary");
-    expect(getPublicMock).not.toHaveBeenCalledWith("/events/evt-published/ticket-types");
+    expect(getAuthMock).toHaveBeenCalledWith("/events/summary");
+    expect(getAuthMock).not.toHaveBeenCalledWith("/events/evt-published/ticket-types");
     expect(events[0]?.capacidade).toBe(500);
     expect(events[0]?.ingressosVendidos).toBe(350);
     expect(events[0]?.percentualVendido).toBe(70);
