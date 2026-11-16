@@ -66,14 +66,13 @@ export function useAvaliacoesFornecedor(supplierId: string) {
   const avaliar = useCallback(
     async (payload: AvaliacaoFornecedorPayload): Promise<AvaliacaoFornecedor> => {
       const nova = await createSupplierReview(supplierId, payload);
-      // Refaz a busca para refletir a lista (upsert por usuário) e a nota/contagem do fornecedor.
-      const [fornecedor, atualizadas] = await Promise.all([
-        getSupplierById(supplierId),
-        getSupplierReviews(supplierId),
-      ]);
-      setState((prev) =>
-        prev.status === "ok" ? { status: "ok", data: { fornecedor, avaliacoes: atualizadas } } : prev,
-      );
+      // Atualiza a lista com o retorno do POST (upsert por usuário), sem refetch: uma falha de rede
+      // após a gravação não deve propagar erro ao `enviar` e levar o usuário a reenviar e sobrescrever.
+      setState((prev) => {
+        if (prev.status !== "ok") return prev;
+        const outras = prev.data.avaliacoes.filter((item) => item.userId !== nova.userId);
+        return { status: "ok", data: { ...prev.data, avaliacoes: [nova, ...outras] } };
+      });
       return nova;
     },
     [supplierId],

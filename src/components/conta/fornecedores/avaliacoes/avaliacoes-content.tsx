@@ -11,6 +11,7 @@ import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAvaliacoesFornecedor } from "@/hooks/useAvaliacoesFornecedor";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import { formatCpfCnpj, formatPhone } from "@/lib/masks";
 import type { AvaliacaoFornecedorPayload } from "@/types/avaliacao-fornecedor";
 import { CategoriaBadge } from "../categoria-badge";
@@ -116,8 +117,8 @@ export function AvaliacoesContent({ supplierId }: { supplierId: string }) {
       setFormAberto(false);
       toast.success("Avaliação enviada com sucesso.");
       return true;
-    } catch {
-      toast.error("Não foi possível enviar a avaliação. Tente novamente.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Não foi possível enviar a avaliação. Tente novamente."));
       return false;
     }
   }
