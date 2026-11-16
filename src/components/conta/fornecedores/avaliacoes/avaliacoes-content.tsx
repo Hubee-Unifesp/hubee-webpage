@@ -38,7 +38,7 @@ function Voltar() {
   );
 }
 
-/** Página de avaliações de um fornecedor: resumo, filtros, lista e formulário de nova avaliação (GOL-244). */
+/** Página de avaliações de um fornecedor: resumo, filtros, lista e formulário de nova avaliação (GOL-248). */
 export function AvaliacoesContent({ supplierId }: { supplierId: string }) {
   const router = useRouter();
   const toast = useToast();
@@ -49,7 +49,6 @@ export function AvaliacoesContent({ supplierId }: { supplierId: string }) {
     status,
     organizacaoAtiva,
     fornecedor,
-    eventos,
     avaliacoes,
     filtradas,
     resumo,
@@ -277,7 +276,6 @@ export function AvaliacoesContent({ supplierId }: { supplierId: string }) {
           open={formAberto}
           onOpenChange={setFormAberto}
           fornecedorNome={fornecedor.companyName}
-          eventos={eventos}
           onSubmit={enviar}
         />
       )}
