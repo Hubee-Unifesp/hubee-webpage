@@ -11,6 +11,7 @@ import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAvaliacoesFornecedor } from "@/hooks/useAvaliacoesFornecedor";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import { formatCpfCnpj, formatPhone } from "@/lib/masks";
 import type { AvaliacaoFornecedorPayload } from "@/types/avaliacao-fornecedor";
 import { CategoriaBadge } from "../categoria-badge";
@@ -38,7 +39,7 @@ function Voltar() {
   );
 }
 
-/** Página de avaliações de um fornecedor: resumo, filtros, lista e formulário de nova avaliação (GOL-244). */
+/** Página de avaliações de um fornecedor: resumo, filtros, lista e formulário de nova avaliação (GOL-248). */
 export function AvaliacoesContent({ supplierId }: { supplierId: string }) {
   const router = useRouter();
   const toast = useToast();
@@ -49,7 +50,6 @@ export function AvaliacoesContent({ supplierId }: { supplierId: string }) {
     status,
     organizacaoAtiva,
     fornecedor,
-    eventos,
     avaliacoes,
     filtradas,
     resumo,
@@ -117,8 +117,8 @@ export function AvaliacoesContent({ supplierId }: { supplierId: string }) {
       setFormAberto(false);
       toast.success("Avaliação enviada com sucesso.");
       return true;
-    } catch {
-      toast.error("Não foi possível enviar a avaliação. Tente novamente.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Não foi possível enviar a avaliação. Tente novamente."));
       return false;
     }
   }
@@ -277,7 +277,6 @@ export function AvaliacoesContent({ supplierId }: { supplierId: string }) {
           open={formAberto}
           onOpenChange={setFormAberto}
           fornecedorNome={fornecedor.companyName}
-          eventos={eventos}
           onSubmit={enviar}
         />
       )}

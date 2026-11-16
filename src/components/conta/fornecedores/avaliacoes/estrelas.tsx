@@ -40,6 +40,8 @@ export function EstrelasNota({ nota, tamanho = "md", className }: { nota: number
 interface EstrelasInputProps {
   /** Nome do grupo (nome acessível e `name` dos radios). */
   label: string;
+  /** Id de um rótulo visível a ser usado como nome acessível no lugar de `label`. */
+  labelledBy?: string;
   /** 0 = ainda não avaliado. */
   value: number;
   onChange: (nota: NotaEstrela) => void;
@@ -53,7 +55,7 @@ interface EstrelasInputProps {
  * Seleção de 1 a 5 estrelas. Usa radios nativos escondidos: Tab entra no grupo e as setas trocam a nota.
  * Passar o mouse mostra uma prévia e o rótulo da nota ("Bom", "Excelente"…).
  */
-export function EstrelasInput({ label, value, onChange, onBlur, invalid, describedBy, disabled }: EstrelasInputProps) {
+export function EstrelasInput({ label, labelledBy, value, onChange, onBlur, invalid, describedBy, disabled }: EstrelasInputProps) {
   const name = useId();
   const [hover, setHover] = useState(0);
   const exibida = hover || value;
@@ -61,7 +63,8 @@ export function EstrelasInput({ label, value, onChange, onBlur, invalid, describ
   return (
     <div
       role="radiogroup"
-      aria-label={label}
+      aria-label={labelledBy ? undefined : label}
+      aria-labelledby={labelledBy}
       aria-invalid={invalid || undefined}
       aria-describedby={describedBy}
       className="flex items-center gap-2"

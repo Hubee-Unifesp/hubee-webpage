@@ -3,13 +3,10 @@
 import { useEffect, useId } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
-import { formatOrderDate } from "@/components/conta/pedidos/format";
+import { Loader2 } from "lucide-react";
 import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { EventoAvaliavel } from "@/lib/api/supplier-reviews";
 import { cn } from "@/lib/utils";
 import {
   emptySupplierReviewForm,
@@ -20,14 +17,12 @@ import {
   type SupplierReviewFormValues,
 } from "@/lib/validations/supplier-review.schema";
 import type { AvaliacaoFornecedorPayload } from "@/types/avaliacao-fornecedor";
-import { CRITERIOS, formatarNota } from "./avaliacoes.data";
-import { EstrelasInput, EstrelasNota } from "./estrelas";
+import { EstrelasInput } from "./estrelas";
 
 interface AvaliarFornecedorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   fornecedorNome: string;
-  eventos: readonly EventoAvaliavel[];
   /** Deve resolver `true` quando a avaliação foi salva (o modal fecha) e `false` em caso de erro. */
   onSubmit: (payload: AvaliacaoFornecedorPayload) => Promise<boolean>;
 }
@@ -38,11 +33,10 @@ const errorClassName = "text-xs text-red-700 dark:text-red-300";
 const controlClassName =
   "border-hubee-neutral-50 bg-white text-hubee-800 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50";
 
-/** Modal com o formulário de avaliação de um fornecedor após um evento. */
-export function AvaliarFornecedorModal({ open, onOpenChange, fornecedorNome, eventos, onSubmit }: AvaliarFornecedorModalProps) {
+/** Modal com o formulário de avaliação de um fornecedor: nota única e comentário opcional. */
+export function AvaliarFornecedorModal({ open, onOpenChange, fornecedorNome, onSubmit }: AvaliarFornecedorModalProps) {
   const formId = useId();
-  const eventoLabelId = useId();
-  const recomendaLabelId = useId();
+  const notaLabelId = useId();
   const comentarioId = useId();
 
   const {
@@ -62,10 +56,7 @@ export function AvaliarFornecedorModal({ open, onOpenChange, fornecedorNome, eve
     if (open) reset(emptySupplierReviewForm);
   }, [open, reset]);
 
-  const [notas, comentario] = useWatch({ control, name: ["notas", "comentario"] });
-  const valores = CRITERIOS.map(({ id }) => notas[id]);
-  const preenchidas = valores.filter((valor) => valor > 0);
-  const notaGeral = preenchidas.length ? preenchidas.reduce((a, b) => a + b, 0) / preenchidas.length : 0;
+  const comentario = useWatch({ control, name: "comentario" });
 
   async function enviar(values: SupplierReviewFormValues) {
     await onSubmit(toSupplierReviewPayload(values));
@@ -106,137 +97,31 @@ export function AvaliarFornecedorModal({ open, onOpenChange, fornecedorNome, eve
         <fieldset disabled={isSubmitting} className="flex min-w-0 flex-col gap-5">
           <legend className="sr-only">Avaliação do fornecedor</legend>
 
-          <div className="flex flex-col gap-1.5">
-            <span id={eventoLabelId} className={labelClassName}>
-              Evento *
+          <div className="flex flex-col gap-2 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 dark:border-hubee-500/40 dark:bg-hubee-800/60">
+            <span id={notaLabelId} className={labelClassName}>
+              Nota *
             </span>
             <Controller
               control={control}
-              name="eventId"
+              name="rating"
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
-                  <SelectTrigger
-                    ref={field.ref}
-                    aria-labelledby={eventoLabelId}
-                    aria-invalid={errors.eventId ? true : undefined}
-                    aria-describedby={errors.eventId ? `${eventoLabelId}-error` : undefined}
-                    className={cn(controlClassName, "h-10 w-full rounded-lg")}
-                  >
-                    <SelectValue placeholder="Selecione o evento em que o fornecedor atuou" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    {eventos.map((evento) => (
-                      <SelectItem key={evento.id} value={evento.id}>
-                        {evento.nome} · {formatOrderDate(evento.data)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <EstrelasInput
+                  label="Nota"
+                  labelledBy={notaLabelId}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  invalid={Boolean(errors.rating)}
+                  describedBy={errors.rating ? `${formId}-rating-error` : undefined}
+                  disabled={isSubmitting}
+                />
               )}
             />
-            {errors.eventId && (
-              <p id={`${eventoLabelId}-error`} className={errorClassName}>
-                {errors.eventId.message}
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-3 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 dark:border-hubee-500/40 dark:bg-hubee-800/60">
-            <div className="flex items-center justify-between gap-3">
-              <span className={labelClassName}>Notas por critério *</span>
-              <span className="flex items-center gap-2 text-xs" aria-live="polite">
-                <span className="text-hubee-neutral-300 dark:text-hubee-200">Nota geral</span>
-                <EstrelasNota nota={notaGeral} tamanho="sm" />
-                <span className="font-bold tabular-nums">{notaGeral ? formatarNota(notaGeral) : "—"}</span>
+            {errors.rating && (
+              <span id={`${formId}-rating-error`} className={errorClassName}>
+                {errors.rating.message}
               </span>
-            </div>
-
-            <ul className="flex flex-col divide-y divide-hubee-200 dark:divide-hubee-500/30">
-              {CRITERIOS.map((criterio) => {
-                const erro = errors.notas?.[criterio.id]?.message;
-                const erroId = `${formId}-${criterio.id}-error`;
-                return (
-                  <li
-                    key={criterio.id}
-                    className="flex flex-col gap-1 py-2.5 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold">{criterio.label}</span>
-                      <span className={hintClassName}>{criterio.descricao}</span>
-                      {erro && (
-                        <span id={erroId} className={errorClassName}>
-                          {erro}
-                        </span>
-                      )}
-                    </div>
-                    <Controller
-                      control={control}
-                      name={`notas.${criterio.id}`}
-                      render={({ field }) => (
-                        <EstrelasInput
-                          label={criterio.label}
-                          value={field.value}
-                          onChange={field.onChange}
-                          onBlur={field.onBlur}
-                          invalid={Boolean(erro)}
-                          describedBy={erro ? erroId : undefined}
-                          disabled={isSubmitting}
-                        />
-                      )}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span id={recomendaLabelId} className={labelClassName}>
-              Você recomendaria este fornecedor? *
-            </span>
-            <Controller
-              control={control}
-              name="recomenda"
-              render={({ field }) => (
-                <div
-                  role="radiogroup"
-                  aria-labelledby={recomendaLabelId}
-                  aria-invalid={errors.recomenda ? true : undefined}
-                  className="grid grid-cols-2 gap-2"
-                >
-                  {(
-                    [
-                      { value: "sim", label: "Sim, recomendo", Icon: ThumbsUp, ativo: "border-emerald-600 bg-emerald-50 text-emerald-800 dark:border-emerald-400 dark:bg-emerald-950/60 dark:text-emerald-200" },
-                      { value: "nao", label: "Não recomendo", Icon: ThumbsDown, ativo: "border-red-600 bg-red-50 text-red-800 dark:border-red-400 dark:bg-red-950/60 dark:text-red-200" },
-                    ] as const
-                  ).map(({ value, label, Icon, ativo }) => (
-                    <label
-                      key={value}
-                      className={cn(
-                        "flex h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition-colors has-focus-visible:ring-2 has-focus-visible:ring-hubee-600 has-disabled:cursor-not-allowed has-disabled:opacity-60 dark:has-focus-visible:ring-hubee-400",
-                        field.value === value
-                          ? ativo
-                          : "border-hubee-neutral-50 bg-white text-hubee-800 hover:border-hubee-400 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50",
-                        errors.recomenda && field.value === "" && "border-red-600 dark:border-red-400",
-                      )}
-                    >
-                      <input
-                        type="radio"
-                        name={field.name}
-                        value={value}
-                        checked={field.value === value}
-                        onChange={() => field.onChange(value)}
-                        onBlur={field.onBlur}
-                        className="sr-only"
-                      />
-                      <Icon aria-hidden="true" className="size-4" />
-                      {label}
-                    </label>
-                  ))}
-                </div>
-              )}
-            />
-            {errors.recomenda && <p className={errorClassName}>{errors.recomenda.message}</p>}
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">

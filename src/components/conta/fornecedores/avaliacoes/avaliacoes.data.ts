@@ -1,17 +1,4 @@
-import type {
-  AvaliacaoFornecedor,
-  CriterioAvaliacao,
-  NotaEstrela,
-  NotasPorCriterio,
-  ResumoAvaliacoes,
-} from "@/types/avaliacao-fornecedor";
-
-export const CRITERIOS: readonly { id: CriterioAvaliacao; label: string; descricao: string }[] = [
-  { id: "qualidade", label: "Qualidade", descricao: "Entrega do serviço ou produto contratado" },
-  { id: "pontualidade", label: "Pontualidade", descricao: "Cumprimento de horários e prazos" },
-  { id: "comunicacao", label: "Comunicação", descricao: "Clareza e agilidade no atendimento" },
-  { id: "custoBeneficio", label: "Custo-benefício", descricao: "Preço justo pelo que foi entregue" },
-];
+import type { AvaliacaoFornecedor, NotaEstrela, ResumoAvaliacoes } from "@/types/avaliacao-fornecedor";
 
 export const NOTAS: readonly NotaEstrela[] = [5, 4, 3, 2, 1];
 
@@ -37,59 +24,36 @@ function arredondar(valor: number): number {
   return Math.round(valor * 10) / 10;
 }
 
-/** Média dos critérios com uma casa decimal. */
-export function calcularNota(notas: NotasPorCriterio): number {
-  const valores = CRITERIOS.map(({ id }) => notas[id]);
-  return arredondar(valores.reduce((soma, valor) => soma + valor, 0) / valores.length);
-}
-
-/** Nota usada na distribuição e no filtro: arredondada para a estrela mais próxima. */
-export function notaInteira(nota: number): NotaEstrela {
-  return Math.min(5, Math.max(1, Math.round(nota))) as NotaEstrela;
-}
-
 export function calcularResumo(avaliacoes: readonly AvaliacaoFornecedor[]): ResumoAvaliacoes {
   const distribuicao: Record<NotaEstrela, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-  const somas: Record<CriterioAvaliacao, number> = { qualidade: 0, pontualidade: 0, comunicacao: 0, custoBeneficio: 0 };
   let somaNotas = 0;
-  let recomendam = 0;
 
   for (const avaliacao of avaliacoes) {
-    distribuicao[notaInteira(avaliacao.nota)] += 1;
-    somaNotas += avaliacao.nota;
-    if (avaliacao.recomenda) recomendam += 1;
-    for (const { id } of CRITERIOS) somas[id] += avaliacao.notas[id];
+    distribuicao[avaliacao.rating] += 1;
+    somaNotas += avaliacao.rating;
   }
 
   const total = avaliacoes.length;
-  const media = (soma: number) => (total === 0 ? 0 : arredondar(soma / total));
 
   return {
     total,
-    media: media(somaNotas),
+    media: total === 0 ? 0 : arredondar(somaNotas / total),
     distribuicao,
-    mediasPorCriterio: {
-      qualidade: media(somas.qualidade),
-      pontualidade: media(somas.pontualidade),
-      comunicacao: media(somas.comunicacao),
-      custoBeneficio: media(somas.custoBeneficio),
-    },
-    percentualRecomenda: total === 0 ? 0 : Math.round((recomendam / total) * 100),
   };
 }
 
-/** Filtra pela nota arredondada (ou todas) e ordena a lista de avaliações. */
+/** Filtra pela nota (ou todas) e ordena a lista de avaliações. */
 export function filtrarAvaliacoes(
   avaliacoes: readonly AvaliacaoFornecedor[],
   nota: string,
   ordem: OrdemAvaliacoes,
 ): AvaliacaoFornecedor[] {
   const filtradas =
-    nota === TODAS_NOTAS ? [...avaliacoes] : avaliacoes.filter((item) => String(notaInteira(item.nota)) === nota);
+    nota === TODAS_NOTAS ? [...avaliacoes] : avaliacoes.filter((item) => String(item.rating) === nota);
 
   return filtradas.sort((a, b) => {
-    if (ordem === "maior-nota" && b.nota !== a.nota) return b.nota - a.nota;
-    if (ordem === "menor-nota" && b.nota !== a.nota) return a.nota - b.nota;
+    if (ordem === "maior-nota" && b.rating !== a.rating) return b.rating - a.rating;
+    if (ordem === "menor-nota" && b.rating !== a.rating) return a.rating - b.rating;
     return b.createdAt.localeCompare(a.createdAt);
   });
 }
