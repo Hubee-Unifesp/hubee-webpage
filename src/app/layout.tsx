@@ -6,6 +6,7 @@ import { themeInitScript } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { ApiWakeNotice } from "@/components/api-wake/api-wake-notice";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </CartProvider>
           </AuthProvider>
+          <ApiWakeNotice />
         </ThemeProvider>
       </body>
     </html>

@@ -2,6 +2,7 @@ import { AxiosError, type AxiosAdapter, type AxiosResponse } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearSession, getToken, saveSession } from "../session";
 import { apiClient } from "./apiClient";
+import { COLD_START_TIMEOUT_MS, DEFAULT_TIMEOUT_MS, resetApiStatus } from "./api-status";
 
 function createStorageMock() {
   const store = new Map<string, string>();
@@ -37,6 +38,7 @@ describe("apiClient (BUG-23 e BUG-24)", () => {
   let locationMock: { pathname: string; href: string; protocol: string };
 
   beforeEach(() => {
+    resetApiStatus();
     localStorageMock.clear();
     sessionStorageMock.clear();
     cookieJar = "";
@@ -156,5 +158,73 @@ describe("apiClient (BUG-23 e BUG-24)", () => {
 
     expect(getToken()).toBe("token-valido");
     expect(locationMock.href).toBe("http://localhost:3001/conta/perfil");
+  });
+});
+
+function makeTimeoutCapturingAdapter(captured: unknown[], status = 200): AxiosAdapter {
+  return async (config) => {
+    captured.push(config.timeout);
+    const response: AxiosResponse = { status, statusText: "", headers: {}, config, data: {} };
+    if (status >= 400) throw new AxiosError("Erro", "ERR_BAD_RESPONSE", config, undefined, response);
+    return response;
+  };
+}
+
+describe("apiClient cold start (GOL-256)", () => {
+  beforeEach(() => resetApiStatus());
+
+  afterEach(() => vi.useRealTimers());
+
+  it("usa timeout de 60s até a API responder e 10s depois", async () => {
+    const captured: unknown[] = [];
+    const adapter = makeTimeoutCapturingAdapter(captured);
+
+    await apiClient.get("/events", { adapter });
+    await apiClient.get("/events", { adapter });
+
+    expect(captured).toEqual([COLD_START_TIMEOUT_MS, DEFAULT_TIMEOUT_MS]);
+  });
+
+  it("considera a API acordada também quando ela responde com erro HTTP", async () => {
+    const captured: unknown[] = [];
+
+    await expect(apiClient.get("/events/x", { adapter: makeTimeoutCapturingAdapter(captured, 404) })).rejects.toThrow();
+    await apiClient.get("/events", { adapter: makeTimeoutCapturingAdapter(captured) });
+
+    expect(captured).toEqual([COLD_START_TIMEOUT_MS, DEFAULT_TIMEOUT_MS]);
+  });
+
+  it("continua em 60s quando a chamada falha sem resposta do servidor", async () => {
+    const captured: unknown[] = [];
+    const networkError: AxiosAdapter = async (config) => {
+      captured.push(config.timeout);
+      throw new AxiosError("timeout", "ECONNABORTED", config);
+    };
+
+    await expect(apiClient.get("/events", { adapter: networkError })).rejects.toThrow();
+    await expect(apiClient.get("/events", { adapter: networkError })).rejects.toThrow();
+
+    expect(captured).toEqual([COLD_START_TIMEOUT_MS, COLD_START_TIMEOUT_MS]);
+  });
+
+  it("volta a 60s depois de 10 minutos sem respostas", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-16T12:00:00Z"));
+    const captured: unknown[] = [];
+    const adapter = makeTimeoutCapturingAdapter(captured);
+
+    await apiClient.get("/events", { adapter });
+    vi.setSystemTime(new Date("2026-11-16T12:10:00Z"));
+    await apiClient.get("/events", { adapter });
+
+    expect(captured).toEqual([COLD_START_TIMEOUT_MS, COLD_START_TIMEOUT_MS]);
+  });
+
+  it("respeita timeout explícito da chamada", async () => {
+    const captured: unknown[] = [];
+
+    await apiClient.get("/events", { timeout: 5_000, adapter: makeTimeoutCapturingAdapter(captured) });
+
+    expect(captured).toEqual([5_000]);
   });
 });
