@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { clearSession, getToken } from '../session';
+import { DEFAULT_TIMEOUT_MS, markApiAwake, resolveTimeout } from './api-status';
 
 declare module 'axios' {
   interface AxiosRequestConfig {
@@ -13,13 +14,15 @@ declare module 'axios' {
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
-  timeout: 10_000,
+  timeout: DEFAULT_TIMEOUT_MS,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 apiClient.interceptors.request.use((config) => {
+  config.timeout = resolveTimeout(config.timeout);
+
   const token = getToken();
   const hasExplicitAuth =
     typeof config.headers?.has === 'function'
@@ -33,8 +36,13 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    markApiAwake();
+    return response;
+  },
   (error) => {
+    if (error.response) markApiAwake();
+
     if (error.response?.status === 401 && !error.config?.skipAuthRedirect && typeof window !== 'undefined') {
       clearSession();
 
