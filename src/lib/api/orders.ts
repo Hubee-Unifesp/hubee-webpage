@@ -1,7 +1,6 @@
 import { isAxiosError } from "axios";
 import { apiClient } from "./apiClient";
 import { parseApiError } from "./errors";
-import { toCategory, type ApiEvent, type ApiTicketType, type ApiVenue } from "./events";
 import type {
   ApiOrder,
   ApiOrderWithItems,
@@ -12,9 +11,8 @@ import type {
 import type { EventoPedido, ItemPedido, Pedido } from "@/types/pedido";
 
 /**
- * A API de pedidos é enxuta: o pedido tem só valor, status e data. Evento e itens vêm dos ingressos
- * emitidos (que apontam para o evento e o tipo de ingresso), então um pedido sem ingressos
- * (pendente, cancelado) aparece sem evento e sem itens.
+ * A API retorna o pedido enriquecido com itens, resumo do evento e pagamento via JOINs,
+ * então pedidos pendentes (sem ingressos emitidos) já chegam com evento e itens preenchidos.
  */
 
 export async function getMyOrders(): Promise<Pedido[]> {
@@ -23,57 +21,17 @@ export async function getMyOrders(): Promise<Pedido[]> {
     getMyTickets(),
   ]);
 
-  const [events, payments] = await Promise.all([
-    getEvents(tickets.map((ticket) => ticket.eventId)),
-    Promise.all(orders.map((order) => getPayment(order.id))),
-  ]);
-
-  const paymentsByOrderId = new Map(orders.map((order, index) => [order.id, payments[index]]));
-
   return orders
-    .map((order) =>
-      toPedido(
-        order,
-        tickets.filter((ticket) => ticket.orderId === order.id),
-        events,
-        [],
-        paymentsByOrderId.get(order.id) ?? null,
-      ),
-    )
+    .map((order) => toPedido(order, tickets.filter((ticket) => ticket.orderId === order.id)))
     .toSorted((a, b) => b.criadoEm.localeCompare(a.criadoEm));
 }
 
-/** Rejeita com 404 quando o pedido não existe ou é de outra pessoa. */
-interface ApiPayment {
-  paymentMethod: string;
-  status: string;
-  paidAt?: string | null;
-}
-
 export async function getPedido(id: string): Promise<Pedido> {
-  const [order, payment] = await Promise.all([
-    apiClient.get<ApiOrder>(`/orders/${id}`).then(({ data }) => data),
-    getPayment(id),
-  ]);
-
+  const order = await apiClient.get<ApiOrder>(`/orders/${id}`).then(({ data }) => data);
   const tickets =
     order.status === "pago" ? (await getMyTickets()).filter((ticket) => ticket.orderId === order.id) : [];
-  const eventIds = [...new Set(tickets.map((ticket) => ticket.eventId))];
-  const [events, ticketTypes] = await Promise.all([
-    getEvents(eventIds),
-    Promise.all(eventIds.map(getTicketTypes)).then((lists) => lists.flat()),
-  ]);
 
-  return toPedido(order, tickets, events, ticketTypes, payment);
-}
-
-async function getPayment(orderId: string): Promise<ApiPayment | null> {
-  try {
-    const { data } = await apiClient.get<ApiPayment>(`/orders/${orderId}/payments`);
-    return data;
-  } catch {
-    return null;
-  }
+  return toPedido(order, tickets);
 }
 
 async function getMyTickets(): Promise<ApiTicket[]> {
@@ -81,101 +39,62 @@ async function getMyTickets(): Promise<ApiTicket[]> {
     const { data } = await apiClient.get<ApiTicket[]>("/users/me/tickets");
     return data;
   } catch {
-    // Os ingressos só completam o pedido (evento, itens, QR): sem eles a lista continua útil.
+    // Os ingressos só completam o pedido (QR code, status do ingresso): sem eles a lista continua útil.
     return [];
   }
 }
 
-export async function getEvents(eventIds: readonly string[]): Promise<Map<string, EventoPedido>> {
-  const found = await Promise.all([...new Set(eventIds)].map(getEvento));
-  return new Map(found.filter((evento) => evento !== null).map((evento) => [evento.id, evento]));
-}
+function toPedido(order: ApiOrder, tickets: readonly ApiTicket[]): Pedido {
+  const eventos: EventoPedido[] = order.event
+    ? [
+        {
+          id: order.event.id,
+          nome: order.event.name,
+          descricao: "",
+          categoria: "outros",
+          local: "",
+          dataInicio: order.event.startDate,
+          dataFim: order.event.endDate,
+          photoUrl: order.event.photoUrl,
+          status: order.event.status,
+        },
+      ]
+    : [];
 
-async function getEvento(eventId: string): Promise<EventoPedido | null> {
-  try {
-    const event = await apiClient.get<ApiEvent>(`/events/${eventId}`).then(({ data }) => data);
-    const venue = await apiClient
-      .get<ApiVenue>(`/venues/${event.venueId}`)
-      .then(({ data }) => data)
-      .catch(() => null);
+  const itens: ItemPedido[] = (order.items ?? []).map((item) => ({
+    id: item.ticketTypeId,
+    descricao: item.ticketTypeBatch ? `Ingresso ${item.ticketTypeBatch}` : "Ingresso",
+    quantidade: item.quantity,
+    valorUnitario: Number(item.unitPrice),
+    eventoNome: order.event?.name ?? null,
+  }));
 
-    return {
-      id: event.id,
-      nome: event.name,
-      descricao: event.description ?? "",
-      categoria: toCategory(event.category),
-      local: venue ? (venue.address ? `${venue.name} · ${venue.address.city}` : venue.name) : "",
-      dataInicio: event.startDate,
-      dataFim: event.endDate,
-    };
-  } catch {
-    return null;
-  }
-}
-
-export async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
-  try {
-    const { data } = await apiClient.get<ApiTicketType[]>(`/events/${eventId}/ticket-types`);
-    return data;
-  } catch {
-    return [];
-  }
-}
-
-function toPedido(
-  order: ApiOrder,
-  tickets: readonly ApiTicket[],
-  events: ReadonlyMap<string, EventoPedido>,
-  ticketTypes: readonly ApiTicketType[],
-  payment?: ApiPayment | null,
-): Pedido {
   return {
     id: order.id,
     numero: order.id.slice(0, 8).toUpperCase(),
     status: order.status,
     criadoEm: order.createdAt,
-    eventos: [...new Set(tickets.map((ticket) => events.get(ticket.eventId)).filter((evento) => evento !== undefined))],
-    itens: toItens(tickets, ticketTypes, events),
+    eventos,
+    itens,
     total: Number(order.totalAmount),
-    metodoPagamento: payment?.paymentMethod ?? null,
-    pagoEm: payment?.paidAt ?? (order.status === "pago" ? order.createdAt : null),
-    ingressos: tickets.map((ticket) => ({
-      id: ticket.id,
-      tipo: ticketTypeLabel(ticketTypes.find((type) => type.id === ticket.ticketTypeId)),
-      codigo: ticket.qrCode,
-      status: ticket.status,
-      evento: events.get(ticket.eventId) ?? null,
-    })),
+    metodoPagamento: order.payment?.paymentMethod ?? null,
+    pagoEm: order.payment?.paidAt ?? (order.status === "pago" ? order.createdAt : null),
+    ingressos: tickets.map((ticket) => {
+      const item = (order.items ?? []).find((i) => i.ticketTypeId === ticket.ticketTypeId);
+      const tipo = item?.ticketTypeBatch ? `Ingresso ${item.ticketTypeBatch}` : "Ingresso";
+      return {
+        id: ticket.id,
+        tipo,
+        codigo: ticket.qrCode,
+        status: ticket.status,
+        evento: eventos[0] ?? null,
+      };
+    }),
   };
 }
 
-function toItens(
-  tickets: readonly ApiTicket[],
-  ticketTypes: readonly ApiTicketType[],
-  events: ReadonlyMap<string, EventoPedido>,
-): ItemPedido[] {
-  // Sem Map.groupBy: ele só existe a partir do Node 21 e do Safari 17.4, e a CI roda no Node 20.
-  // O tipo de ingresso pertence a um evento só, então o evento do item é o do primeiro ingresso do grupo.
-  const groups = new Map<string, { quantidade: number; eventId: string }>();
-  for (const { ticketTypeId, eventId } of tickets) {
-    const group = groups.get(ticketTypeId) ?? { quantidade: 0, eventId };
-    groups.set(ticketTypeId, { ...group, quantidade: group.quantidade + 1 });
-  }
-
-  return [...groups].map(([ticketTypeId, { quantidade, eventId }]) => {
-    const type = ticketTypes.find((candidate) => candidate.id === ticketTypeId);
-    return {
-      id: ticketTypeId,
-      descricao: ticketTypeLabel(type),
-      quantidade,
-      valorUnitario: type ? Number(type.price) : 0,
-      eventoNome: events.get(eventId)?.nome ?? null,
-    };
-  });
-}
-
-export function ticketTypeLabel(type: ApiTicketType | undefined): string {
-  return type ? `Ingresso ${type.batch}` : "Ingresso";
+export function ticketTypeLabel(type?: { id?: string; batch?: string; price?: number | string } | null): string {
+  return type?.batch ? `Ingresso ${type.batch}` : "Ingresso";
 }
 
 /* -------------------------------------------------------------------------- */

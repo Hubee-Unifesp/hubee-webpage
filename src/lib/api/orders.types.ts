@@ -1,3 +1,29 @@
+export interface ApiOrderEventSummary {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  photoUrl?: string | null;
+  status: string;
+}
+
+export interface ApiOrderPaymentSummary {
+  id: string;
+  status: "pendente" | "confirmado" | "recusado" | "estornado";
+  paymentMethod: string;
+  amount: number | string;
+  paidAt?: string | null;
+}
+
+export interface ApiOrderItemDetail {
+  id: string;
+  ticketTypeId: string;
+  quantity: number;
+  unitPrice: number | string;
+  ticketTypeBatch?: string | null;
+  ticketTypeModality?: string | null;
+}
+
 export interface ApiOrder {
   id: string;
   userId: string;
@@ -6,6 +32,9 @@ export interface ApiOrder {
   /** `estornado` ainda não existe no enum do pedido na API; só no do pagamento. */
   status: "pendente" | "pago" | "cancelado" | "estornado";
   createdAt: string;
+  items?: ApiOrderItemDetail[];
+  event?: ApiOrderEventSummary | null;
+  payment?: ApiOrderPaymentSummary | null;
 }
 
 export interface ApiTicket {
