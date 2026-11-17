@@ -11,9 +11,8 @@ import type {
 import type { EventoPedido, ItemPedido, Pedido } from "@/types/pedido";
 
 /**
- * A API de pedidos é enxuta: o pedido tem só valor, status e data. Evento e itens vêm dos ingressos
- * emitidos (que apontam para o evento e o tipo de ingresso), então um pedido sem ingressos
- * (pendente, cancelado) aparece sem evento e sem itens.
+ * A API retorna o pedido enriquecido com itens, resumo do evento e pagamento via JOINs,
+ * então pedidos pendentes (sem ingressos emitidos) já chegam com evento e itens preenchidos.
  */
 
 export async function getMyOrders(): Promise<Pedido[]> {
@@ -70,7 +69,6 @@ function toPedido(order: ApiOrder, tickets: readonly ApiTicket[]): Pedido {
     eventoNome: order.event?.name ?? null,
   }));
 
-
   return {
     id: order.id,
     numero: order.id.slice(0, 8).toUpperCase(),
@@ -81,13 +79,17 @@ function toPedido(order: ApiOrder, tickets: readonly ApiTicket[]): Pedido {
     total: Number(order.totalAmount),
     metodoPagamento: order.payment?.paymentMethod ?? null,
     pagoEm: order.payment?.paidAt ?? (order.status === "pago" ? order.createdAt : null),
-    ingressos: tickets.map((ticket) => ({
-      id: ticket.id,
-      tipo: "Ingresso",
-      codigo: ticket.qrCode,
-      status: ticket.status,
-      evento: eventos[0] ?? null,
-    })),
+    ingressos: tickets.map((ticket) => {
+      const item = (order.items ?? []).find((i) => i.ticketTypeId === ticket.ticketTypeId);
+      const tipo = item?.ticketTypeBatch ? `Ingresso ${item.ticketTypeBatch}` : "Ingresso";
+      return {
+        id: ticket.id,
+        tipo,
+        codigo: ticket.qrCode,
+        status: ticket.status,
+        evento: eventos[0] ?? null,
+      };
+    }),
   };
 }
 

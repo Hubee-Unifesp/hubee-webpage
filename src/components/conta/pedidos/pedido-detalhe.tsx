@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, XCircle } from "lucide-react";
 import { ContaCard, ContaPageTitle } from "@/components/conta/conta-card";
 import { formatEventDate, formatPrice } from "@/components/home/events/format";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,6 @@ export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; partic
     try {
       await cancelOrder(pedido.id);
       router.refresh();
-      window.location.reload();
     } catch {
       setCancelError("Não foi possível cancelar o pedido. Tente novamente.");
       setCancelling(false);
@@ -72,15 +71,6 @@ export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; partic
 
       {pedido.status === "pendente" && (
         <div className="flex flex-wrap items-center gap-3 rounded-lg border border-hubee-200 bg-hubee-50/50 p-4 dark:border-hubee-50/15 dark:bg-hubee-750/30">
-          <Button
-            variant="hubee_800"
-            className="cursor-pointer"
-            onClick={() => router.push("/checkout")}
-          >
-            <CheckCircle2 className="size-4 mr-2" />
-            Concluir Pagamento
-          </Button>
-
           <Button
             variant="destructive"
             className="cursor-pointer"
