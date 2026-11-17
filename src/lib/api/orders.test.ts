@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { authGet, publicGet } = vi.hoisted(() => ({ authGet: vi.fn(), publicGet: vi.fn() }));
+const { apiGet } = vi.hoisted(() => ({ apiGet: vi.fn() }));
 
-vi.mock("./apiClient", () => ({ apiClient: { get: authGet } }));
-vi.mock("./client", () => ({ apiClient: { get: publicGet } }));
+vi.mock("./apiClient", () => ({ apiClient: { get: apiGet } }));
 
 import { getMyOrders, getPedido } from "./orders";
 
@@ -41,8 +40,14 @@ const defaultPublicRoutes: Record<string, unknown> = {
   [`/events/${EVENT_ID}/ticket-types`]: [{ id: TYPE_ID, batch: "Lote 1", price: "67.00" }],
 };
 
-const resolve = (table: Record<string, unknown>) => (url: string) =>
-  url in table ? Promise.resolve({ data: table[url] }) : Promise.reject(new Error(`sem rota ${url}`));
+const resolve = (
+  privateTable: Record<string, unknown>,
+  publicTable: Record<string, unknown> = {},
+) => (url: string) => {
+  if (url in privateTable) return Promise.resolve({ data: privateTable[url] });
+  if (url in publicTable) return Promise.resolve({ data: publicTable[url] });
+  return Promise.reject(new Error(`sem rota ${url}`));
+};
 
 // Cópias novas a cada teste: alguns casos trocam rotas (ex.: outros ingressos) e não podem vazar para os demais.
 let routes: Record<string, unknown>;
@@ -51,8 +56,7 @@ let publicRoutes: Record<string, unknown>;
 beforeEach(() => {
   routes = { ...defaultRoutes };
   publicRoutes = { ...defaultPublicRoutes };
-  authGet.mockReset().mockImplementation(resolve(routes));
-  publicGet.mockReset().mockImplementation(resolve(publicRoutes));
+  apiGet.mockReset().mockImplementation(resolve(routes, publicRoutes));
 });
 
 describe("getMyOrders", () => {
@@ -81,7 +85,7 @@ describe("getMyOrders", () => {
   it("busca cada evento uma vez, mesmo com varios ingressos", async () => {
     await getMyOrders();
 
-    expect(publicGet.mock.calls.filter(([url]) => url === `/events/${EVENT_ID}`)).toHaveLength(1);
+    expect(apiGet.mock.calls.filter(([url]) => url === `/events/${EVENT_ID}`)).toHaveLength(1);
   });
 
   it("carrega informacoes de pagamento para os pedidos da lista", async () => {
@@ -90,7 +94,7 @@ describe("getMyOrders", () => {
       status: "confirmado",
       paidAt: "2026-10-01T15:05:00Z",
     };
-    authGet.mockImplementation(resolve(routes));
+    apiGet.mockImplementation(resolve(routes, publicRoutes));
 
     const orders = await getMyOrders();
     const paid = orders.find((order) => order.id === paidOrder.id);
@@ -98,8 +102,8 @@ describe("getMyOrders", () => {
   });
 
   it("mantem a lista quando os ingressos nao carregam", async () => {
-    authGet.mockImplementation((url: string) =>
-      url === "/users/me/tickets" ? Promise.reject(new Error("404")) : resolve(routes)(url),
+    apiGet.mockImplementation((url: string) =>
+      url === "/users/me/tickets" ? Promise.reject(new Error("404")) : resolve(routes, publicRoutes)(url),
     );
 
     const orders = await getMyOrders();
@@ -109,7 +113,9 @@ describe("getMyOrders", () => {
   });
 
   it("mantem o pedido sem evento quando o evento nao carrega", async () => {
-    publicGet.mockImplementation(() => Promise.reject(new Error("500")));
+    apiGet.mockImplementation((url: string) =>
+      url in routes ? resolve(routes, publicRoutes)(url) : Promise.reject(new Error("500")),
+    );
 
     const orders = await getMyOrders();
 
@@ -120,8 +126,8 @@ describe("getMyOrders", () => {
   });
 
   it("propaga a falha da lista de pedidos", async () => {
-    authGet.mockImplementation((url: string) =>
-      url === "/users/me/orders" ? Promise.reject(new Error("500")) : resolve(routes)(url),
+    apiGet.mockImplementation((url: string) =>
+      url === "/users/me/orders" ? Promise.reject(new Error("500")) : resolve(routes, publicRoutes)(url),
     );
 
     await expect(getMyOrders()).rejects.toThrow("500");
@@ -189,12 +195,12 @@ describe("getPedido", () => {
     const pedido = await getPedido(pendingOrder.id);
 
     expect(pedido.ingressos).toEqual([]);
-    expect(authGet).not.toHaveBeenCalledWith("/users/me/tickets");
+    expect(apiGet).not.toHaveBeenCalledWith("/users/me/tickets");
   });
 
   it("so mostra os ingressos do proprio pedido", async () => {
     routes["/users/me/tickets"] = [ticket("1"), { ...ticket("9"), orderId: "outro-pedido" }];
-    authGet.mockImplementation(resolve(routes));
+    apiGet.mockImplementation(resolve(routes, publicRoutes));
 
     const pedido = await getPedido(paidOrder.id);
 
@@ -207,7 +213,7 @@ describe("getPedido", () => {
       status: "confirmado",
       paidAt: "2026-10-01T15:05:00Z",
     };
-    authGet.mockImplementation(resolve(routes));
+    apiGet.mockImplementation(resolve(routes, publicRoutes));
 
     const pedido = await getPedido(paidOrder.id);
     expect(pedido.metodoPagamento).toBe("pix");

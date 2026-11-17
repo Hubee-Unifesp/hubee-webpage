@@ -29,7 +29,7 @@ export function getToken(): string | null {
 
 /**
  * Guarda o token para o axios (`localStorage` se `rememberMe`, senão `sessionStorage`) e um cookie
- * para o middleware, que roda no servidor e não enxerga o Web Storage. O cookie só indica que há
+ * para o proxy, que roda no servidor e não enxerga o Web Storage. O cookie só indica que há
  * uma sessão; quem valida o token é a API.
  */
 export function saveSession(token: string, options?: SaveSessionOptions): void {

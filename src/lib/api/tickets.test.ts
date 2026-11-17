@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { authGet, publicGet } = vi.hoisted(() => ({ authGet: vi.fn(), publicGet: vi.fn() }));
+const { apiGet } = vi.hoisted(() => ({ apiGet: vi.fn() }));
 
-vi.mock("./apiClient", () => ({ apiClient: { get: authGet } }));
-vi.mock("./client", () => ({ apiClient: { get: publicGet } }));
+vi.mock("./apiClient", () => ({ apiClient: { get: apiGet } }));
 
 import { getMeusIngressos } from "./tickets";
 
@@ -52,20 +51,17 @@ const resolve = (routes: Record<string, unknown>) => (url: string) =>
 
 describe("getMeusIngressos", () => {
   beforeEach(() => {
-    authGet.mockReset().mockImplementation((url: string) =>
-      url === "/users/me/tickets"
-        ? Promise.resolve({ data: meusIngressos })
-        : Promise.reject(new Error(`404 ${url}`)),
+    apiGet.mockReset().mockImplementation((url: string) =>
+      url === "/users/me/tickets" ? Promise.resolve({ data: meusIngressos }) : resolve(publicRoutes)(url),
     );
-    publicGet.mockReset().mockImplementation(resolve(publicRoutes));
   });
 
   it("busca os ingressos na rota do usuario, sem passar pelos pedidos", async () => {
     await getMeusIngressos(NOW);
 
-    expect(authGet).toHaveBeenCalledWith("/users/me/tickets");
-    expect(authGet).toHaveBeenCalledTimes(1);
-    expect(authGet.mock.calls.every(([url]) => !String(url).includes("/orders"))).toBe(true);
+    expect(apiGet).toHaveBeenCalledWith("/users/me/tickets");
+    expect(apiGet.mock.calls.filter(([url]) => url === "/users/me/tickets")).toHaveLength(1);
+    expect(apiGet.mock.calls.every(([url]) => !String(url).includes("/orders"))).toBe(true);
   });
 
   it("separa proximos e anteriores, ordenando pela data do evento", async () => {
@@ -98,11 +94,13 @@ describe("getMeusIngressos", () => {
   it("busca cada evento uma vez, mesmo com varios ingressos do mesmo evento", async () => {
     await getMeusIngressos(NOW);
 
-    expect(publicGet.mock.calls.filter(([url]) => url === `/events/${NEXT_EVENT}`)).toHaveLength(1);
+    expect(apiGet.mock.calls.filter(([url]) => url === `/events/${NEXT_EVENT}`)).toHaveLength(1);
   });
 
   it("mantem o ingresso utilizavel quando a categoria do evento nao carrega", async () => {
-    publicGet.mockImplementation(() => Promise.reject(new Error("500")));
+    apiGet.mockImplementation((url: string) =>
+      url === "/users/me/tickets" ? Promise.resolve({ data: meusIngressos }) : Promise.reject(new Error("500")),
+    );
 
     const { proximos } = await getMeusIngressos(NOW);
 
@@ -112,18 +110,20 @@ describe("getMeusIngressos", () => {
   });
 
   it("usa so o nome do local quando a cidade nao vem", async () => {
-    authGet.mockImplementation(() =>
-      Promise.resolve({
-        data: [
-          {
-            ...ticket("5", NEXT_EVENT, "2026-11-01T23:00:00Z", "2026-11-02T05:00:00Z"),
-            event: {
-              ...eventoAninhado(NEXT_EVENT, "2026-11-01T23:00:00Z", "2026-11-02T05:00:00Z"),
-              venue: { id: "v", name: "Arena", address: null },
-            },
-          },
-        ],
-      }),
+    apiGet.mockImplementation((url: string) =>
+      url === "/users/me/tickets"
+        ? Promise.resolve({
+            data: [
+              {
+                ...ticket("5", NEXT_EVENT, "2026-11-01T23:00:00Z", "2026-11-02T05:00:00Z"),
+                event: {
+                  ...eventoAninhado(NEXT_EVENT, "2026-11-01T23:00:00Z", "2026-11-02T05:00:00Z"),
+                  venue: { id: "v", name: "Arena", address: null },
+                },
+              },
+            ],
+          })
+        : resolve(publicRoutes)(url),
     );
 
     const { proximos } = await getMeusIngressos(NOW);
@@ -132,7 +132,7 @@ describe("getMeusIngressos", () => {
   });
 
   it("propaga a falha quando a lista de ingressos nao carrega", async () => {
-    authGet.mockImplementation(() => Promise.reject(new Error("500")));
+    apiGet.mockImplementation(() => Promise.reject(new Error("500")));
 
     await expect(getMeusIngressos(NOW)).rejects.toThrow("500");
   });

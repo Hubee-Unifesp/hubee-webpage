@@ -13,6 +13,7 @@ declare module 'axios' {
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+  timeout: 10_000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -20,7 +21,12 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   const token = getToken();
-  if (token && config.headers) {
+  const hasExplicitAuth =
+    typeof config.headers?.has === 'function'
+      ? config.headers.has('Authorization')
+      : Boolean(config.headers?.Authorization);
+
+  if (token && config.headers && !hasExplicitAuth) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -34,7 +40,7 @@ apiClient.interceptors.response.use(
 
       const currentPath = window.location.pathname;
 
-      if (!currentPath.startsWith('/login') && !currentPath.startsWith('/register')) {
+      if (!currentPath.startsWith('/login') && !currentPath.startsWith('/cadastro')) {
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.href = "/login";
       }

@@ -1,6 +1,5 @@
 import { isAxiosError } from "axios";
 import { apiClient } from "./apiClient";
-import { apiClient as publicClient } from "./client";
 import { parseApiError } from "./errors";
 import { toCategory, type ApiEvent, type ApiTicketType, type ApiVenue } from "./events";
 import type {
@@ -94,8 +93,8 @@ export async function getEvents(eventIds: readonly string[]): Promise<Map<string
 
 async function getEvento(eventId: string): Promise<EventoPedido | null> {
   try {
-    const event = await publicClient.get<ApiEvent>(`/events/${eventId}`).then(({ data }) => data);
-    const venue = await publicClient
+    const event = await apiClient.get<ApiEvent>(`/events/${eventId}`).then(({ data }) => data);
+    const venue = await apiClient
       .get<ApiVenue>(`/venues/${event.venueId}`)
       .then(({ data }) => data)
       .catch(() => null);
@@ -116,7 +115,7 @@ async function getEvento(eventId: string): Promise<EventoPedido | null> {
 
 export async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
   try {
-    const { data } = await publicClient.get<ApiTicketType[]>(`/events/${eventId}/ticket-types`);
+    const { data } = await apiClient.get<ApiTicketType[]>(`/events/${eventId}/ticket-types`);
     return data;
   } catch {
     return [];
