@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowLeft, XCircle } from "lucide-react";
 import { ContaCard, ContaPageTitle } from "@/components/conta/conta-card";
 import { formatEventDate, formatPrice } from "@/components/home/events/format";
@@ -16,8 +15,15 @@ import { StatusBadge } from "./status-pedido";
 const mutedClassName = "text-sm text-hubee-neutral-300 dark:text-hubee-200";
 
 /** Detalhe do pedido: resumo da compra, ações e ingressos. */
-export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; participante: string }) {
-  const router = useRouter();
+export function PedidoDetalhe({
+  pedido,
+  participante,
+  onCancelled,
+}: {
+  pedido: Pedido;
+  participante: string;
+  onCancelled?: () => void;
+}) {
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
@@ -29,7 +35,7 @@ export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; partic
     setCancelError(null);
     try {
       await cancelOrder(pedido.id);
-      router.refresh();
+      onCancelled?.();
     } catch {
       setCancelError("Não foi possível cancelar o pedido. Tente novamente.");
       setCancelling(false);
