@@ -1,5 +1,4 @@
-import { apiClient as authClient } from "./apiClient";
-import { apiClient } from "./client";
+import { apiClient } from "./apiClient";
 import { parseApiError } from "./errors";
 import {
   calculateSoldPercentage,
@@ -92,7 +91,7 @@ export async function getOrganizerEvents(
   params: GetOrganizerEventsParams,
 ): Promise<EventoOrganizador[]> {
   const [{ data }, summaries] = await Promise.all([
-    authClient.get<ApiEventPage | ApiEventListItem[]>("/events", {
+    apiClient.get<ApiEventPage | ApiEventListItem[]>("/events", {
       params: { limit: 50, ...params },
     }),
     apiClient
@@ -323,16 +322,16 @@ export async function getEventById(
 
   const fetchDetail = async () => {
     if (!token) {
-      return authClient.get<ApiEventDetail>(path, { skipAuthRedirect: true });
+      return apiClient.get<ApiEventDetail>(path, { skipAuthRedirect: true });
     }
     try {
-      return await authClient.get<ApiEventDetail>(path, {
+      return await apiClient.get<ApiEventDetail>(path, {
         skipAuthRedirect: true,
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch (error) {
       if (parseApiError(error).status !== 401) throw error;
-      return authClient.get<ApiEventDetail>(path, { skipAuthRedirect: true });
+      return apiClient.get<ApiEventDetail>(path, { skipAuthRedirect: true });
     }
   };
 

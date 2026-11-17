@@ -70,6 +70,7 @@ function toPedido(order: ApiOrder, tickets: readonly ApiTicket[]): Pedido {
     eventoNome: order.event?.name ?? null,
   }));
 
+
   return {
     id: order.id,
     numero: order.id.slice(0, 8).toUpperCase(),
