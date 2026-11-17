@@ -6,7 +6,6 @@ import { Building2, CalendarDays, Info, ListFilter, Lock, Plus, Search } from "l
 import { ContaPageTitle } from "@/components/conta/conta-card";
 import { EmptyState } from "@/components/empty-state";
 import { ListMessage } from "@/components/home/events/list-states";
-import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,7 +38,6 @@ const papelBadgeStyle: Record<PapelOrganizador, string> = {
 /** Painel "Meus Eventos" para membros de organizações com convite aceito. */
 export function MeusEventosContent() {
   const router = useRouter();
-  const toast = useToast();
   const searchInputId = useId();
   const {
     status,
@@ -54,6 +52,7 @@ export function MeusEventosContent() {
     setBusca,
     limparFiltros,
     retry,
+    recarregar,
   } = useMeusEventos();
 
   if (status === "loading") {
@@ -71,9 +70,12 @@ export function MeusEventosContent() {
         <ContaPageTitle>Meus Eventos</ContaPageTitle>
         <EmptyState
           icon={Building2}
-          title="Acesso restrito a membros de organizações"
-          description="Você ainda não faz parte de nenhuma organização com convite aceito. Solicite um convite ao administrador da sua organização para acessar o painel de eventos."
-          action={{ label: "Ver eventos públicos", onClick: () => router.push("/#eventos") }}
+          title="Você ainda não faz parte de nenhuma organização"
+          description="Crie sua organização para publicar e gerenciar eventos na Hubee, ou peça a um administrador de uma organização existente que convide você."
+          action={{
+            label: "Criar organização",
+            onClick: () => router.push("/organizacoes/nova"),
+          }}
         />
       </div>
     );
@@ -84,7 +86,7 @@ export function MeusEventosContent() {
   const temFiltroAtivo = filtroStatus !== "all" || busca.trim() !== "";
 
   const handleCriarEvento = () => {
-    toast.success("O fluxo de criação de eventos será disponibilizado em breve.");
+    router.push("/meus-eventos/novo");
   };
 
   return (
@@ -259,7 +261,7 @@ export function MeusEventosContent() {
             <ul className="grid gap-4 md:grid-cols-2">
               {eventosFiltrados.map((evento) => (
                 <li key={evento.id}>
-                  <EventoOrganizadorCard evento={evento} papel={papel} />
+                  <EventoOrganizadorCard evento={evento} papel={papel} onAlterado={recarregar} />
                 </li>
               ))}
             </ul>

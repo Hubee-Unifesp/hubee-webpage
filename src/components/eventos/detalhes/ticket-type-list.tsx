@@ -87,7 +87,6 @@ function TicketTypeCard({
           formatPrice(ticket.price)
         )}
       </p>
-      <p className="mt-1 text-[11px] text-hubee-neutral-300 dark:text-hubee-100">+ taxa de serviço</p>
 
       {soldOut ? (
         <Button
@@ -109,10 +108,10 @@ function TicketTypeCard({
             batchLabel: ticket.batch,
             category: event.category,
             unitPrice: ticket.price,
-            // `quantity` do lote na API é a capacidade total, não o saldo: o front não sabe
-            // quantos sobraram. O teto aqui é o máximo por lote do pedido, e quem recusa por
-            // falta de saldo é o `POST /orders`, que confere o estoque travando o lote.
-            maxQuantity: MAX_QUANTIDADE_POR_LOTE,
+            // Teto = saldo real do lote (`available`), limitado no carrinho ao máximo por
+            // lote do pedido. A palavra final continua sendo do `POST /orders`, que confere o
+            // estoque travando o lote (o saldo pode mudar entre a página e a compra).
+            maxQuantity: ticket.available ?? MAX_QUANTIDADE_POR_LOTE,
           }}
         />
       )}

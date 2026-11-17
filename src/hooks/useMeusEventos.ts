@@ -131,6 +131,11 @@ export function useMeusEventos() {
     setAttempt((value) => value + 1);
   }, []);
 
+  /** Busca de novo sem voltar ao skeleton: a lista atual fica na tela até chegar a nova. */
+  const recarregar = useCallback(() => {
+    setAttempt((value) => value + 1);
+  }, []);
+
   const limparFiltros = useCallback(() => {
     setFiltroStatus("all");
     setBusca("");
@@ -166,5 +171,6 @@ export function useMeusEventos() {
     setBusca,
     limparFiltros,
     retry,
+    recarregar,
   };
 }

@@ -13,6 +13,8 @@ export interface EventoPedido {
   /** Datas em ISO 8601 (UTC). */
   dataInicio: string;
   dataFim: string;
+  photoUrl?: string | null;
+  status?: string;
 }
 
 export interface ItemPedido {

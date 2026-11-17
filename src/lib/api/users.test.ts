@@ -49,6 +49,25 @@ describe("users API", () => {
     expect(result).toEqual(mockUser);
   });
 
+  it("updateMe envia CPF e data de nascimento para conclusão do perfil em PATCH /users/me", async () => {
+    patchMock.mockResolvedValue({
+      data: { ...mockUser, cpf: "52998224725", birthDate: "1998-05-15", profileComplete: true },
+    });
+
+    const result = await updateMe({
+      cpf: "52998224725",
+      birthDate: "1998-05-15",
+    });
+
+    expect(patchMock).toHaveBeenCalledWith("/users/me", {
+      cpf: "52998224725",
+      birthDate: "1998-05-15",
+    });
+    expect(result.profileComplete).toBe(true);
+    expect(result.cpf).toBe("52998224725");
+    expect(result.birthDate).toBe("1998-05-15");
+  });
+
   it("uploadAvatar anexa o File em um FormData e envia para PATCH /users/me/avatar com multipart/form-data", async () => {
     patchMock.mockResolvedValue({ data: mockUser });
     const file = new File(["conteudo-imagem"], "avatar.png", { type: "image/png" });

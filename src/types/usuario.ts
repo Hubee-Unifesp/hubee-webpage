@@ -24,6 +24,10 @@ export interface Usuario {
   email: string;
   /** Só dígitos, como a API devolve. `null` quando não informado. */
   phone?: string | null;
+  /** Só dígitos (11 caracteres), como a API devolve. `null` quando não informado. */
+  cpf?: string | null;
+  /** Data de nascimento no formato `YYYY-MM-DD`, como a API devolve. `null` quando não informada. */
+  birthDate?: string | null;
   /** URL da foto de perfil. Sem foto, a interface mostra as iniciais do nome. */
   avatarUrl?: string | null;
   profileComplete: boolean;

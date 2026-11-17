@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, type FormEvent } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import { ArrowRight, Calendar, Clock, Ticket, type LucideIcon } from "lucide-react";
+import { Building2, Calendar, Ticket, type LucideIcon } from "lucide-react";
 import {
+  PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
   registerSchema,
   type RegisterFormInputs,
@@ -54,7 +55,13 @@ export function RegisterForm({
     mode: "onSubmit",
     reValidateMode: "onChange",
     shouldFocusError: true,
-    defaultValues: { signupIntent: defaultIntent, fullName: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      signupIntent: defaultIntent,
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   useEffect(() => {
@@ -70,8 +77,6 @@ export function RegisterForm({
     setFocus("email");
   }, [emailError, setError, setFocus]);
 
-  const submit = isOrganizer ? (event: FormEvent) => event.preventDefault() : handleSubmit(onSubmit);
-
   return (
     <section className="w-full max-w-2xl">
       <AuthHeading title="Criar conta" description="Escolha seu perfil e preencha os dados abaixo." />
@@ -79,7 +84,7 @@ export function RegisterForm({
       {error && <FormAlert variant="error">{error}</FormAlert>}
       {successMessage && <FormAlert variant="success">{successMessage}</FormAlert>}
 
-      <form noValidate className="space-y-4" onSubmit={submit} onChange={onEdit}>
+      <form noValidate className="space-y-4" onSubmit={handleSubmit(onSubmit)} onChange={onEdit}>
         <fieldset className="space-y-2">
           <legend className="mb-2 text-base font-medium text-hubee-800 dark:text-hubee-50">Qual é o seu objetivo?</legend>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -97,22 +102,13 @@ export function RegisterForm({
         </fieldset>
 
         {isOrganizer && (
-          <div role="status" className="rounded-xl border border-hubee-500/40 bg-hubee-100 p-4 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50">
-            <p className="flex items-center gap-2 font-semibold">
-              <Clock aria-hidden="true" className="size-4" />
-              Em breve
-            </p>
-            <p className="mt-1 text-sm text-hubee-750 dark:text-hubee-100">
-              A área de criação de eventos e o portal para organizadores ainda não estão disponíveis. Enquanto isso,
-              você pode criar uma conta para comprar ingressos.
-            </p>
-            <Link href="/" className={`mt-3 inline-flex items-center gap-1 text-sm ${authLinkClassName}`}>
-              Explorar os eventos <ArrowRight aria-hidden="true" className="size-4" />
-            </Link>
-          </div>
+          <p className="flex items-start gap-2 rounded-xl border border-hubee-500/40 bg-hubee-100/60 p-4 text-xs text-hubee-750 dark:border-hubee-700 dark:bg-hubee-800/60 dark:text-hubee-100">
+            <Building2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-hubee-600 dark:text-hubee-400" />
+            Depois de criar a conta, você cadastra a sua organização e já passa a gerenciar os eventos dela.
+          </p>
         )}
 
-        <div hidden={isOrganizer} className="space-y-4">
+        <div className="space-y-4">
           <AuthField id="register-name" label="Nome completo" error={errors.fullName?.message}>
             <AuthInput
               {...fieldA11y("register-name", errors.fullName?.message)}
@@ -137,7 +133,7 @@ export function RegisterForm({
             id="register-password"
             label="Senha"
             error={errors.password?.message}
-            description={`Mínimo de ${PASSWORD_MIN_LENGTH} caracteres`}
+            description={`De ${PASSWORD_MIN_LENGTH} a ${PASSWORD_MAX_LENGTH} caracteres`}
           >
             <PasswordInput
               {...fieldA11y("register-password", errors.password?.message)}

@@ -1,5 +1,4 @@
 import { apiClient } from "./apiClient";
-import { apiClient as publicClient } from "./client";
 import { toCategory, type ApiEvent } from "./events";
 import { ticketTypeLabel } from "./orders";
 import type { ApiMyTicket, ApiTicketEvent } from "./orders.types";
@@ -66,7 +65,7 @@ async function carregarComplementos(
   const encontrados = await Promise.all(
     unicos.map(async (eventId) => {
       try {
-        const { data } = await publicClient.get<ApiEvent>(`/events/${eventId}`);
+        const { data } = await apiClient.get<ApiEvent>(`/events/${eventId}`);
         return [eventId, { categoria: toCategory(data.category), descricao: data.description ?? "" }] as const;
       } catch {
         return null;

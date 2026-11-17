@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { mapMessagesToFields, parseApiError } from "@/lib/api/errors";
 import { updateMe, uploadAvatar } from "@/lib/api/users";
-import { personalDataSchema, type PersonalDataInputs } from "@/lib/validations/profile.schema";
+import { formatCpf, personalDataSchema, type PersonalDataInputs } from "@/lib/validations/profile.schema";
 import type { Usuario } from "@/types/usuario";
 import { fieldInputClassName, fieldLabelClassName, submitButtonClassName } from "./perfil-styles";
 
@@ -23,6 +23,8 @@ const TAMANHO_MAXIMO_FOTO = 2 * 1024 * 1024;
 const CAMPOS_DA_API = {
   email: /e-?mail/i,
   phone: /telefone/i,
+  cpf: /cpf/i,
+  birthDate: /nascimento|data/i,
   fullName: /nome/i,
 } satisfies Record<keyof PersonalDataInputs, RegExp>;
 
@@ -39,7 +41,13 @@ function formatPhone(value: string): string {
 }
 
 function toFormValues(usuario: Usuario): PersonalDataInputs {
-  return { fullName: usuario.fullName, email: usuario.email, phone: formatPhone(usuario.phone ?? "") };
+  return {
+    fullName: usuario.fullName,
+    email: usuario.email,
+    phone: formatPhone(usuario.phone ?? ""),
+    cpf: formatCpf(usuario.cpf ?? ""),
+    birthDate: usuario.birthDate ? usuario.birthDate.slice(0, 10) : "",
+  };
 }
 
 export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
@@ -87,12 +95,17 @@ export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
   }
 
   async function aoSalvar(dados: PersonalDataInputs) {
+    const cpfDigits = onlyDigits(dados.cpf ?? "");
+    const birthDate = (dados.birthDate ?? "").trim();
+
     try {
       const atualizado = await updateMe({
         fullName: dados.fullName.trim(),
         email: dados.email.trim(),
         // A API só aceita dígitos e recusa texto vazio; `null` apaga o telefone.
         phone: onlyDigits(dados.phone) || null,
+        ...(!usuario.cpf && cpfDigits ? { cpf: cpfDigits } : {}),
+        ...(birthDate ? { birthDate } : {}),
       });
 
       if (arquivoFoto) {
@@ -128,7 +141,12 @@ export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
       const { status, messages } = parseApiError(error);
 
       if (status === 409) {
-        setError("email", { type: "server", message: "Este e-mail já está em uso." }, { shouldFocus: true });
+        const emailMudou = dados.email.trim().toLowerCase() !== usuario.email.trim().toLowerCase();
+        if (!emailMudou && !usuario.cpf && cpfDigits) {
+          setError("cpf", { type: "server", message: "Este CPF já está em uso." }, { shouldFocus: true });
+        } else {
+          setError("email", { type: "server", message: "Este e-mail já está em uso." }, { shouldFocus: true });
+        }
         return;
       }
 
@@ -225,6 +243,56 @@ export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
             )}
           />
         </AuthField>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <AuthField
+            id="perfil-cpf"
+            label="CPF"
+            labelClassName={fieldLabelClassName}
+            error={errors.cpf?.message}
+          >
+            <Controller
+              control={control}
+              name="cpf"
+              render={({ field }) => (
+                <AuthInput
+                  {...fieldA11y("perfil-cpf", errors.cpf?.message)}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="000.000.000-00"
+                  disabled={Boolean(usuario.cpf)}
+                  className={fieldInputClassName}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value ?? ""}
+                  onBlur={field.onBlur}
+                  onChange={(event) => field.onChange(formatCpf(event.target.value))}
+                />
+              )}
+            />
+            {usuario.cpf && (
+              <span className="text-[11px] text-hubee-neutral-300 dark:text-hubee-200">
+                O CPF não pode ser alterado após o cadastro.
+              </span>
+            )}
+          </AuthField>
+
+          <AuthField
+            id="perfil-nascimento"
+            label="Data de Nascimento"
+            labelClassName={fieldLabelClassName}
+            error={errors.birthDate?.message}
+          >
+            <AuthInput
+              {...fieldA11y("perfil-nascimento", errors.birthDate?.message)}
+              type="date"
+              autoComplete="bday"
+              max={new Date().toISOString().split("T")[0]}
+              className={fieldInputClassName}
+              {...register("birthDate")}
+            />
+          </AuthField>
+        </div>
 
         <Button type="submit" disabled={isSubmitting} className={submitButtonClassName}>
           {isSubmitting ? "Salvando..." : "Salvar Alterações"}

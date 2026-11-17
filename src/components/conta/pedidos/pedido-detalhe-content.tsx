@@ -41,5 +41,5 @@ export function PedidoDetalheContent({ id }: { id: string }) {
     );
   }
 
-  return <PedidoDetalhe pedido={data} participante={user?.fullName ?? ""} />;
+  return <PedidoDetalhe pedido={data} participante={user?.fullName ?? ""} onCancelled={retry} />;
 }

@@ -1,13 +1,11 @@
 import { AxiosError, type AxiosResponse } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { publicGet, authGet } = vi.hoisted(() => ({
-  publicGet: vi.fn(),
-  authGet: vi.fn(),
+const { apiGet } = vi.hoisted(() => ({
+  apiGet: vi.fn(),
 }));
 
-vi.mock("./client", () => ({ apiClient: { get: publicGet } }));
-vi.mock("./apiClient", () => ({ apiClient: { get: authGet } }));
+vi.mock("./apiClient", () => ({ apiClient: { get: apiGet } }));
 
 import { formatFilterDateRange } from "@/components/home/events/active-filter-chips";
 import {
@@ -101,40 +99,40 @@ function makeAxiosError(status: number, message = "Erro"): AxiosError {
 }
 
 beforeEach(() => {
-  publicGet.mockReset();
-  authGet.mockReset();
+  apiGet.mockReset();
 });
 
 describe("getEventById", () => {
   it("mapeia os dados de GET /events/:id + /events/summary sem marcar quantity=0 como esgotado e detectando lote esgotado", async () => {
-    authGet.mockResolvedValueOnce({ data: apiEventDetailFixture });
-    publicGet.mockResolvedValueOnce({
-      data: [
-        {
-          id: EVENT_ID,
-          name: "Entre acordes e encontros",
-          description: "Show intimista",
-          category: "Shows",
-          startDate: "2026-11-21T23:00:00.000Z",
-          endDate: "2026-11-22T03:00:00.000Z",
-          featured: true,
-          organizerName: "Coletivo Entro",
-          venueName: "Casa Natura Musical",
-          venueCity: "São Paulo",
-          minPrice: 80,
-          minPriceBatch: "2º Lote",
-          capacity: 100,
-          ticketsSold: 100,
-        },
-      ] satisfies ApiEventSummary[],
-    });
+    apiGet
+      .mockResolvedValueOnce({ data: apiEventDetailFixture })
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: EVENT_ID,
+            name: "Entre acordes e encontros",
+            description: "Show intimista",
+            category: "Shows",
+            startDate: "2026-11-21T23:00:00.000Z",
+            endDate: "2026-11-22T03:00:00.000Z",
+            featured: true,
+            organizerName: "Coletivo Entro",
+            venueName: "Casa Natura Musical",
+            venueCity: "São Paulo",
+            minPrice: 80,
+            minPriceBatch: "2º Lote",
+            capacity: 100,
+            ticketsSold: 100,
+          },
+        ] satisfies ApiEventSummary[],
+      });
 
     const result = await getEventById(EVENT_ID);
 
-    expect(authGet).toHaveBeenCalledWith(`/events/${EVENT_ID}`, {
+    expect(apiGet).toHaveBeenCalledWith(`/events/${EVENT_ID}`, {
       skipAuthRedirect: true,
     });
-    expect(publicGet).toHaveBeenCalledWith("/events/summary");
+    expect(apiGet).toHaveBeenCalledWith("/events/summary");
     expect(result).toEqual({
       id: EVENT_ID,
       title: "Entre acordes e encontros",
@@ -169,12 +167,14 @@ describe("getEventById", () => {
           batch: "1º Lote",
           price: 60,
           soldOut: true,
+          available: null,
         },
         {
           id: "a1b2c3d4-0002-4a5b-8c6d-7e8f9a0b1c2d",
           batch: "2º Lote",
           price: 80,
           soldOut: false,
+          available: null,
         },
       ],
     });
@@ -222,75 +222,133 @@ describe("getEventById", () => {
     ).toBe(true);
   });
 
+  it("usa o saldo real (available) da API como fonte da verdade para esgotado (GOL-212)", () => {
+    // Saldo zerado por reservas pendentes válidas: esgotado, mesmo com o resumo dizendo o contrário.
+    expect(
+      isTicketTypeSoldOut(
+        { id: "1", batch: "Lote reservado", price: 50, quantity: 100, available: 0 },
+        { capacity: 100, ticketsSold: 0, minPrice: 50 },
+      ),
+    ).toBe(true);
+    // Reservas vencidas devolveram vagas: disponível, mesmo com a heurística apontando esgotado.
+    expect(
+      isTicketTypeSoldOut(
+        { id: "2", batch: "Lote liberado", price: 50, quantity: 100, available: 3 },
+        { capacity: 100, ticketsSold: 100, minPrice: 80 },
+      ),
+    ).toBe(false);
+    expect(
+      isTicketTypeSoldOut({
+        id: "3",
+        batch: "Lote com saldo negativo",
+        price: 50,
+        quantity: 10,
+        available: -2,
+      }),
+    ).toBe(true);
+  });
+
+  it("repassa o saldo real de cada lote para a página de detalhes", async () => {
+    apiGet
+      .mockResolvedValueOnce({
+        data: {
+          ...apiEventDetailFixture,
+          ticketTypes: [
+            { id: "lote-1", batch: "1º Lote", price: 60, quantity: 100, available: 0 },
+            { id: "lote-2", batch: "2º Lote", price: 80, quantity: 50, available: 7 },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({ data: [] });
+
+    const result = await getEventById(EVENT_ID);
+
+    expect(result?.ticketTypes).toEqual([
+      { id: "lote-1", batch: "1º Lote", price: 60, soldOut: true, available: 0 },
+      { id: "lote-2", batch: "2º Lote", price: 80, soldOut: false, available: 7 },
+    ]);
+  });
+
   it("retorna null quando a API responde 404 (evento inexistente ou nao publicado)", async () => {
-    authGet
-      .mockRejectedValueOnce(makeAxiosError(404, "Evento não encontrado"));
-    publicGet.mockResolvedValueOnce({ data: [] });
+    apiGet
+      .mockRejectedValueOnce(makeAxiosError(404, "Evento não encontrado"))
+      .mockResolvedValueOnce({ data: [] });
 
     await expect(getEventById(EVENT_ID)).resolves.toBeNull();
   });
 
   it("retorna null quando a API responde 400 (UUID invalido na rota)", async () => {
-    authGet
+    apiGet
       .mockRejectedValueOnce(
         makeAxiosError(400, "Validation failed (uuid is expected)"),
-      );
-    publicGet.mockResolvedValueOnce({ data: [] });
+      )
+      .mockResolvedValueOnce({ data: [] });
 
     await expect(getEventById("id-invalido")).resolves.toBeNull();
   });
 
   it("retorna null para id vazio sem chamar a API", async () => {
     await expect(getEventById("   ")).resolves.toBeNull();
-    expect(authGet).not.toHaveBeenCalled();
-    expect(publicGet).not.toHaveBeenCalled();
+    expect(apiGet).not.toHaveBeenCalled();
   });
 
   it("propaga erros inesperados da API (ex.: 500)", async () => {
-    authGet
-      .mockRejectedValueOnce(makeAxiosError(500, "Internal Server Error"));
-    publicGet.mockResolvedValueOnce({ data: [] });
+    apiGet
+      .mockRejectedValueOnce(makeAxiosError(500, "Internal Server Error"))
+      .mockResolvedValueOnce({ data: [] });
 
     await expect(getEventById(EVENT_ID)).rejects.toThrow();
   });
 
   it("repassa o JWT no header Authorization quando recebe token (SSR)", async () => {
-    authGet.mockResolvedValueOnce({ data: apiEventDetailFixture });
-    publicGet.mockResolvedValueOnce({ data: [] });
+    apiGet
+      .mockResolvedValueOnce({ data: apiEventDetailFixture })
+      .mockResolvedValueOnce({ data: [] });
 
     const result = await getEventById(EVENT_ID, { token: "jwt-organizador" });
 
     expect(result?.id).toBe(EVENT_ID);
-    expect(authGet).toHaveBeenCalledTimes(1);
-    expect(authGet).toHaveBeenCalledWith(`/events/${EVENT_ID}`, {
+    expect(apiGet).toHaveBeenCalledTimes(2);
+    expect(apiGet).toHaveBeenCalledWith(`/events/${EVENT_ID}`, {
       skipAuthRedirect: true,
       headers: { Authorization: "Bearer jwt-organizador" },
     });
+    expect(apiGet).toHaveBeenCalledWith("/events/summary");
   });
 
   it("refaz a chamada sem token quando a API rejeita o JWT (401)", async () => {
-    authGet
-      .mockRejectedValueOnce(makeAxiosError(401, "Unauthorized"))
-      .mockResolvedValueOnce({ data: apiEventDetailFixture });
-    publicGet.mockResolvedValueOnce({ data: [] });
+    apiGet.mockImplementation(
+      (url: string, config?: { headers?: { Authorization?: string } }) => {
+        if (url === "/events/summary") {
+          return Promise.resolve({ data: [] });
+        }
+        if (config?.headers?.Authorization) {
+          return Promise.reject(makeAxiosError(401, "Unauthorized"));
+        }
+        return Promise.resolve({ data: apiEventDetailFixture });
+      },
+    );
 
     const result = await getEventById(EVENT_ID, { token: "jwt-expirado" });
 
     expect(result?.id).toBe(EVENT_ID);
-    expect(authGet).toHaveBeenCalledTimes(2);
-    expect(authGet).toHaveBeenLastCalledWith(`/events/${EVENT_ID}`, {
+    const detailCalls = apiGet.mock.calls.filter(([url]) => url === `/events/${EVENT_ID}`);
+    expect(detailCalls).toHaveLength(2);
+    expect(detailCalls[1]?.[1]).toEqual({
       skipAuthRedirect: true,
     });
   });
 
   it("retorna null quando a API responde 403 (sem permissao)", async () => {
-    authGet.mockRejectedValueOnce(makeAxiosError(403, "Forbidden"));
-    publicGet.mockResolvedValueOnce({ data: [] });
+    apiGet
+      .mockRejectedValueOnce(makeAxiosError(403, "Forbidden"))
+      .mockResolvedValueOnce({ data: [] });
 
     await expect(
       getEventById(EVENT_ID, { token: "jwt-sem-permissao" }),
     ).resolves.toBeNull();
-    expect(authGet).toHaveBeenCalledTimes(1);
+    const detailCalls = apiGet.mock.calls.filter(([url]) => url === `/events/${EVENT_ID}`);
+    expect(detailCalls).toHaveLength(1);
   });
 });
 
@@ -330,11 +388,11 @@ describe("getHomeEvents", () => {
         ticketsSold: 50,
       },
     ];
-    publicGet.mockResolvedValueOnce({ data: summaries });
+    apiGet.mockResolvedValueOnce({ data: summaries });
 
     const home = await getHomeEvents(new Date("2026-10-26T15:00:00.000Z"));
 
-    expect(publicGet).toHaveBeenCalledWith("/events/summary");
+    expect(apiGet).toHaveBeenCalledWith("/events/summary");
     expect(home.featured).toHaveLength(1);
     expect(home.featured[0]).toMatchObject({
       id: EVENT_ID,
@@ -388,7 +446,7 @@ describe("searchEvents (GOL-135)", () => {
       ],
       meta: { page: 1, limit: 100, total: 2, totalPages: 1 },
     };
-    publicGet.mockResolvedValue({ data: pageResponse });
+    apiGet.mockResolvedValue({ data: pageResponse });
 
     const fallback: EventSummary[] = [
       {
@@ -435,7 +493,7 @@ describe("searchEvents (GOL-135)", () => {
       fallback,
     );
 
-    expect(publicGet).toHaveBeenCalledWith("/events", {
+    expect(apiGet).toHaveBeenCalledWith("/events", {
       params: {
         limit: 100,
         search: "Cervejada",

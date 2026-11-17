@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { authPost, authDelete } = vi.hoisted(() => ({ authPost: vi.fn(), authDelete: vi.fn() }));
 
 vi.mock("./apiClient", () => ({ apiClient: { get: vi.fn(), post: authPost, delete: authDelete } }));
-vi.mock("./client", () => ({ apiClient: { get: vi.fn() } }));
 
 import { CompraError, cancelOrder, createOrder, processPayment } from "./orders";
 

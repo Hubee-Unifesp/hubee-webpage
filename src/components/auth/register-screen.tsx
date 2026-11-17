@@ -38,7 +38,8 @@ export function RegisterScreen() {
       setSuccessMessage("Cadastro efetuado com sucesso. Redirecionando...");
 
       if (data.signupIntent === "ORGANIZE") {
-        router.push("/organizacoes/em-breve");
+        // Quem quer organizar ainda não tem organização: leva direto ao cadastro dela.
+        router.push("/organizacoes/nova");
       } else {
         const redirectUrl = searchParams.get("redirect");
         if (redirectUrl && redirectUrl.startsWith("/")) {

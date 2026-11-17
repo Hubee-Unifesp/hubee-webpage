@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   buyerAccountNavItems,
   formatCartLabel,
+  getAccountNavGroups,
   getAccountNavItems,
   organizerEventsNavItem,
   organizerManageEventsNavItem,
+  suppliersNavItem,
 } from "./account-nav.config";
 
 describe("account-nav.config", () => {
@@ -13,17 +15,34 @@ describe("account-nav.config", () => {
     expect(organizerManageEventsNavItem.href).toBe("/meus-eventos");
   });
 
-  it("mantém a navegação da conta pessoal restrita a pedidos e perfil", () => {
-    const items = getAccountNavItems();
-    const hrefs = items.map((i) => i.href);
+  it("mostra só pedidos e perfil para quem não pertence a uma organização", () => {
+    expect(getAccountNavItems().map((i) => i.href)).toEqual(["/conta/pedidos", "/conta/perfil"]);
+    expect(getAccountNavItems(false)).toEqual(buyerAccountNavItems);
+  });
 
-    expect(hrefs).toEqual(["/conta/pedidos", "/conta/perfil"]);
+  it("acrescenta Fornecedores para membros de organizações, depois das seções pessoais", () => {
+    expect(getAccountNavItems(true).map((i) => i.href)).toEqual([
+      "/conta/pedidos",
+      "/conta/perfil",
+      "/conta/fornecedores",
+    ]);
+    expect(suppliersNavItem.organizerOnly).toBe(true);
+  });
+
+  it("mantém Meus Eventos fora da lista plana usada no menu mobile, que já o mostra na navegação principal", () => {
+    const hrefs = getAccountNavItems(true).map((i) => i.href);
+
     expect(hrefs).not.toContain("/conta/eventos");
     expect(hrefs).not.toContain("/meus-eventos");
   });
 
-  it("garante consistência entre buyerAccountNavItems e getAccountNavItems", () => {
-    expect(getAccountNavItems()).toEqual(buyerAccountNavItems);
+  it("agrupa a sidebar em Minha Conta e, para organizadores, Organização com Fornecedores", () => {
+    expect(getAccountNavGroups(false).map((group) => group.label)).toEqual(["Minha Conta"]);
+
+    const grupos = getAccountNavGroups(true);
+    expect(grupos.map((group) => group.label)).toEqual(["Minha Conta", "Organização"]);
+    expect(grupos[0].items).toEqual(buyerAccountNavItems);
+    expect(grupos[1].items.map((item) => item.href)).toEqual(["/conta/fornecedores"]);
   });
 
   it("formata o label do carrinho de acordo com a quantidade", () => {

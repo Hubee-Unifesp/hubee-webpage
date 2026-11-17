@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ChevronLeft, ChevronRight, MapPin, Search, X } from "lucide-react";
+import { ArrowLeft, MapPin, Search, X } from "lucide-react";
+import { ptBR } from "react-day-picker/locale";
 import { Dialog as DialogPrimitive } from "radix-ui";
+import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import type { EventCategory } from "@/lib/api/events";
 import { cn } from "@/lib/utils";
@@ -44,25 +46,6 @@ const CATEGORY_LIST: readonly EventCategory[] = [
   "outros",
 ];
 
-const MONTHS = [
-  "Jan",
-  "Fev",
-  "Mar",
-  "Abr",
-  "Mai",
-  "Jun",
-  "Jul",
-  "Ago",
-  "Set",
-  "Out",
-  "Nov",
-  "Dez",
-] as const;
-
-const YEARS = [2025, 2026, 2027] as const;
-
-const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"] as const;
-
 const normalizeText = (value: string) =>
   value
     .normalize("NFD")
@@ -85,13 +68,6 @@ export function EventFiltersModal({
 }: EventFiltersModalProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>("todos");
   const [cityQuery, setCityQuery] = useState(filters.city ?? "");
-  const [viewMonth, setViewMonth] = useState(
-    () => filters.dateRange.start?.getMonth() ?? new Date().getMonth(),
-  );
-  const [viewYear, setViewYear] = useState(
-    () => filters.dateRange.start?.getFullYear() ?? new Date().getFullYear(),
-  );
-
   const hasActiveFilters =
     filters.categories.length > 0 ||
     filters.city !== null ||
@@ -153,24 +129,6 @@ export function EventFiltersModal({
         ...filters,
         dateRange: { start, end: dayDate },
       });
-    }
-  };
-
-  const goToPrevMonth = () => {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear((prev) => Math.max(YEARS[0], prev - 1));
-    } else {
-      setViewMonth((prev) => prev - 1);
-    }
-  };
-
-  const goToNextMonth = () => {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear((prev) => Math.min(YEARS[YEARS.length - 1], prev + 1));
-    } else {
-      setViewMonth((prev) => prev + 1);
     }
   };
 
@@ -372,15 +330,17 @@ export function EventFiltersModal({
               <h3 className="font-sans text-lg font-normal text-hubee-800 dark:text-hubee-50">
                 Data
               </h3>
-              <CalendarPicker
-                month={viewMonth}
-                year={viewYear}
-                dateRange={filters.dateRange}
-                onMonthChange={setViewMonth}
-                onYearChange={setViewYear}
-                onPrevMonth={goToPrevMonth}
-                onNextMonth={goToNextMonth}
-                onDayClick={handleDayClick}
+<Calendar
+                mode="range"
+                locale={ptBR}
+                captionLayout="dropdown"
+                startMonth={new Date(2025, 0)}
+                endMonth={new Date(2027, 11)}
+                defaultMonth={filters.dateRange.start ?? undefined}
+                selected={{ from: filters.dateRange.start ?? undefined, to: filters.dateRange.end ?? undefined }}
+                onSelect={(_, dia) => handleDayClick(dia)}
+                className="mx-auto mt-3 w-full rounded-2xl bg-hubee-200 p-4 text-hubee-800 [--cell-size:--spacing(9)] [--foreground:var(--color-hubee-900)] [--muted-foreground:var(--color-hubee-neutral-300)] [--muted:white] [--popover:var(--color-hubee-50)] [--primary-foreground:var(--color-hubee-50)] [--primary:var(--color-hubee-900)] dark:bg-hubee-400"
+                classNames={{ root: "w-full", today: "rounded-(--cell-radius) font-semibold underline underline-offset-4" }}
               />
             </div>
           )}
@@ -399,157 +359,5 @@ export function EventFiltersModal({
         </DialogPrimitive.Content>
       </DialogPortal>
     </Dialog>
-  );
-}
-
-interface CalendarPickerProps {
-  month: number;
-  year: number;
-  dateRange: EventDateRange;
-  onMonthChange: (month: number) => void;
-  onYearChange: (year: number) => void;
-  onPrevMonth: () => void;
-  onNextMonth: () => void;
-  onDayClick: (date: Date) => void;
-}
-
-function CalendarPicker({
-  month,
-  year,
-  dateRange,
-  onMonthChange,
-  onYearChange,
-  onPrevMonth,
-  onNextMonth,
-  onDayClick,
-}: CalendarPickerProps) {
-  const firstDayOfWeek = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-  const cells: { day: number; currentMonth: boolean; date: Date }[] = [];
-
-  for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-    const day = daysInPrevMonth - i;
-    cells.push({
-      day,
-      currentMonth: false,
-      date: new Date(year, month - 1, day),
-    });
-  }
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    cells.push({
-      day,
-      currentMonth: true,
-      date: new Date(year, month, day),
-    });
-  }
-
-  const remaining = (7 - (cells.length % 7)) % 7;
-  for (let day = 1; day <= remaining; day++) {
-    cells.push({
-      day,
-      currentMonth: false,
-      date: new Date(year, month + 1, day),
-    });
-  }
-
-  const isSameDay = (a: Date | null, b: Date) =>
-    a !== null &&
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate();
-
-  const isInRange = (target: Date) => {
-    const { start, end } = dateRange;
-    if (!start || !end) return false;
-    const time = target.getTime();
-    return time > start.getTime() && time < end.getTime();
-  };
-
-  return (
-    <div className="mx-auto mt-3 w-full rounded-2xl bg-hubee-200 p-4 text-hubee-800 dark:bg-hubee-400 dark:text-hubee-800">
-      <div className="flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={onPrevMonth}
-          aria-label="Mês anterior"
-          className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md hover:bg-hubee-300/60 focus-visible:ring-2 focus-visible:ring-hubee-800 outline-none"
-        >
-          <ChevronLeft aria-hidden="true" className="size-4" />
-        </button>
-
-        <div className="flex items-center gap-1.5">
-          <select
-            aria-label="Selecionar mês"
-            value={month}
-            onChange={(event) => onMonthChange(Number(event.target.value))}
-            className="h-7 cursor-pointer rounded-md border border-hubee-300 bg-hubee-50 px-2 text-xs font-medium text-hubee-800 outline-none focus-visible:ring-2 focus-visible:ring-hubee-800"
-          >
-            {MONTHS.map((label, idx) => (
-              <option key={label} value={idx}>
-                {label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            aria-label="Selecionar ano"
-            value={year}
-            onChange={(event) => onYearChange(Number(event.target.value))}
-            className="h-7 cursor-pointer rounded-md border border-hubee-300 bg-hubee-50 px-2 text-xs font-medium text-hubee-800 outline-none focus-visible:ring-2 focus-visible:ring-hubee-800"
-          >
-            {YEARS.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          type="button"
-          onClick={onNextMonth}
-          aria-label="Próximo mês"
-          className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md hover:bg-hubee-300/60 focus-visible:ring-2 focus-visible:ring-hubee-800 outline-none"
-        >
-          <ChevronRight aria-hidden="true" className="size-4" />
-        </button>
-      </div>
-
-      <div className="mt-3 grid grid-cols-7 text-center text-[11px] text-hubee-neutral-300 dark:text-hubee-750">
-        {WEEKDAYS.map((weekday) => (
-          <span key={weekday} className="py-1">
-            {weekday}
-          </span>
-        ))}
-      </div>
-
-      <div className="mt-1 grid grid-cols-7 gap-y-1 text-center text-xs">
-        {cells.map(({ day, currentMonth, date }) => {
-          const isEndpoint = isSameDay(dateRange.start, date) || isSameDay(dateRange.end, date);
-          const inBetween = isInRange(date);
-
-          return (
-            <button
-              key={date.toISOString()}
-              type="button"
-              onClick={() => onDayClick(date)}
-              aria-pressed={isEndpoint || inBetween}
-              className={cn(
-                "mx-auto inline-flex size-8 cursor-pointer items-center justify-center rounded-lg text-xs transition-colors outline-none focus-visible:ring-2 focus-visible:ring-hubee-800",
-                !currentMonth && !isEndpoint && !inBetween && "text-hubee-neutral-200 dark:text-hubee-700/60",
-                currentMonth && !isEndpoint && !inBetween && "text-hubee-800 hover:bg-hubee-300/60",
-                inBetween && "bg-white font-medium text-hubee-900",
-                isEndpoint && "bg-hubee-900 font-semibold text-hubee-50",
-              )}
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
-    </div>
   );
 }

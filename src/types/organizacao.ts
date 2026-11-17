@@ -20,6 +20,28 @@ export interface OrganizacaoVinculada {
   papel: PapelOrganizador;
 }
 
+/** Organização como a `hubee-api` devolve em `/organizations`. */
+export interface Organizacao {
+  id: string;
+  name: string;
+  description: string | null;
+  representativeId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Corpo de criação (`POST /organizations`). O representante é sempre quem está logado, definido pela API. */
+export interface OrganizacaoCriarPayload {
+  name: string;
+  description?: string;
+}
+
+/** Corpo de edição (`PATCH /organizations/:id`). Descrição vazia limpa o texto salvo. */
+export interface OrganizacaoAtualizarPayload {
+  name?: string;
+  description?: string;
+}
+
 /** Evento formatado para o painel do organizador ("Meus Eventos"). */
 export interface EventoOrganizador {
   id: string;

@@ -1,4 +1,4 @@
-import { CalendarDays, ShoppingBag, User, type LucideIcon } from "lucide-react";
+import { CalendarDays, ShoppingBag, Truck, User, type LucideIcon } from "lucide-react";
 
 export interface AccountNavItem {
   href: string;
@@ -28,14 +28,36 @@ export const buyerAccountNavItems: readonly AccountNavItem[] = [
   { href: "/conta/perfil", label: "Meu perfil", icon: User },
 ];
 
-/** Seções da conta pessoal. Usadas pelas abas mobile e pela sidebar da conta. */
+export const suppliersNavItem: AccountNavItem = {
+  href: "/conta/fornecedores",
+  label: "Fornecedores",
+  icon: Truck,
+  organizerOnly: true,
+};
+
+/** Seções da conta. Usadas pelas abas mobile, pela sidebar da conta e pelo menu mobile. */
 export const accountNavItems: readonly AccountNavItem[] = [
   ...buyerAccountNavItems,
+  suppliersNavItem,
 ];
 
-/** Seções da conta pessoal que a pessoa usuária pode acessar. */
-export function getAccountNavItems(): readonly AccountNavItem[] {
-  return accountNavItems;
+/** Seções da conta que a pessoa usuária pode acessar: as de organizador só para membros de organizações. */
+export function getAccountNavItems(isOrganizer = false): readonly AccountNavItem[] {
+  return accountNavItems.filter((item) => isOrganizer || !item.organizerOnly);
+}
+
+export interface AccountNavGroup {
+  label: string;
+  items: readonly AccountNavItem[];
+}
+
+export const organizationNavItems: readonly AccountNavItem[] = [suppliersNavItem];
+
+/** Grupos da sidebar e das abas da conta: "Minha Conta" para todos e "Organização" só para organizadores. */
+export function getAccountNavGroups(isOrganizer = false): readonly AccountNavGroup[] {
+  const groups: AccountNavGroup[] = [{ label: "Minha Conta", items: buyerAccountNavItems }];
+  if (isOrganizer) groups.push({ label: "Organização", items: organizationNavItems });
+  return groups;
 }
 
 export const cartHref = "/carrinho";

@@ -51,7 +51,7 @@ export function PedidoCard({ pedido }: { pedido: Pedido }) {
         {evento && (
           <p className="truncate text-xs font-medium text-hubee-800">
             {evento.local && `${evento.local} · `}
-            {formatEventDate(evento.dataInicio, evento.dataFim)}
+            {evento.dataInicio && formatEventDate(evento.dataInicio, evento.dataFim)}
           </p>
         )}
         <p className="truncate text-xs text-hubee-neutral-300">{meta.join(" · ")}</p>
