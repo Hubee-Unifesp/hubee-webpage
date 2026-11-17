@@ -1,7 +1,13 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { ContaCard, ContaPageTitle } from "@/components/conta/conta-card";
-import { formatPrice } from "@/components/home/events/format";
+import { formatEventDate, formatPrice } from "@/components/home/events/format";
+import { Button } from "@/components/ui/button";
+import { cancelOrder } from "@/lib/api/orders";
 import type { Pedido } from "@/types/pedido";
 import { formatOrderDateTime, formatPaymentMethod } from "./format";
 import { IngressoCard } from "./ingresso-card";
@@ -9,8 +15,28 @@ import { StatusBadge } from "./status-pedido";
 
 const mutedClassName = "text-sm text-hubee-neutral-300 dark:text-hubee-200";
 
-/** Detalhe do pedido: resumo da compra e ingressos. */
+/** Detalhe do pedido: resumo da compra, ações e ingressos. */
 export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; participante: string }) {
+  const router = useRouter();
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const [evento = null] = pedido.eventos;
+
+  const handleCancel = async () => {
+    if (!confirm("Tem certeza que deseja cancelar este pedido?")) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      await cancelOrder(pedido.id);
+      router.refresh();
+      window.location.reload();
+    } catch {
+      setCancelError("Não foi possível cancelar o pedido. Tente novamente.");
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-3">
@@ -27,6 +53,49 @@ export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; partic
       <p className="-mt-3 text-xs text-hubee-neutral-300 dark:text-hubee-200">
         Pedido feito em {formatOrderDateTime(pedido.criadoEm)}
       </p>
+
+      {evento && (
+        <ContaCard title="Evento">
+          <div className="flex flex-col gap-1 text-xs">
+            <h4 className="font-heading text-base font-bold text-hubee-800 dark:text-hubee-50">
+              {evento.nome}
+            </h4>
+            {evento.dataInicio && (
+              <p className="text-hubee-neutral-300 dark:text-hubee-200">
+                {evento.local && `${evento.local} · `}
+                {formatEventDate(evento.dataInicio, evento.dataFim)}
+              </p>
+            )}
+          </div>
+        </ContaCard>
+      )}
+
+      {pedido.status === "pendente" && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-hubee-200 bg-hubee-50/50 p-4 dark:border-hubee-50/15 dark:bg-hubee-750/30">
+          <Button
+            variant="hubee_800"
+            className="cursor-pointer"
+            onClick={() => router.push("/checkout")}
+          >
+            <CheckCircle2 className="size-4 mr-2" />
+            Concluir Pagamento
+          </Button>
+
+          <Button
+            variant="destructive"
+            className="cursor-pointer"
+            disabled={cancelling}
+            onClick={handleCancel}
+          >
+            <XCircle className="size-4 mr-2" />
+            {cancelling ? "Cancelando..." : "Cancelar Pedido"}
+          </Button>
+
+          {cancelError && (
+            <p className="w-full text-xs text-red-600 dark:text-red-400">{cancelError}</p>
+          )}
+        </div>
+      )}
 
       <ContaCard title="Detalhes da Compra">
         <div className="grid grid-cols-1 gap-2 pb-4 text-xs sm:grid-cols-2 text-hubee-750 dark:text-hubee-200 border-b border-hubee-200 dark:border-hubee-50/15">
@@ -84,9 +153,8 @@ export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; partic
               ))}
             </ul>
           ) : (
-            // A API não guarda os itens do pedido: só dá para listá-los a partir dos ingressos emitidos.
             <p className={mutedClassName}>
-              Os itens aparecem aqui depois que o pagamento do pedido é confirmado e os ingressos são emitidos.
+              Nenhum item encontrado neste pedido.
             </p>
           )}
         </div>
@@ -107,7 +175,6 @@ export function PedidoDetalhe({ pedido, participante }: { pedido: Pedido; partic
             ))}
           </ul>
         ) : (
-          // Estado não desenhado no Figma: ingressos só existem para pedidos pagos.
           <p className={mutedClassName}>
             {pedido.status === "pago"
               ? "Os ingressos deste pedido ainda não foram emitidos. Volte em instantes."
