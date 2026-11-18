@@ -4,6 +4,8 @@ import {
   formatCartLabel,
   getAccountNavGroups,
   getAccountNavItems,
+  getProfileMenuItems,
+  myTicketsNavItem,
   organizerEventsNavItem,
   organizerManageEventsNavItem,
   suppliersNavItem,
@@ -15,13 +17,19 @@ describe("account-nav.config", () => {
     expect(organizerManageEventsNavItem.href).toBe("/meus-eventos");
   });
 
-  it("mostra só pedidos e perfil para quem não pertence a uma organização", () => {
-    expect(getAccountNavItems().map((i) => i.href)).toEqual(["/conta/pedidos", "/conta/perfil"]);
-    expect(getAccountNavItems(false)).toEqual(buyerAccountNavItems);
+  it("mostra Meus ingressos, pedidos e perfil no menu mobile para quem não pertence a uma organização", () => {
+    expect(getAccountNavItems().map((i) => i.href)).toEqual([
+      "/meus-ingressos",
+      "/conta/pedidos",
+      "/conta/perfil",
+    ]);
+    expect(getAccountNavItems(false)).toEqual([myTicketsNavItem, ...buyerAccountNavItems]);
   });
 
-  it("acrescenta Fornecedores para membros de organizações, depois das seções pessoais", () => {
+  it("acrescenta Meus eventos e Fornecedores no menu mobile para membros de organizações", () => {
     expect(getAccountNavItems(true).map((i) => i.href)).toEqual([
+      "/meus-ingressos",
+      "/meus-eventos",
       "/conta/pedidos",
       "/conta/perfil",
       "/conta/fornecedores",
@@ -29,11 +37,18 @@ describe("account-nav.config", () => {
     expect(suppliersNavItem.organizerOnly).toBe(true);
   });
 
-  it("mantém Meus Eventos fora da lista plana usada no menu mobile, que já o mostra na navegação principal", () => {
-    const hrefs = getAccountNavItems(true).map((i) => i.href);
-
-    expect(hrefs).not.toContain("/conta/eventos");
-    expect(hrefs).not.toContain("/meus-eventos");
+  it("retorna Meus ingressos, pedidos e perfil no dropdown do perfil e acrescenta Meus eventos para organizadores", () => {
+    expect(getProfileMenuItems(false).map((i) => i.href)).toEqual([
+      "/meus-ingressos",
+      "/conta/pedidos",
+      "/conta/perfil",
+    ]);
+    expect(getProfileMenuItems(true).map((i) => i.href)).toEqual([
+      "/meus-ingressos",
+      "/meus-eventos",
+      "/conta/pedidos",
+      "/conta/perfil",
+    ]);
   });
 
   it("agrupa a sidebar em Minha Conta e, para organizadores, Organização com Fornecedores", () => {
