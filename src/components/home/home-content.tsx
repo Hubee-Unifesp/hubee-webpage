@@ -11,7 +11,6 @@ export function HomeContent({ role, homeHref = "/" }: { role?: HeaderRole; homeH
   const { user, isOrganizer } = useAuth();
   const currentRole: HeaderRole =
     role ?? (user ? (isOrganizer ? "organizer" : "user") : "guest");
-  const isAuthenticated = currentRole !== "guest";
 
   const aboutCtaLabel =
     currentRole === "guest"
@@ -39,8 +38,14 @@ export function HomeContent({ role, homeHref = "/" }: { role?: HeaderRole; homeH
       <Header homeHref={homeHref} />
       <main className="space-y-8 px-4 py-8 sm:px-8" id="conteudo" aria-label="Página inicial Hubee">
         <HeroSection
-          ctaLabel={isAuthenticated ? "Explorar Eventos" : "Criar Conta"}
-          ctaHref={isAuthenticated ? "/eventos" : "/cadastro"}
+          primary={{ label: "Explorar eventos", href: "/eventos" }}
+          secondary={
+            currentRole === "guest"
+              ? { label: "Vender na Hubee", href: organizerHref }
+              : currentRole === "organizer"
+                ? { label: "Meus eventos", href: organizerHref }
+                : undefined
+          }
         />
         <EventListingSection />
         <AboutSection
