@@ -29,7 +29,7 @@ export function PedidosLista({ pedidos }: { pedidos: Pedido[] }) {
                 "cursor-pointer rounded-full border px-3 py-0.5 text-xs font-medium outline-none focus-visible:ring-3 focus-visible:ring-hubee-800 dark:focus-visible:ring-hubee-400",
                 ativo
                   ? "border-hubee-800 bg-hubee-800 text-hubee-50 dark:border-hubee-400 dark:bg-hubee-400 dark:text-hubee-800"
-                  : "border-current hover:bg-hubee-100 dark:hover:bg-hubee-750",
+                  : "border-current hover:bg-hubee-100 dark:hover:bg-hubee-50/10",
               )}
             >
               {statusPedidoConfig[status].filterLabel}

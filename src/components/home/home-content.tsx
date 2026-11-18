@@ -12,19 +12,6 @@ export function HomeContent({ role, homeHref = "/" }: { role?: HeaderRole; homeH
   const currentRole: HeaderRole =
     role ?? (user ? (isOrganizer ? "organizer" : "user") : "guest");
 
-  const aboutCtaLabel =
-    currentRole === "guest"
-      ? "Explorar eventos"
-      : currentRole === "organizer"
-        ? "Meus Eventos"
-        : "Meus Ingressos";
-
-  const aboutCtaHref =
-    currentRole === "guest"
-      ? "#eventos"
-      : currentRole === "organizer"
-        ? "/meus-eventos"
-        : "/meus-ingressos";
 
   const organizerHref =
     currentRole === "guest"
@@ -34,7 +21,7 @@ export function HomeContent({ role, homeHref = "/" }: { role?: HeaderRole; homeH
         : "/conta/perfil";
 
   return (
-    <div id="inicio" className="min-h-screen bg-hubee-50 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50">
+    <div id="inicio" className="min-h-screen bg-hubee-50 text-hubee-800 dark:bg-hubee-900 dark:text-hubee-50">
       <Header homeHref={homeHref} />
       <main className="space-y-8 px-4 py-8 sm:px-8" id="conteudo" aria-label="Página inicial Hubee">
         <HeroSection
@@ -49,8 +36,6 @@ export function HomeContent({ role, homeHref = "/" }: { role?: HeaderRole; homeH
         />
         <EventListingSection />
         <AboutSection
-          ctaLabel={aboutCtaLabel}
-          ctaHref={aboutCtaHref}
           organizerHref={organizerHref}
         />
       </main>

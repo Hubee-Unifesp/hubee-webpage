@@ -51,7 +51,7 @@ export function AvaliacaoBadge({ fornecedor, className }: AvaliacaoBadgeProps) {
       <span
         aria-label={labelAcessivel}
         className={cn(
-          "inline-flex items-center gap-1 rounded-full border border-hubee-300 bg-hubee-100 px-2.5 py-0.5 text-xs whitespace-nowrap tabular-nums dark:border-hubee-600/60 dark:bg-hubee-800",
+          "inline-flex items-center gap-1 rounded-full border border-hubee-300 bg-hubee-100 px-2.5 py-0.5 text-xs whitespace-nowrap tabular-nums dark:border-hubee-50/15 dark:bg-hubee-850",
           className,
         )}
       >

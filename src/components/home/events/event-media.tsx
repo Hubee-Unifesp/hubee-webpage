@@ -89,7 +89,7 @@ export function CategoryPill({ category, className }: { category: EventCategory;
   return (
     <span
       className={cn(
-        "inline-flex w-fit rounded-full border border-hubee-400 bg-hubee-50 px-2.5 py-0.5 text-xs font-medium text-hubee-800 dark:border-hubee-500 dark:bg-hubee-800 dark:text-hubee-50",
+        "inline-flex w-fit rounded-full border border-hubee-400 bg-hubee-50 px-2.5 py-0.5 text-xs font-medium text-hubee-800 dark:border-hubee-50/10 dark:bg-hubee-850 dark:text-hubee-50",
         className,
       )}
     >

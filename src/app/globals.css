@@ -60,6 +60,7 @@
   --color-hubee-700: #966800;
   --color-hubee-750: #634400;
   --color-hubee-800: #302100;
+  --color-hubee-850: #241a06;
   --color-hubee-900: #181000;
 
   --color-hubee-neutral-25: #fffdf6;
@@ -150,6 +151,7 @@
   html {
     @apply font-sans;
     scrollbar-gutter: stable;
+    scroll-padding-top: 5.5rem;
   }
   h1,
   h2,

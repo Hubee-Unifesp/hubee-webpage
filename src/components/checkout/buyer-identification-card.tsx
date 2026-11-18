@@ -43,7 +43,7 @@ export function BuyerIdentificationCard({
             id="checkout-usar-conta"
             checked={useAccountData}
             onCheckedChange={(checked) => onToggleAccountData(checked === true)}
-            className="border-hubee-300 data-checked:border-hubee-800 data-checked:bg-hubee-800 data-checked:text-hubee-50 dark:border-hubee-700 dark:data-checked:border-hubee-400 dark:data-checked:bg-hubee-400 dark:data-checked:text-hubee-800"
+            className="border-hubee-300 data-checked:border-hubee-800 data-checked:bg-hubee-800 data-checked:text-hubee-50 dark:border-hubee-50/15 dark:data-checked:border-hubee-400 dark:data-checked:bg-hubee-400 dark:data-checked:text-hubee-800"
           />
           <Label
             htmlFor="checkout-usar-conta"

@@ -41,7 +41,7 @@ export function AuthIllustration({ className }: { className?: string }) {
       </div>
       <Honeycomb
         cells={desktopCells}
-        className="absolute top-0 left-[11.3%] hidden h-auto w-[92.4%] -translate-y-[14.3%] fill-hubee-750/70 stroke-hubee-700 stroke-2 lg:block"
+        className="absolute top-0 left-[11.3%] hidden h-auto w-[92.4%] -translate-y-[14.3%] fill-hubee-750/70 stroke-hubee-700 stroke-2 lg:block dark:fill-hubee-400/10 dark:stroke-hubee-400/40"
       />
     </div>
   );

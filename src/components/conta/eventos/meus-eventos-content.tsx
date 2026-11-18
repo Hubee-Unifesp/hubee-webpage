@@ -215,7 +215,7 @@ export function MeusEventosContent() {
                       "cursor-pointer rounded-full border px-3 py-1 text-xs font-medium outline-none focus-visible:ring-3 focus-visible:ring-hubee-800 dark:focus-visible:ring-hubee-400",
                       ativo
                         ? "border-hubee-800 bg-hubee-800 text-hubee-50 dark:border-hubee-400 dark:bg-hubee-400 dark:text-hubee-800"
-                        : "border-hubee-300 bg-hubee-neutral-25 hover:bg-hubee-100 dark:border-hubee-50/20 dark:bg-transparent dark:hover:bg-hubee-750",
+                        : "border-hubee-300 bg-hubee-neutral-25 hover:bg-hubee-100 dark:border-hubee-50/20 dark:bg-transparent dark:hover:bg-hubee-50/10",
                     )}
                   >
                     {getFiltroStatusLabel(itemStatus)}
@@ -238,7 +238,7 @@ export function MeusEventosContent() {
                 value={busca}
                 onChange={(event) => setBusca(event.target.value)}
                 placeholder="Buscar por nome do evento"
-                className="rounded-lg border-hubee-300 bg-hubee-neutral-25 pl-9 text-hubee-800 placeholder:text-hubee-neutral-300 dark:border-hubee-50/20 dark:bg-hubee-800 dark:text-hubee-50"
+                className="rounded-lg border-hubee-300 bg-hubee-neutral-25 pl-9 text-hubee-800 placeholder:text-hubee-neutral-300 dark:border-hubee-50/20 dark:bg-hubee-850 dark:text-hubee-50"
               />
             </div>
           </div>

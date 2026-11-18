@@ -28,7 +28,7 @@ export function LoteAcoes({ lote, podeGerenciar, onEditar, onExcluir, className 
         title={podeGerenciar ? "Editar" : semPermissao}
         aria-label={`Editar ${lote.batch}`}
         onClick={() => onEditar(lote)}
-        className="cursor-pointer text-hubee-800 hover:bg-hubee-200 hover:text-hubee-800 focus-visible:ring-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400"
+        className="cursor-pointer text-hubee-800 hover:bg-hubee-200 hover:text-hubee-800 focus-visible:ring-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400"
       >
         <Pencil aria-hidden="true" />
       </Button>

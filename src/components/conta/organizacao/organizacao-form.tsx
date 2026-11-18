@@ -188,7 +188,7 @@ export function OrganizacaoForm({ mode, onSuccess, onCancel }: OrganizacaoFormPr
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="h-9 rounded-md border-hubee-300 px-3.5 text-xs font-medium text-hubee-800 hover:bg-hubee-100 dark:border-hubee-50/20 dark:bg-transparent dark:text-hubee-50 dark:hover:bg-hubee-750"
+            className="h-9 rounded-md border-hubee-300 px-3.5 text-xs font-medium text-hubee-800 hover:bg-hubee-100 dark:border-hubee-50/20 dark:bg-transparent dark:text-hubee-50 dark:hover:bg-hubee-50/10"
           >
             Cancelar
           </Button>

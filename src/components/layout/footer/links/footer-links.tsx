@@ -19,7 +19,7 @@ export function FooterLinks({ columns }: FooterLinksProps) {
       <div className="hidden gap-10 md:flex">
         {columns.map((column) => (
           <div key={column.title} className="min-w-[9rem]">
-            <p className="text-xs font-semibold tracking-wide text-hubee-50/70 uppercase dark:text-hubee-800/70">
+            <p className="text-xs font-semibold tracking-wide text-hubee-50/70 uppercase">
               {column.title}
             </p>
             <ul className="mt-3 space-y-2.5">
@@ -32,9 +32,9 @@ export function FooterLinks({ columns }: FooterLinksProps) {
                       href={href}
                       aria-current={isActive ? "page" : undefined}
                       className={cn(
-                        "inline-flex items-center rounded px-1 py-0.5 text-sm font-medium text-hubee-50 outline-none hover:text-hubee-400 hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-hubee-400 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-800 dark:text-hubee-800 dark:hover:text-hubee-750 dark:focus-visible:ring-hubee-800 dark:focus-visible:ring-offset-hubee-400",
+                        "inline-flex items-center rounded px-1 py-0.5 text-sm font-medium text-hubee-50 outline-none hover:text-hubee-400 hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-hubee-400 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-800",
                         isActive &&
-                          "border-l-2 border-hubee-400 pl-2.5 underline underline-offset-4 dark:border-hubee-800",
+                          "border-l-2 border-hubee-400 pl-2.5 underline underline-offset-4",
                       )}
                     >
                       {label}
@@ -52,9 +52,9 @@ export function FooterLinks({ columns }: FooterLinksProps) {
           <AccordionItem
             key={column.title}
             value={column.title}
-            className="border-hubee-50/15 dark:border-hubee-800/15"
+            className="border-hubee-50/15"
           >
-            <AccordionTrigger className="text-xs font-semibold tracking-wide text-hubee-50 uppercase hover:no-underline dark:text-hubee-800">
+            <AccordionTrigger className="text-xs font-semibold tracking-wide text-hubee-50 uppercase hover:no-underline">
               {column.title}
             </AccordionTrigger>
             <AccordionContent>
@@ -68,9 +68,9 @@ export function FooterLinks({ columns }: FooterLinksProps) {
                         href={href}
                         aria-current={isActive ? "page" : undefined}
                         className={cn(
-                          "inline-flex items-center rounded px-1 py-0.5 text-sm font-medium text-hubee-50/90 outline-none hover:text-hubee-400 hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:text-hubee-800/90 dark:hover:text-hubee-750 dark:focus-visible:ring-hubee-800",
+                          "inline-flex items-center rounded px-1 py-0.5 text-sm font-medium text-hubee-50/90 outline-none hover:text-hubee-400 hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-hubee-400",
                           isActive &&
-                            "border-l-2 border-hubee-400 pl-2.5 font-semibold text-hubee-50 underline underline-offset-4 dark:border-hubee-800 dark:text-hubee-800",
+                            "border-l-2 border-hubee-400 pl-2.5 font-semibold text-hubee-50 underline underline-offset-4",
                         )}
                       >
                         {label}

@@ -37,7 +37,7 @@ export function HeaderActions({ user, signedIn = !!user }: HeaderActionsProps) {
                   {isCart && totalItens > 0 && (
                     <span
                       aria-hidden="true"
-                      className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50"
+                      className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800"
                     >
                       {totalItens > 99 ? "99+" : totalItens}
                     </span>

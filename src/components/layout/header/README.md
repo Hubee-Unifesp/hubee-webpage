@@ -7,7 +7,7 @@ A home (`/`) usa o estado de visitante e `/login` apresenta o mock de usuário l
 ```
 
 - `role`: `guest` (padrão), `user` ou `organizer`. Forneça o valor da sessão real. Essa propriedade controla apenas a apresentação, não a autorização.
-- `fixed`: `false` por padrão: o conjunto formado pelo botão de tema (à esquerda) e a header em formato de pílula (centralizada, até 832px de largura) fica no topo da página e sai de vista ao rolar. Com `true`, ele acompanha a rolagem; nesse caso reserve 80px no conteúdo em telas menores que 768px e 96px nas demais.
+- `fixed`: `false` por padrão: o conjunto formado pelo botão de tema (à esquerda) e a header em formato de pílula (centralizada, até 832px de largura) fica grudado no topo (`sticky`) e acompanha a rolagem sem precisar reservar espaço no conteúdo. Com `true`, usa `position: fixed`; nesse caso reserve 80px no conteúdo em telas menores que 768px e 96px nas demais.
 - `homeHref`: caminho da home para os links de início, eventos e logo (padrão `/`).
 - `logoutHref`: destino opcional de “Sair” para a simulação.
 - `className`: estilos adicionais para o container.
