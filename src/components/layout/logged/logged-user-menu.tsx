@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
 import { formatShortOrganizerRoleLabel } from "@/types/organizacao";
 import type { Usuario } from "@/types/usuario";
-import { buyerAccountNavItems } from "./account-nav.config";
+import { getProfileMenuItems } from "./account-nav.config";
 import { UserAvatar } from "./user-avatar";
 
 export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
@@ -59,7 +59,7 @@ export function LoggedUserMenu({ usuario }: { usuario: Usuario }) {
 
         <DropdownMenuSeparator className="my-1.5 bg-hubee-800/10 dark:bg-hubee-50/15" />
 
-        {buyerAccountNavItems.map(({ href, label, icon: Icon }) => (
+        {getProfileMenuItems(isOrganizer).map(({ href, label, icon: Icon }) => (
           <DropdownMenuItem
             key={href}
             asChild
