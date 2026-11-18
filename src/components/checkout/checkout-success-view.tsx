@@ -125,7 +125,7 @@ export function CheckoutSuccessView({ compra, buyer }: CheckoutSuccessViewProps)
         <Button
           asChild
           variant="outline"
-          className="h-10 w-full border-hubee-200 bg-white px-5 text-xs font-semibold text-hubee-800 hover:bg-hubee-100 sm:w-auto dark:border-hubee-750 dark:bg-transparent dark:text-hubee-50 dark:hover:bg-hubee-750/60"
+          className="h-10 w-full border-hubee-200 bg-white px-5 text-xs font-semibold text-hubee-800 hover:bg-hubee-100 sm:w-auto dark:border-hubee-50/15 dark:bg-transparent dark:text-hubee-50 dark:hover:bg-hubee-50/10"
         >
           <Link href="/eventos">
             <ArrowLeft aria-hidden="true" className="size-4" />

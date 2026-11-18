@@ -17,7 +17,7 @@ export function EventPageShell({ children, label, className }: EventPageShellPro
     <div
       id="inicio"
       className={cn(
-        "flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50",
+        "flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-850 dark:text-hubee-50",
         displayFont.variable,
       )}
     >

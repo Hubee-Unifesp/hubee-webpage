@@ -367,7 +367,7 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
                 onDragStart={(e) => e.preventDefault()}
                 onClick={() => handleOpenMember(member, logicalIdx)}
                 className={cn(
-                  "group flex h-full w-full flex-col overflow-hidden rounded-xl border border-hubee-200 bg-hubee-neutral-25 text-left transition-colors outline-none hover:border-hubee-400 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-50 dark:border-hubee-50/15 dark:bg-hubee-800/80 dark:hover:border-hubee-400 dark:focus-visible:ring-hubee-400 dark:focus-visible:ring-offset-hubee-800",
+                  "group flex h-full w-full flex-col overflow-hidden rounded-xl border border-hubee-200 bg-hubee-neutral-25 text-left transition-colors outline-none hover:border-hubee-400 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-50 dark:border-hubee-50/15 dark:bg-hubee-850 dark:hover:border-hubee-400 dark:focus-visible:ring-hubee-400 dark:focus-visible:ring-offset-hubee-800",
                   isDragging ? "cursor-grabbing" : "cursor-grab",
                 )}
               >
@@ -386,10 +386,10 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
                           [member.id]: true,
                         }))
                       }
-                      className="pointer-events-none size-28 rounded-full border-2 border-hubee-200 object-cover transition-transform duration-200 group-hover:scale-105 motion-reduce:transition-none dark:border-hubee-750"
+                      className="pointer-events-none size-28 rounded-full border-2 border-hubee-200 object-cover transition-transform duration-200 group-hover:scale-105 motion-reduce:transition-none dark:border-hubee-50/15"
                     />
                   ) : (
-                    <div className="pointer-events-none flex size-28 items-center justify-center rounded-full border border-hubee-200 bg-hubee-50 text-hubee-750 dark:border-hubee-750 dark:bg-hubee-800 dark:text-hubee-200">
+                    <div className="pointer-events-none flex size-28 items-center justify-center rounded-full border border-hubee-200 bg-hubee-50 text-hubee-750 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-200">
                       <User
                         aria-hidden="true"
                         className="size-10 stroke-[1.5]"
@@ -436,7 +436,7 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
                     "h-2 rounded-full transition-all outline-none focus-visible:ring-2 focus-visible:ring-hubee-800 dark:focus-visible:ring-hubee-400",
                     isCurrent
                       ? "w-5 bg-hubee-800 dark:bg-hubee-400"
-                      : "w-2 bg-hubee-200 hover:bg-hubee-400 dark:bg-hubee-750 dark:hover:bg-hubee-600",
+                      : "w-2 bg-hubee-200 hover:bg-hubee-400 dark:bg-hubee-850 dark:hover:bg-hubee-600",
                   )}
                 />
               );
@@ -456,7 +456,7 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
               type="button"
               onClick={() => handleStepButton(-1)}
               aria-label="Mostrar integrantes anteriores"
-              className="inline-flex size-11 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-neutral-25 text-hubee-800 transition-colors outline-none hover:bg-hubee-100 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400"
+              className="inline-flex size-11 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-neutral-25 text-hubee-800 transition-colors outline-none hover:bg-hubee-100 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400"
             >
               <ChevronLeft aria-hidden="true" className="size-4" />
             </button>
@@ -471,7 +471,7 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
                     : "Pausar avanço automático"
                 }
                 aria-pressed={isManuallyPaused}
-                className="inline-flex size-11 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-neutral-25 text-hubee-800 transition-colors outline-none hover:bg-hubee-100 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400"
+                className="inline-flex size-11 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-neutral-25 text-hubee-800 transition-colors outline-none hover:bg-hubee-100 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400"
               >
                 {isManuallyPaused ? (
                   <Play aria-hidden="true" className="size-4" />
@@ -485,7 +485,7 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
               type="button"
               onClick={() => handleStepButton(1)}
               aria-label="Mostrar próximos integrantes"
-              className="inline-flex size-11 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-neutral-25 text-hubee-800 transition-colors outline-none hover:bg-hubee-100 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400"
+              className="inline-flex size-11 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-neutral-25 text-hubee-800 transition-colors outline-none hover:bg-hubee-100 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400"
             >
               <ChevronRight aria-hidden="true" className="size-4" />
             </button>

@@ -50,7 +50,7 @@ export function SobreContent({ members }: SobreContentProps) {
   return (
     <div
       id="inicio"
-      className="flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50"
+      className="flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-850 dark:text-hubee-50"
     >
       <a
         href="#conteudo"
@@ -131,7 +131,7 @@ export function SobreContent({ members }: SobreContentProps) {
             {VALUE_PILLARS.map(({ title, description, icon: Icon }) => (
               <li
                 key={title}
-                className="flex flex-col rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-6 md:p-7 dark:border-hubee-50/15 dark:bg-hubee-800/80"
+                className="flex flex-col rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-6 md:p-7 dark:border-hubee-50/15 dark:bg-hubee-850"
               >
                 <div className="flex size-11 items-center justify-center rounded-lg bg-hubee-100 text-hubee-750 dark:bg-hubee-900 dark:text-hubee-400">
                   <Icon
@@ -183,7 +183,7 @@ export function SobreContent({ members }: SobreContentProps) {
               <Link
                 href={organizerHref}
                 prefetch={true}
-                className="inline-flex min-h-11 items-center justify-center rounded-md border border-hubee-200 bg-hubee-50 px-5 py-2.5 text-sm font-semibold text-hubee-800 transition-colors outline-none hover:bg-hubee-200/60 hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-100 dark:border-hubee-50/15 dark:bg-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400 dark:focus-visible:ring-offset-hubee-900"
+                className="inline-flex min-h-11 items-center justify-center rounded-md border border-hubee-200 bg-hubee-50 px-5 py-2.5 text-sm font-semibold text-hubee-800 transition-colors outline-none hover:bg-hubee-200/60 hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-100 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400 dark:focus-visible:ring-offset-hubee-900"
               >
                 Quero organizar um evento
               </Link>

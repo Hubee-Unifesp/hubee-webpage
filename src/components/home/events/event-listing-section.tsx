@@ -1,14 +1,14 @@
 "use client";
 
 import { useDeferredValue, useState } from "react";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useFilteredEvents } from "@/hooks/useFilteredEvents";
 import { useHomeEvents } from "@/hooks/useHomeEvents";
 import type { EventSummary, HomeEvents } from "@/lib/api/events";
+import { displayFont } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
+import type { EventCategory } from "@/lib/api/events";
 import { categoryConfig } from "./categories.config";
-import { EventCard } from "./event-card";
+import { HexPattern } from "./event-media";
 import { EventCarousel } from "./event-carousel";
 import type { EventFiltersState } from "./event-filters-modal";
 import {
@@ -16,18 +16,18 @@ import {
   hasActiveModalFilters,
   INITIAL_FILTERS,
 } from "./event-search-bar";
-import { FeaturedEventCard } from "./featured-event-card";
+import { EventBillboard, EventPoster } from "./event-poster";
 import { formatDateRange } from "./format";
-import { allEventsHref, listHref } from "./links";
+import { listHref } from "./links";
 import {
   EventCardSkeleton,
   EventListsSkeleton,
   ListMessage,
 } from "./list-states";
 
-const cardWidth =
-  "w-[calc((100%-0.75rem)/2)] sm:w-[calc((100%-1.5rem)/3)] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-4rem)/5)]";
-const featuredCardWidth = "w-full md:w-[calc((100%-1rem)/2)]";
+const posterWidth = "w-[72%] sm:w-[44%] md:w-[31%] lg:w-[23.5%] xl:w-[19%]";
+const rankedWidth = "w-[84%] sm:w-[54%] md:w-[39%] lg:w-[30%] xl:w-[24.5%]";
+const billboardWidth = "w-[90%] lg:w-[calc((100%-1.25rem)/2)]";
 const EMPTY_SUMMARIES: readonly EventSummary[] = [];
 
 export function EventListingSection() {
@@ -55,18 +55,19 @@ export function EventListingSection() {
     <section
       id="eventos"
       aria-labelledby="eventos-titulo"
-      className="flex scroll-mt-4 flex-col items-center gap-10 py-8 md:gap-12"
+      className="flex flex-col gap-14 py-12 md:gap-16 md:py-20"
     >
-      <div className="flex w-full flex-col items-center text-center">
-        <h2
-          id="eventos-titulo"
-          className="font-heading text-2xl font-bold tracking-tight text-hubee-800 md:text-3xl dark:text-hubee-50"
-        >
-          Próximos eventos
-        </h2>
-        <p className="mt-2 max-w-md text-sm text-hubee-750 dark:text-hubee-50">
-          Festas, shows, palestras e campeonatos das agremiações perto de você.
-        </p>
+      <div className="flex w-full flex-col items-center gap-6 text-center">
+        <div>
+          <h2
+            id="eventos-titulo"
+            className={cn(displayFont.className, "text-[clamp(2.5rem,5vw,4.5rem)] leading-[0.9] uppercase text-hubee-800 dark:text-hubee-50")}
+          >
+            Próximos eventos
+          </h2>
+        </div>
+
+        <div className="flex w-full flex-col items-center [&_input]:h-14 [&_input]:text-base [&>form]:mt-0 [&>form]:max-w-2xl [&>form>button]:h-14">
 
         <EventSearchBar
           query={query}
@@ -77,6 +78,7 @@ export function EventListingSection() {
           onFiltersOpenChange={setIsFiltersOpen}
           onClearAll={clearFilters}
         />
+        </div>
       </div>
 
       {filtering ? (
@@ -127,15 +129,20 @@ export function EventListingSection() {
             />
           )}
 
-          {status === "ok" && <EventLists data={data} />}
+          {status === "ok" && (
+            <EventLists
+              data={data}
+              onPickCategory={(category) => setFilters({ ...INITIAL_FILTERS, categories: [category] })}
+            />
+          )}
         </>
       )}
     </section>
   );
 }
 
-function EventLists({ data }: { data: HomeEvents }) {
-  const { featured, thisWeek, sellingOut, free } = data;
+function EventLists({ data, onPickCategory }: { data: HomeEvents; onPickCategory: (category: EventCategory) => void }) {
+  const { featured, thisWeek, sellingOut, free, categories } = data;
 
   return (
     <>
@@ -144,10 +151,10 @@ function EventLists({ data }: { data: HomeEvents }) {
           id="destaque"
           title="Em destaque"
           subtitle="Escolhidos pelo Hubee para as próximas semanas"
-          itemClassName={featuredCardWidth}
+          itemClassName={billboardWidth}
         >
           {featured.map((event) => (
-            <FeaturedEventCard key={event.id} event={event} />
+            <EventBillboard key={event.id} event={event} />
           ))}
         </EventCarousel>
       )}
@@ -157,10 +164,10 @@ function EventLists({ data }: { data: HomeEvents }) {
           title="Essa semana"
           subtitle={formatDateRange(thisWeek.startDate, thisWeek.endDate)}
           viewAllHref={listHref("essa-semana")}
-          itemClassName={cardWidth}
+          itemClassName={posterWidth}
         >
           {thisWeek.events.map((event) => (
-            <EventCard key={event.id} event={event} />
+            <EventPoster key={event.id} event={event} />
           ))}
         </EventCarousel>
       )}
@@ -168,42 +175,79 @@ function EventLists({ data }: { data: HomeEvents }) {
         <EventCarousel
           id="esgotando"
           title="Esgotando"
-          subtitle="Garanta antes que acabe"
+          subtitle="Os mais disputados agora. Garanta antes que acabe"
           viewAllHref={listHref("esgotando")}
-          itemClassName={cardWidth}
+          itemClassName={rankedWidth}
         >
-          {sellingOut.map((event) => (
-            <EventCard key={event.id} event={event} showSalesProgress />
+          {sellingOut.map((event, index) => (
+            <EventPoster key={event.id} event={event} rank={index + 1} showSalesProgress />
           ))}
         </EventCarousel>
       )}
+      <CategoryShelf categories={categories} onPick={onPickCategory} />
       {free.length > 0 && (
         <EventCarousel
           id="gratuitos"
           title="Gratuitos"
-          subtitle="Sem gastar nada"
+          subtitle="Rolês sem gastar nada"
           viewAllHref={listHref("gratuitos")}
-          itemClassName={cardWidth}
+          itemClassName={posterWidth}
         >
           {free.map((event) => (
-            <EventCard key={event.id} event={event} />
+            <EventPoster key={event.id} event={event} />
           ))}
         </EventCarousel>
       )}
 
-      <div className="pt-2">
-        <Button
-          variant="outline"
-          className="h-11 gap-2 rounded-full border-hubee-400 bg-hubee-50 px-6 text-sm font-semibold text-hubee-800 hover:border-hubee-750 hover:bg-hubee-750 hover:text-hubee-50 focus-visible:ring-hubee-400 dark:border-hubee-500 dark:bg-hubee-750 dark:text-hubee-50 dark:hover:border-hubee-400 dark:hover:bg-hubee-400 dark:hover:text-hubee-800"
-          asChild
-        >
-          <Link href={allEventsHref}>
-            Ver todos os eventos
-            <ArrowRight aria-hidden="true" className="size-4" />
-          </Link>
-        </Button>
-      </div>
     </>
+  );
+}
+
+function CategoryShelf({
+  categories,
+  onPick,
+}: {
+  categories: HomeEvents["categories"];
+  onPick: (category: EventCategory) => void;
+}) {
+  return (
+    <section aria-labelledby="categorias-titulo" className="w-full">
+      <h3
+        id="categorias-titulo"
+        className={cn(displayFont.className, "text-2xl leading-none uppercase text-hubee-800 md:text-[2rem] dark:text-hubee-50")}
+      >
+        Explore por categoria
+      </h3>
+      <p className="mt-1.5 text-sm text-hubee-750 dark:text-hubee-200/80">Escolha o tipo de rolê e veja tudo o que tem</p>
+      <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-6">
+        {categories.map(({ category, count }) => {
+          const { icon: Icon, label, mediaClassName, patternClassName } = categoryConfig[category];
+          return (
+            <li key={category}>
+              <button
+                type="button"
+                onClick={() => onPick(category)}
+                className={cn(
+                  "group relative isolate flex h-32 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl p-4 md:h-36 text-left transition-transform duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400 active:scale-[0.98] motion-reduce:transition-none",
+                  mediaClassName,
+                )}
+              >
+                <HexPattern className={cn("-z-10", patternClassName)} />
+                <Icon
+                  aria-hidden="true"
+                  strokeWidth={1.25}
+                  className="absolute -right-3 -bottom-3 -z-10 size-24 opacity-30 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-12 motion-reduce:transition-none"
+                />
+                <span className={cn(displayFont.className, "text-[1.75rem] leading-none uppercase")}>{label}</span>
+                <span className="text-xs font-semibold opacity-80">
+                  {count === 0 ? "Em breve" : `${count} ${count === 1 ? "evento" : "eventos"}`}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
@@ -240,7 +284,7 @@ function FilteredResults({
     <section aria-labelledby="resultados-titulo" className="w-full">
       <h3
         id="resultados-titulo"
-        className="font-sans text-lg font-bold text-hubee-800 md:text-xl dark:text-hubee-50"
+        className={cn(displayFont.className, "text-2xl leading-none uppercase text-hubee-800 md:text-[2rem] dark:text-hubee-50")}
       >
         {singleCategory && !query && !filters.city && !filters.dateRange.start
           ? categoryConfig[singleCategory].label
@@ -263,10 +307,10 @@ function FilteredResults({
         )}
         {filters.city && <> · {filters.city}</>}
       </p>
-      <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+      <ul className="mt-5 grid grid-cols-1 gap-x-5 gap-y-8 min-[480px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {events.map((event) => (
           <li key={event.id}>
-            <EventCard event={event} />
+            <EventPoster event={event} />
           </li>
         ))}
       </ul>

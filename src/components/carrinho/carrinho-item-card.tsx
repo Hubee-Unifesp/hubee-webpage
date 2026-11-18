@@ -29,14 +29,14 @@ export function CarrinhoItemCard({
   return (
     <article
       aria-label={`Item do carrinho: ${item.title}`}
-      className="flex flex-col gap-3 rounded-2xl border border-hubee-300 bg-hubee-100 p-4 text-hubee-800 shadow-xs transition-colors md:grid md:grid-cols-[minmax(0,1fr)_9.5rem_7.5rem] md:items-center md:gap-4 dark:border-hubee-600/80 dark:bg-hubee-900/90 dark:text-hubee-50"
+      className="flex flex-col gap-3 rounded-2xl border border-hubee-300 bg-hubee-100 p-4 text-hubee-800 shadow-xs transition-colors md:grid md:grid-cols-[minmax(0,1fr)_9.5rem_7.5rem] md:items-center md:gap-4 dark:border-hubee-50/15 dark:bg-hubee-900/90 dark:text-hubee-50"
     >
       {/* Bloco do Produto (Miniatura + Título + Organização/Lote) */}
       <div className="flex min-w-0 items-center gap-3.5">
         <div
           aria-hidden="true"
           className={cn(
-            "relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-hubee-300/60 dark:border-hubee-700",
+            "relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-hubee-300/60 dark:border-hubee-50/15",
             mediaClassName,
           )}
         >
@@ -66,7 +66,7 @@ export function CarrinhoItemCard({
           <div
             role="group"
             aria-label={`Quantidade de ${item.title}`}
-            className="inline-flex h-9 items-center gap-3 rounded-full border border-hubee-200 bg-white px-2 text-hubee-800 shadow-2xs dark:border-hubee-700 dark:bg-hubee-800 dark:text-hubee-50"
+            className="inline-flex h-9 items-center gap-3 rounded-full border border-hubee-200 bg-white px-2 text-hubee-800 shadow-2xs dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
           >
             <button
               type="button"
@@ -120,7 +120,7 @@ export function CarrinhoItemCard({
             type="button"
             onClick={() => onRemove(item.ticketTypeId)}
             aria-label={`Remover ${item.title} do carrinho`}
-            className="inline-flex size-9 cursor-pointer items-center justify-center rounded-lg text-hubee-800 transition-colors outline-none hover:bg-hubee-200 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:text-hubee-50 dark:hover:bg-hubee-800"
+            className="inline-flex size-9 cursor-pointer items-center justify-center rounded-lg text-hubee-800 transition-colors outline-none hover:bg-hubee-200 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:text-hubee-50 dark:hover:bg-hubee-50/10"
           >
             <Trash2 aria-hidden="true" className="size-4" />
           </button>

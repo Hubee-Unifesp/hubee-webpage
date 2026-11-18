@@ -27,13 +27,13 @@ export function LoggedHeader({ usuario, itensNoCarrinho }: UsuarioLogado) {
         <ThemeToggle className="text-hubee-800 hover:text-hubee-600 focus-visible:ring-hubee-800 dark:text-hubee-400 dark:hover:text-hubee-200 dark:focus-visible:ring-hubee-400" />
       </div>
 
-      <header className="flex h-14 min-w-0 items-center justify-between gap-3 rounded-xl bg-hubee-800 px-4 text-hubee-50 shadow-md shadow-hubee-800/25 md:gap-6 md:px-5 dark:bg-hubee-400 dark:text-hubee-800 dark:shadow-hubee-900/40">
+      <header className="flex h-14 min-w-0 items-center justify-between gap-3 rounded-xl bg-hubee-800 px-4 text-hubee-50 shadow-md shadow-hubee-800/25 md:gap-6 md:px-5 dark:bg-hubee-850 dark:text-hubee-50 dark:shadow-none">
         <Link
           href="/#inicio"
           aria-label="Hubee — página inicial"
-          className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:focus-visible:ring-hubee-800"
+          className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400"
         >
-          <ThemedHubeeLogo light="white" dark="dark_alt" className="h-8 md:h-9" priority />
+          <ThemedHubeeLogo light="white" dark="white" className="h-8 md:h-9" priority />
         </Link>
 
         <MainNavigation items={items} pathname={pathname} />
@@ -52,7 +52,7 @@ export function LoggedHeader({ usuario, itensNoCarrinho }: UsuarioLogado) {
                 {itensNoCarrinho > 0 && (
                   <span
                     aria-hidden="true"
-                    className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50"
+                    className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800"
                   >
                     {itensNoCarrinho > 99 ? "99+" : itensNoCarrinho}
                   </span>

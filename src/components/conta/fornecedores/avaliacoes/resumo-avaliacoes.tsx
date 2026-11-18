@@ -4,7 +4,7 @@ import { EstrelasNota } from "./estrelas";
 
 const cardClassName =
   "rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-5 shadow-sm dark:border-hubee-50/10 dark:bg-hubee-50/7";
-const barraFundoClassName = "h-2 flex-1 overflow-hidden rounded-full bg-hubee-100 dark:bg-hubee-800";
+const barraFundoClassName = "h-2 flex-1 overflow-hidden rounded-full bg-hubee-100 dark:bg-hubee-850";
 const barraClassName = "h-full rounded-full bg-hubee-500 dark:bg-hubee-400";
 
 /** Painel com média geral e distribuição das notas por estrelas. */

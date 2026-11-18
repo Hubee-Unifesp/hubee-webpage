@@ -10,21 +10,21 @@ export function EventDetailsSkeleton() {
       <div role="status" aria-live="polite">
         <span className="sr-only">Carregando evento…</span>
 
-        <div className="border-b border-hubee-200/70 dark:border-hubee-750">
+        <div className="border-b border-hubee-200/70 dark:border-hubee-50/15">
           <div className={cn(containerClassName, "py-3")}>
             <Skeleton className="h-3 w-28 rounded-full md:w-56" />
           </div>
         </div>
 
-        <div aria-hidden="true" className="relative overflow-hidden bg-hubee-200/70 dark:bg-hubee-750">
+        <div aria-hidden="true" className="relative overflow-hidden bg-hubee-200/70 dark:bg-hubee-850">
           <div className={cn(containerClassName, "flex min-h-[26rem] flex-col justify-end gap-3 pb-6 md:min-h-[32rem] md:pb-7")}>
-            <Skeleton className="h-2.5 w-40 rounded-full bg-hubee-100 dark:bg-hubee-700" />
-            <Skeleton className="h-10 w-4/5 max-w-sm bg-hubee-100 md:h-12 dark:bg-hubee-700" />
-            <Skeleton className="h-10 w-3/5 max-w-xs bg-hubee-100 md:h-12 dark:bg-hubee-700" />
-            <Skeleton className="h-3 w-48 rounded-full bg-hubee-100 dark:bg-hubee-700" />
+            <Skeleton className="h-2.5 w-40 rounded-full bg-hubee-100 dark:bg-hubee-50/10" />
+            <Skeleton className="h-10 w-4/5 max-w-sm bg-hubee-100 md:h-12 dark:bg-hubee-50/10" />
+            <Skeleton className="h-10 w-3/5 max-w-xs bg-hubee-100 md:h-12 dark:bg-hubee-50/10" />
+            <Skeleton className="h-3 w-48 rounded-full bg-hubee-100 dark:bg-hubee-50/10" />
             <div className="flex gap-2">
-              <Skeleton className="h-6 w-20 bg-hubee-100 dark:bg-hubee-700" />
-              <Skeleton className="h-6 w-14 bg-hubee-100 dark:bg-hubee-700" />
+              <Skeleton className="h-6 w-20 bg-hubee-100 dark:bg-hubee-50/10" />
+              <Skeleton className="h-6 w-14 bg-hubee-100 dark:bg-hubee-50/10" />
             </div>
           </div>
         </div>

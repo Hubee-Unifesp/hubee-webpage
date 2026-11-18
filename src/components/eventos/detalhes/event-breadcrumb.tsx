@@ -12,7 +12,7 @@ interface EventBreadcrumbProps {
 /** Trilha "Explorar Eventos / Categoria / Evento"; no mobile mostra apenas o link de voltar. */
 export function EventBreadcrumb({ categoryLabel, title }: EventBreadcrumbProps) {
   return (
-    <nav aria-label="Trilha de navegação" className="border-b border-hubee-200/70 dark:border-hubee-750">
+    <nav aria-label="Trilha de navegação" className="border-b border-hubee-200/70 dark:border-hubee-50/15">
       <ol className={cn(containerClassName, "flex items-center gap-2 py-3 text-xs text-hubee-750 dark:text-hubee-100")}>
         <li>
           <Link

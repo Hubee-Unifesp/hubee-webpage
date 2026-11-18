@@ -96,8 +96,8 @@ export function CapaUpload({ photoUrl, arquivo, onChange, disabled }: CapaUpload
           htmlFor={inputId}
           className={cn(
             "flex min-h-32 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed px-4 py-5 text-center has-focus-visible:ring-3 has-focus-visible:ring-hubee-500/40",
-            erro ? "border-red-600 dark:border-red-400" : "border-hubee-400 dark:border-hubee-500",
-            bloqueado ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-hubee-100 dark:hover:bg-hubee-800",
+            erro ? "border-red-600 dark:border-red-400" : "border-hubee-400 dark:border-hubee-50/15",
+            bloqueado ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-hubee-100 dark:hover:bg-hubee-50/10",
           )}
         >
           <ImageUp aria-hidden="true" className="size-6" />
@@ -130,7 +130,7 @@ export function CapaUpload({ photoUrl, arquivo, onChange, disabled }: CapaUpload
         )}
       </div>
 
-      <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-hubee-100 text-sm font-semibold text-hubee-750 dark:bg-hubee-800 dark:text-hubee-100">
+      <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-hubee-100 text-sm font-semibold text-hubee-750 dark:bg-hubee-850 dark:text-hubee-100">
         {imagemExibida ? (
           <Image src={imagemExibida} alt="Prévia da capa do evento" fill unoptimized sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
         ) : (

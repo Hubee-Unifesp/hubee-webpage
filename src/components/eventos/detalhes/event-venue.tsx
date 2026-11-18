@@ -10,7 +10,7 @@ export function EventVenue({ venue }: { venue: EventVenueData }) {
 
   return (
     <div className={cn(sectionCardClassName, "flex gap-3 p-4 md:gap-4 md:p-5")}>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-hubee-100 text-hubee-750 md:size-10 dark:bg-hubee-750 dark:text-hubee-400">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-hubee-100 text-hubee-750 md:size-10 dark:bg-hubee-850 dark:text-hubee-400">
         <MapPin aria-hidden="true" className="size-4 md:size-5" />
       </span>
 

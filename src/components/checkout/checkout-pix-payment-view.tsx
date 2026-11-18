@@ -73,7 +73,7 @@ export function CheckoutPixPaymentView({
 
       <p
         role="note"
-        className="flex items-start gap-2 rounded-lg border border-hubee-300 bg-hubee-100 p-3 text-xs leading-relaxed text-hubee-750 dark:border-hubee-700 dark:bg-hubee-900/70 dark:text-hubee-200"
+        className="flex items-start gap-2 rounded-lg border border-hubee-300 bg-hubee-100 p-3 text-xs leading-relaxed text-hubee-750 dark:border-hubee-50/15 dark:bg-hubee-900/70 dark:text-hubee-200"
       >
         <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
         <span>
@@ -194,7 +194,7 @@ export function CheckoutPixPaymentView({
           variant="outline"
           onClick={onBackToForm}
           disabled={isProcessing}
-          className="h-10 w-full cursor-pointer border-hubee-200 bg-white px-5 text-xs font-semibold text-hubee-800 hover:bg-hubee-100 disabled:opacity-60 sm:w-auto dark:border-hubee-750 dark:bg-transparent dark:text-hubee-50 dark:hover:bg-hubee-750/60"
+          className="h-10 w-full cursor-pointer border-hubee-200 bg-white px-5 text-xs font-semibold text-hubee-800 hover:bg-hubee-100 disabled:opacity-60 sm:w-auto dark:border-hubee-50/15 dark:bg-transparent dark:text-hubee-50 dark:hover:bg-hubee-50/10"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
           Voltar / Alterar forma de pagamento

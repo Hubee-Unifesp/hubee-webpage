@@ -25,7 +25,7 @@ interface FornecedoresFiltrosProps {
 
 const labelClassName = "text-xs font-semibold";
 const controlClassName =
-  "h-10 rounded-lg border-hubee-300 bg-hubee-neutral-25 text-hubee-800 dark:border-hubee-50/20 dark:bg-hubee-800 dark:text-hubee-50";
+  "h-10 rounded-lg border-hubee-300 bg-hubee-neutral-25 text-hubee-800 dark:border-hubee-50/20 dark:bg-hubee-850 dark:text-hubee-50";
 
 /** Busca por nome, filtro por categoria/avaliação mínima e ordenação da listagem de fornecedores (`GOL-249`). */
 export function FornecedoresFiltros({

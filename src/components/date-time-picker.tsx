@@ -84,7 +84,7 @@ export function DateTimePicker({
           variant="outline"
           {...triggerProps}
           className={cn(
-            "h-10 w-full cursor-pointer justify-start gap-2 rounded-lg border-hubee-neutral-50 bg-white px-2.5 text-left font-normal text-hubee-800 hover:bg-hubee-50 aria-invalid:border-red-600 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-800 dark:aria-invalid:border-red-400",
+            "h-10 w-full cursor-pointer justify-start gap-2 rounded-lg border-hubee-neutral-50 bg-white px-2.5 text-left font-normal text-hubee-800 hover:bg-hubee-50 aria-invalid:border-red-600 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:aria-invalid:border-red-400",
             !rotulo && "text-hubee-neutral-300 dark:text-hubee-neutral-200",
             className,
           )}
@@ -95,7 +95,7 @@ export function DateTimePicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-auto gap-3 border border-hubee-400 bg-hubee-50 p-3 text-hubee-800 dark:border-hubee-500 dark:bg-hubee-750 dark:text-hubee-50"
+        className="w-auto gap-3 border border-hubee-400 bg-hubee-50 p-3 text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
       >
         <Calendar
           mode="single"
@@ -117,7 +117,7 @@ export function DateTimePicker({
               value={horario}
               disabled={!data}
               onChange={(event) => data && event.target.value && onChange(juntar(data, event.target.value))}
-              className="h-10 rounded-lg border border-hubee-neutral-50 bg-white px-2.5 text-sm text-hubee-800 outline-none focus-visible:border-hubee-500 focus-visible:ring-3 focus-visible:ring-hubee-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50"
+              className="h-10 rounded-lg border border-hubee-neutral-50 bg-white px-2.5 text-sm text-hubee-800 outline-none focus-visible:border-hubee-500 focus-visible:ring-3 focus-visible:ring-hubee-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50"
             />
           </div>
           {clearable && value && (

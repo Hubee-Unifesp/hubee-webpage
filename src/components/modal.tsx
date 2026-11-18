@@ -13,7 +13,7 @@ type ModalTone = "default" | "warning";
 // tema claro e escuro juntos: sobrescrever só parte das cores deixava texto claro sobre fundo claro.
 const toneStyles: Record<ModalTone, { content: string; description: string; close: string }> = {
   default: {
-    content: "border-hubee-400 bg-hubee-50 text-hubee-800 dark:border-hubee-500 dark:bg-hubee-750 dark:text-hubee-50",
+    content: "border-hubee-400 bg-hubee-50 text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50",
     description: "text-hubee-neutral-300 dark:text-hubee-100",
     close: "hover:text-hubee-600 focus-visible:ring-hubee-800 dark:hover:text-hubee-200 dark:focus-visible:ring-hubee-400",
   },
