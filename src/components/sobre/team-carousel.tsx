@@ -353,7 +353,7 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
           const isMiddleCopy =
             !canScroll || (domIdx >= total && domIdx < total * 2);
           const imgFailed = Boolean(failedAvatars[member.id]);
-          const badgeCode = `HB-T${String(logicalIdx + 1).padStart(2, "0")}`;
+          const badgeCode = "HB-2026";
 
           return (
             <li

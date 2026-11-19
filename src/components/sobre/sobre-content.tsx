@@ -1,9 +1,12 @@
 "use client";
 
+import { useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Anton } from "next/font/google";
 import { ArrowRight, Calendar, Ticket, type LucideIcon } from "lucide-react";
 import { HexPattern } from "@/components/home/events/event-media";
+import { useFlyingBee } from "@/components/home/hero-section";
 import { Footer } from "@/components/layout/footer";
 import { Header, type HeaderRole } from "@/components/layout/header";
 import { Honeycomb, type HoneycombCell } from "@/components/ui/honeycomb";
@@ -26,7 +29,6 @@ interface ValuePillar {
   title: string;
   badge: string;
   code: string;
-  stamp: string;
   description: string;
   icon: LucideIcon;
   headerClassName: string;
@@ -37,8 +39,7 @@ const VALUE_PILLARS: readonly ValuePillar[] = [
   {
     title: "Para quem participa",
     badge: "Participante",
-    code: "HB-0101",
-    stamp: "✓ Ingresso liberado",
+    code: "HB-2026",
     description:
       "Descubra eventos de diferentes tipos e encontre ingressos para fazer parte desses encontros.",
     icon: Ticket,
@@ -48,8 +49,7 @@ const VALUE_PILLARS: readonly ValuePillar[] = [
   {
     title: "Para quem organiza",
     badge: "Organizador",
-    code: "HB-0202",
-    stamp: "✓ Palco liberado",
+    code: "HB-2026",
     description:
       "Reúna o planejamento do evento e a venda de ingressos em um só lugar.",
     icon: Calendar,
@@ -64,6 +64,10 @@ interface SobreContentProps {
 
 export function SobreContent({ members }: SobreContentProps) {
   const { user, isOrganizer } = useAuth();
+  const heroSectionRef = useRef<HTMLElement>(null);
+  const beeRef = useRef<HTMLDivElement>(null);
+  const perchRef = useRef<HTMLSpanElement>(null);
+  useFlyingBee(heroSectionRef, beeRef, perchRef);
   const currentRole: HeaderRole = user
     ? isOrganizer
       ? "organizer"
@@ -79,7 +83,7 @@ export function SobreContent({ members }: SobreContentProps) {
   return (
     <div
       id="inicio"
-      className="flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-850 dark:text-hubee-50"
+      className="flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-900 dark:text-hubee-50"
     >
       <a
         href="#conteudo"
@@ -97,6 +101,7 @@ export function SobreContent({ members }: SobreContentProps) {
       >
         {/* Hero Institucional + O que é o Hubee no padrão da Hero da Home */}
         <section
+          ref={heroSectionRef}
           aria-labelledby="sobre-hero-titulo"
           className="relative isolate flex min-h-[340px] items-center overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:min-h-[380px] md:py-16 lg:px-16 lg:py-20"
         >
@@ -113,6 +118,21 @@ export function SobreContent({ members }: SobreContentProps) {
             className="hero-hive-glow absolute inset-0 -z-10 size-full fill-hubee-400/[0.06] stroke-hubee-400 stroke-2"
           />
 
+          <div
+            ref={beeRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute top-0 left-0 z-50 -mt-7 -ml-7 size-14 will-change-transform md:-mt-9 md:-ml-9 md:size-[72px]"
+          >
+            <Image
+              src="/logo/logo-icon/LogoMono_yellow.svg"
+              alt=""
+              width={72}
+              height={72}
+              className="hero-bee size-full object-contain"
+              priority
+            />
+          </div>
+
           <div className="mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[auto_1fr] md:items-center md:gap-12 lg:gap-16">
             <h1
               id="sobre-hero-titulo"
@@ -121,7 +141,9 @@ export function SobreContent({ members }: SobreContentProps) {
                 "text-[clamp(2.9rem,6.6vw,6.8rem)] leading-[0.9] tracking-[-0.01em] uppercase",
               )}
             >
-              <span className="block text-hubee-50">O que é</span>
+              <span className="block text-hubee-50">
+                <span ref={perchRef}>O que é</span>
+              </span>
               <span className="block text-hubee-400">o Hubee?</span>
             </h1>
 
@@ -231,14 +253,9 @@ export function SobreContent({ members }: SobreContentProps) {
                         ))}
                       </span>
 
-                      <div className="flex items-center gap-2.5">
-                        <span className="scale-125 -rotate-6 rounded-md border-2 border-hubee-700 bg-hubee-400/30 px-2.5 py-0.5 text-[11px] font-extrabold tracking-wide text-hubee-900 uppercase opacity-0 transition-all duration-300 ease-[cubic-bezier(.2,.8,.2,1)] group-hover:scale-100 group-hover:-rotate-3 group-hover:opacity-100 dark:border-hubee-400 dark:bg-hubee-400/20 dark:text-hubee-300">
-                          {stamp}
-                        </span>
-                        <span className="text-xs font-semibold tabular-nums text-hubee-700 dark:text-hubee-300">
-                          {code}
-                        </span>
-                      </div>
+                      <span className="text-xs font-semibold tabular-nums text-hubee-700 dark:text-hubee-300">
+                        {code}
+                      </span>
                     </div>
                   </div>
                 </li>
