@@ -84,7 +84,7 @@ export function EventoOrganizadorCard({ evento, papel, onAlterado }: EventoOrgan
   };
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-xl border border-hubee-400 bg-hubee-100 text-hubee-750 shadow-sm sm:flex-row dark:border-hubee-500/60 dark:bg-hubee-750/35 dark:text-hubee-100">
+    <article className="flex h-full flex-col overflow-hidden rounded-xl border border-hubee-400 bg-hubee-100 text-hubee-750 shadow-sm sm:flex-row dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-100">
       <EventMedia
         category={evento.categoria}
         startDate={evento.dataInicio}
@@ -117,7 +117,7 @@ export function EventoOrganizadorCard({ evento, papel, onAlterado }: EventoOrgan
             aria-valuenow={evento.percentualVendido}
             aria-valuemin={0}
             aria-valuemax={100}
-            className="h-1.5 w-full overflow-hidden rounded-full bg-hubee-200 dark:bg-hubee-800"
+            className="h-1.5 w-full overflow-hidden rounded-full bg-hubee-200 dark:bg-hubee-850"
           >
             <svg
               aria-hidden="true"
@@ -180,7 +180,7 @@ export function EventoOrganizadorCard({ evento, papel, onAlterado }: EventoOrgan
                     variant="outline"
                     size="icon-sm"
                     aria-label={`Mais opções para ${evento.nome}`}
-                    className="rounded-full border-hubee-400 bg-hubee-50 text-hubee-800 hover:bg-hubee-200 dark:border-hubee-500 dark:bg-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-750"
+                    className="rounded-full border-hubee-400 bg-hubee-50 text-hubee-800 hover:bg-hubee-200 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50 dark:hover:bg-hubee-50/10"
                   >
                     <MoreHorizontal aria-hidden="true" className="size-4" />
                   </Button>

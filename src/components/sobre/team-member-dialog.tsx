@@ -50,7 +50,7 @@ function InlineTokens({ tokens }: { tokens: readonly ReadmeInlineToken[] }) {
             return (
               <code
                 key={idx}
-                className="rounded bg-hubee-200/70 px-1.5 py-0.5 font-mono text-xs font-medium text-hubee-800 dark:bg-hubee-750 dark:text-hubee-50"
+                className="rounded bg-hubee-200/70 px-1.5 py-0.5 font-mono text-xs font-medium text-hubee-800 dark:bg-hubee-850 dark:text-hubee-50"
               >
                 {token.value}
               </code>
@@ -145,7 +145,7 @@ function CompiledReadmeView({ content }: { content: string }) {
                 {block.items.map((badge) => (
                   <span
                     key={badge}
-                    className="inline-flex items-center rounded-md border border-hubee-200 bg-hubee-100 px-2.5 py-1 text-xs font-semibold text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-800 dark:text-hubee-50"
+                    className="inline-flex items-center rounded-md border border-hubee-200 bg-hubee-100 px-2.5 py-1 text-xs font-semibold text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
                   >
                     {badge}
                   </span>
@@ -216,7 +216,7 @@ export function TeamMemberDialog({
         <DialogOverlay />
         <DialogPrimitive.Content
           onCloseAutoFocus={onCloseAutoFocus}
-          className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-hubee-200 bg-hubee-neutral-25 text-hubee-800 shadow-xl duration-150 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none dark:border-hubee-50/15 dark:bg-hubee-800 dark:text-hubee-50"
+          className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-hubee-200 bg-hubee-neutral-25 text-hubee-800 shadow-xl duration-150 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
         >
           <div className="grid md:grid-cols-[260px_1fr]">
             {/* Coluna da foto (mantém continuidade visual com o card de origem) */}
@@ -227,10 +227,10 @@ export function TeamMemberDialog({
                   src={member.avatarUrl}
                   alt={`Foto de ${member.name}`}
                   onError={() => setFailedAvatarFor(member.id)}
-                  className="size-36 rounded-full border-2 border-hubee-200 object-cover shadow-sm md:size-44 dark:border-hubee-750"
+                  className="size-36 rounded-full border-2 border-hubee-200 object-cover shadow-sm md:size-44 dark:border-hubee-50/15"
                 />
               ) : (
-                <div className="flex size-36 flex-col items-center justify-center rounded-full border border-hubee-200 bg-hubee-50 text-hubee-750 md:size-44 dark:border-hubee-750 dark:bg-hubee-800 dark:text-hubee-200">
+                <div className="flex size-36 flex-col items-center justify-center rounded-full border border-hubee-200 bg-hubee-50 text-hubee-750 md:size-44 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-200">
                   <User aria-hidden="true" className="size-12 stroke-[1.5]" />
                 </div>
               )}
@@ -250,7 +250,7 @@ export function TeamMemberDialog({
                   <button
                     type="button"
                     aria-label="Fechar detalhe do integrante"
-                    className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg border border-hubee-800/30 bg-hubee-50 px-3.5 py-2 text-sm font-semibold text-hubee-800 transition-colors outline-none hover:bg-hubee-100 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 dark:border-hubee-400/50 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400"
+                    className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg border border-hubee-800/30 bg-hubee-50 px-3.5 py-2 text-sm font-semibold text-hubee-800 transition-colors outline-none hover:bg-hubee-100 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 dark:border-hubee-400/50 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400"
                   >
                     <span>Fechar</span>
                     <X aria-hidden="true" className="size-4" />

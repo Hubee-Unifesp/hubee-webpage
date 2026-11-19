@@ -177,7 +177,7 @@ export function DadosEventoForm({
                           "h-11 min-w-0 cursor-pointer rounded-lg border text-sm font-semibold outline-none focus-visible:ring-3 focus-visible:ring-hubee-500/40 disabled:cursor-not-allowed disabled:opacity-60",
                           ativo
                             ? "border-hubee-800 bg-hubee-800 text-hubee-50 dark:border-hubee-400 dark:bg-hubee-400 dark:text-hubee-800"
-                            : "border-hubee-300 bg-white text-hubee-800 hover:bg-hubee-100 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-800",
+                            : "border-hubee-300 bg-white text-hubee-800 hover:bg-hubee-100 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-50/10",
                         )}
                       >
                         {rating}
@@ -195,7 +195,7 @@ export function DadosEventoForm({
                 id="evento-descricao"
                 rows={4}
                 placeholder="Conte o que vai acontecer, quem participa e o que o público precisa saber."
-                className="min-h-24 rounded-lg border-hubee-neutral-50 bg-white text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50"
+                className="min-h-24 rounded-lg border-hubee-neutral-50 bg-white text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50"
                 {...register("description")}
               />
             </AuthField>
@@ -309,7 +309,7 @@ export function DadosEventoForm({
             />
           </AuthField>
           {local ? (
-            <div className="flex flex-col justify-center gap-0.5 rounded-lg bg-hubee-100 px-3 py-2.5 text-sm dark:bg-hubee-800">
+            <div className="flex flex-col justify-center gap-0.5 rounded-lg bg-hubee-100 px-3 py-2.5 text-sm dark:bg-hubee-850">
               <span className="font-semibold">{local.nome}</span>
               <span className="text-xs">Capacidade máxima: {local.capacidade.toLocaleString("pt-BR")} pessoas</span>
             </div>

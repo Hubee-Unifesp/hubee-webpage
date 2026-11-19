@@ -27,7 +27,7 @@ interface ActiveFilterChipsProps {
 }
 
 const chipClassName =
-  "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-hubee-750 bg-hubee-750 px-3 text-xs font-medium text-hubee-50 outline-none transition-colors hover:border-hubee-600 hover:bg-hubee-600 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:border-hubee-400 dark:bg-hubee-400 dark:text-hubee-800 dark:hover:border-hubee-300 dark:hover:bg-hubee-300";
+  "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-hubee-800 px-3 text-xs font-semibold text-hubee-50 outline-none transition-colors hover:bg-hubee-750 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:bg-hubee-400 dark:text-hubee-900 dark:hover:bg-hubee-300";
 
 export function ActiveFilterChips({
   filters,

@@ -106,7 +106,7 @@ export function TicketQrModal({
         <div
           role="img"
           aria-label={`QR code do ingresso ${ingresso.codigo}`}
-          className="mx-auto flex aspect-square w-48 max-w-full items-center justify-center rounded-2xl border-2 border-dashed border-hubee-400 bg-white p-4 shadow-inner dark:border-hubee-500"
+          className="mx-auto flex aspect-square w-48 max-w-full items-center justify-center rounded-2xl border-2 border-dashed border-hubee-400 bg-white p-4 shadow-inner dark:border-hubee-50/15"
         >
           <QRCodeSVG
             value={ingresso.codigo}
@@ -123,7 +123,7 @@ export function TicketQrModal({
           <p className="text-[11px] font-semibold uppercase tracking-wider text-hubee-neutral-300 dark:text-hubee-200">
             Código Validador
           </p>
-          <div className="rounded-lg border border-hubee-300 bg-hubee-100 p-2.5 font-mono text-[11px] leading-relaxed break-all text-hubee-800 select-all dark:border-hubee-600 dark:bg-hubee-900 dark:text-hubee-100">
+          <div className="rounded-lg border border-hubee-300 bg-hubee-100 p-2.5 font-mono text-[11px] leading-relaxed break-all text-hubee-800 select-all dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-100">
             {ingresso.codigo}
           </div>
           <Button

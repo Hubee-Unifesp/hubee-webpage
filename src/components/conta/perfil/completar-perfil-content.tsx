@@ -172,7 +172,7 @@ export function CompletarPerfilContent() {
         <Link
           href="/conta/perfil"
           aria-label="Voltar para Meu perfil"
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-100 text-hubee-800 outline-none hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-800 dark:border-hubee-750 dark:bg-hubee-750/60 dark:text-hubee-50 dark:hover:bg-hubee-700 dark:focus-visible:ring-hubee-400"
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-hubee-200 bg-hubee-100 text-hubee-800 outline-none hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
         </Link>

@@ -10,30 +10,28 @@ import {
 } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Anton } from "next/font/google";
 import { ArrowRight } from "lucide-react";
 import type { EventCategory } from "@/lib/api/events";
 import { Honeycomb, type HoneycombCell } from "@/components/ui/honeycomb";
+import { displayFont as display } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { categoryConfig } from "./events/categories.config";
 import { HexPattern } from "./events/event-media";
 
-const display = Anton({ subsets: ["latin"], weight: "400", display: "swap" });
 
 interface HeroTicket {
   category: EventCategory;
   title: string;
   detail: string;
-  code: string;
 }
 
 const tickets: readonly HeroTicket[] = [
-  { category: "festas", title: "Festa", detail: "Pista cheia até o sol nascer", code: "HB-0427" },
-  { category: "shows", title: "Show", detail: "Palco aberto, setlist completa", code: "HB-1182" },
-  { category: "esportes", title: "Jogos", detail: "Arquibancada lotada e torcida", code: "HB-2045" },
-  { category: "palestras", title: "Palestra", detail: "Gente boa falando do que sabe", code: "HB-0913" },
-  { category: "academicos", title: "Calourada", detail: "Recepção dos bixos da turma", code: "HB-3310" },
-  { category: "outros", title: "Sunset", detail: "Fim de tarde com som e drinks", code: "HB-1707" },
+  { category: "festas", title: "Festa", detail: "Pista cheia até o sol nascer" },
+  { category: "shows", title: "Show", detail: "Palco aberto, setlist completa" },
+  { category: "esportes", title: "Jogos", detail: "Arquibancada lotada e torcida" },
+  { category: "palestras", title: "Palestra", detail: "Gente boa falando do que sabe" },
+  { category: "academicos", title: "Calourada", detail: "Recepção dos bixos da turma" },
+  { category: "outros", title: "Sunset", detail: "Fim de tarde com som e drinks" },
 ];
 
 const hiveCells: readonly HoneycombCell[] = Array.from({ length: 30 * 8 }, (_, index) => {
@@ -41,6 +39,8 @@ const hiveCells: readonly HoneycombCell[] = Array.from({ length: 30 * 8 }, (_, i
   const row = Math.floor(index / 30);
   return [col, row] as const;
 }).filter(([col, row]) => (col + row) % 2 === 0);
+
+const TICKET_CODE = "HB-2026";
 
 const barcode = [3, 1, 2, 1, 4, 1, 1, 3, 2, 1, 1, 2, 4, 1, 2, 1, 3, 1, 1, 2, 1, 3, 2, 1];
 
@@ -50,8 +50,8 @@ const BEE_EASING = 0.075;
 
 const slots: Record<number, string> = {
   0: "z-30 translate-x-0 rotate-0 scale-100 opacity-100",
-  1: "z-20 translate-x-[60%] rotate-[8deg] scale-[0.82] opacity-100 brightness-[0.75]",
-  [-1]: "z-20 -translate-x-[60%] -rotate-[8deg] scale-[0.82] opacity-100 brightness-[0.75]",
+  1: "z-20 translate-x-[60%] rotate-[8deg] scale-[0.82] opacity-100 brightness-[0.92] dark:brightness-[0.5]",
+  [-1]: "z-20 -translate-x-[60%] -rotate-[8deg] scale-[0.82] opacity-100 brightness-[0.92] dark:brightness-[0.5]",
   2: "z-10 translate-x-[104%] rotate-[14deg] scale-[0.66] opacity-0 pointer-events-none",
   [-2]: "z-10 -translate-x-[104%] -rotate-[14deg] scale-[0.66] opacity-0 pointer-events-none",
 };
@@ -94,7 +94,7 @@ function Ticket({ ticket, offset, onSelect }: { ticket: HeroTicket; offset: numb
     >
       <span
         className={cn(
-          "flex flex-col overflow-hidden rounded-[26px] bg-hubee-50 transition-transform duration-200 ease-out motion-reduce:transform-none",
+          "flex flex-col overflow-hidden rounded-[26px] bg-white transition-transform dark:bg-hubee-50 duration-200 ease-out motion-reduce:transform-none",
           isFront && "[transform:perspective(1000px)_rotateY(calc(var(--tilt-x,0)*14deg))_rotateX(calc(var(--tilt-y,0)*-12deg))]",
         )}
       >
@@ -107,9 +107,9 @@ function Ticket({ ticket, offset, onSelect }: { ticket: HeroTicket; offset: numb
         </span>
 
         <span aria-hidden="true" className="relative flex h-7 items-center">
-          <span className="absolute -left-3.5 size-7 rounded-full bg-hubee-900" />
+          <span className="absolute -left-3.5 size-7 rounded-full bg-hubee-100 dark:bg-hubee-900" />
           <span className="mx-6 h-0 w-full border-t-2 border-dashed border-hubee-200" />
-          <span className="absolute -right-3.5 size-7 rounded-full bg-hubee-900" />
+          <span className="absolute -right-3.5 size-7 rounded-full bg-hubee-100 dark:bg-hubee-900" />
         </span>
 
         <span className="flex flex-col gap-3 px-6 pt-1 pb-6 text-hubee-800">
@@ -120,7 +120,7 @@ function Ticket({ ticket, offset, onSelect }: { ticket: HeroTicket; offset: numb
                 <span key={index} className="bg-hubee-800" style={{ width }} />
               ))}
             </span>
-            <span className="text-xs font-semibold tabular-nums text-hubee-700">{ticket.code}</span>
+            <span className="text-xs font-semibold tabular-nums text-hubee-700">{TICKET_CODE}</span>
           </span>
         </span>
       </span>
@@ -195,7 +195,7 @@ function TicketCarousel() {
       >
         {tickets.map((ticket, index) => (
           <Ticket
-            key={ticket.code}
+            key={ticket.category}
             ticket={ticket}
             offset={offsetFrom(index, active)}
             onSelect={() => setActive(index)}
@@ -208,16 +208,16 @@ function TicketCarousel() {
           const { icon: Icon, label } = categoryConfig[ticket.category];
           const isActive = index === active;
           return (
-            <li key={ticket.code}>
+            <li key={ticket.category}>
               <button
                 type="button"
                 onClick={() => setActive(index)}
                 aria-pressed={isActive}
                 className={cn(
-                  "inline-flex h-10 cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-semibold transition-[background-color,color,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hubee-400 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-900 active:scale-95",
+                  "inline-flex h-10 cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-semibold transition-[background-color,color,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hubee-400 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-100 dark:focus-visible:ring-offset-hubee-900 active:scale-95",
                   isActive
-                    ? "bg-hubee-400 text-hubee-900"
-                    : "bg-hubee-800 text-hubee-100 hover:bg-hubee-750 hover:text-hubee-50",
+                    ? "bg-hubee-800 text-hubee-50 dark:bg-hubee-50/10 dark:text-hubee-50"
+                    : "bg-hubee-50 text-hubee-800 hover:bg-hubee-200 dark:bg-transparent dark:text-hubee-200/70 dark:hover:bg-hubee-50/5 dark:hover:text-hubee-50",
                 )}
               >
                 <Icon aria-hidden="true" className="size-4" strokeWidth={2} />
@@ -340,19 +340,19 @@ export function HeroSection({ primary, secondary }: { primary: HeroAction; secon
       ref={sectionRef}
       id="hero"
       aria-labelledby="hero-titulo"
-      className="relative isolate overflow-hidden rounded-[32px] bg-hubee-900 text-hubee-50 lg:flex lg:min-h-[min(calc(100svh-7rem),880px)] lg:items-center"
+      className="relative isolate overflow-hidden rounded-[32px] bg-hubee-100 text-hubee-800 lg:flex dark:bg-hubee-900 dark:text-hubee-50 lg:min-h-[min(calc(100svh-7rem),880px)] lg:items-center"
     >
       <Honeycomb
         cells={hiveCells}
         orientation="pointy"
         preserveAspectRatio="xMidYMid slice"
-        className="absolute inset-0 -z-10 size-full fill-none stroke-hubee-400/10 stroke-[1.5]"
+        className="absolute inset-0 -z-10 size-full fill-none stroke-hubee-600/15 stroke-[1.5] dark:stroke-hubee-400/[0.04]"
       />
       <Honeycomb
         cells={hiveCells}
         orientation="pointy"
         preserveAspectRatio="xMidYMid slice"
-        className="hero-hive-glow absolute inset-0 -z-10 size-full fill-hubee-400/[0.06] stroke-hubee-400 stroke-2"
+        className="hero-hive-glow absolute inset-0 -z-10 size-full fill-hubee-400/15 stroke-hubee-500 stroke-2 dark:fill-transparent dark:stroke-hubee-400/40"
       />
 
       <div
@@ -361,11 +361,19 @@ export function HeroSection({ primary, secondary }: { primary: HeroAction; secon
         className="pointer-events-none absolute top-0 left-0 z-50 -mt-7 -ml-7 size-14 will-change-transform md:-mt-9 md:-ml-9 md:size-[72px]"
       >
         <Image
+          src="/logo/logo-icon/Logo.svg"
+          alt=""
+          width={72}
+          height={72}
+          className="hero-bee size-full object-contain dark:hidden"
+          priority
+        />
+        <Image
           src="/logo/logo-icon/LogoMono_yellow.svg"
           alt=""
           width={72}
           height={72}
-          className="hero-bee size-full object-contain"
+          className="hero-bee hidden size-full object-contain dark:block"
           priority
         />
       </div>
@@ -382,10 +390,10 @@ export function HeroSection({ primary, secondary }: { primary: HeroAction; secon
             <span className="block">
               <span ref={perchRef}>Todo rolê</span>
             </span>
-            <span className="block text-hubee-400">cabe na colmeia</span>
+            <span className="block text-hubee-700 dark:text-hubee-400">cabe na colmeia</span>
           </h1>
 
-          <p className="mt-8 max-w-[36rem] text-lg leading-relaxed text-hubee-100 md:text-xl lg:text-[1.375rem]">
+          <p className="mt-8 max-w-[36rem] text-lg leading-relaxed text-hubee-750 md:text-xl dark:text-hubee-100 lg:text-[1.375rem]">
             Festas, shows e campeonatos das agremiações perto de você. Compre seu ingresso em
             poucos cliques ou crie seu evento e venda no mesmo lugar.
           </p>
@@ -393,7 +401,7 @@ export function HeroSection({ primary, secondary }: { primary: HeroAction; secon
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <Link
               href={primary.href}
-              className="group inline-flex h-14 items-center gap-3 rounded-full bg-hubee-400 px-8 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97] lg:h-16 lg:text-lg"
+              className="group inline-flex h-14 items-center gap-3 rounded-full bg-hubee-800 px-8 text-base font-semibold text-hubee-50 transition-[background-color,transform] hover:bg-hubee-750 dark:bg-hubee-400 dark:text-hubee-900 dark:hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97] lg:h-16 lg:text-lg"
             >
               {primary.label}
               <ArrowRight aria-hidden="true" className="size-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" />
@@ -401,7 +409,7 @@ export function HeroSection({ primary, secondary }: { primary: HeroAction; secon
             {secondary && (
               <Link
                 href={secondary.href}
-                className="inline-flex h-14 items-center rounded-full bg-hubee-800 px-8 text-base font-semibold text-hubee-50 transition-[background-color,transform] hover:bg-hubee-750 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97] lg:h-16 lg:text-lg"
+                className="inline-flex h-14 items-center rounded-full bg-hubee-200 px-8 text-base font-semibold text-hubee-800 transition-[background-color,transform] hover:bg-hubee-300 dark:bg-transparent dark:text-hubee-100 dark:hover:bg-hubee-50/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97] lg:h-16 lg:text-lg"
               >
                 {secondary.label}
               </Link>

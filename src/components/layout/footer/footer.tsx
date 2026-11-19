@@ -18,7 +18,7 @@ export function Footer({ role, className, homeHref = "/" }: FooterProps) {
   return (
     <footer
       className={cn(
-        "mx-4 mt-16 rounded-t-2xl bg-hubee-800 px-6 py-8 text-hubee-50 sm:mx-8 sm:px-10 md:mt-24 md:rounded-t-3xl dark:bg-hubee-400 dark:text-hubee-800",
+        "mx-4 mt-16 rounded-t-2xl bg-hubee-800 px-6 py-8 text-hubee-50 sm:mx-8 sm:px-10 md:mt-24 md:rounded-t-3xl dark:bg-hubee-850 dark:text-hubee-50",
         className,
       )}
     >
@@ -27,11 +27,11 @@ export function Footer({ role, className, homeHref = "/" }: FooterProps) {
           <Link
             href={topHref}
             aria-label="Hubee — página inicial"
-            className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:focus-visible:ring-hubee-800"
+            className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400"
           >
-            <ThemedHubeeLogo light="white" dark="dark_alt" className="h-9" />
+            <ThemedHubeeLogo light="white" dark="white" className="h-9" />
           </Link>
-          <p className="mt-3 text-sm text-hubee-50/80 dark:text-hubee-800/80">
+          <p className="mt-3 text-sm text-hubee-50/80">
             Encontre eventos universitários e acompanhe seus ingressos. Para agremiações, tudo do
             planejamento à venda em um só lugar.
           </p>
@@ -40,11 +40,11 @@ export function Footer({ role, className, homeHref = "/" }: FooterProps) {
         <FooterLinks columns={columns} />
       </div>
 
-      <div className="flex flex-col-reverse items-center gap-3 border-t border-hubee-50/15 pt-5 text-xs text-hubee-50/70 sm:flex-row sm:justify-between md:mt-8 dark:border-hubee-800/15 dark:text-hubee-800/70">
+      <div className="flex flex-col-reverse items-center gap-3 border-t border-hubee-50/15 pt-5 text-xs text-hubee-50/70 sm:flex-row sm:justify-between md:mt-8">
         <p>© {new Date().getFullYear()} Hubee. Projeto acadêmico de Engenharia de Software — UNIFESP</p>
         <a
           href={topHref}
-          className="rounded font-medium text-hubee-50 outline-none hover:text-hubee-400 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:text-hubee-800 dark:hover:text-hubee-600 dark:focus-visible:ring-hubee-800"
+          className="rounded font-medium text-hubee-50 outline-none hover:text-hubee-400 focus-visible:ring-3 focus-visible:ring-hubee-400"
         >
           Voltar ao topo ↑
         </a>

@@ -37,7 +37,7 @@ export function HeaderActions({ user, signedIn = !!user }: HeaderActionsProps) {
                   {isCart && totalItens > 0 && (
                     <span
                       aria-hidden="true"
-                      className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50"
+                      className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800"
                     >
                       {totalItens > 99 ? "99+" : totalItens}
                     </span>
@@ -49,7 +49,12 @@ export function HeaderActions({ user, signedIn = !!user }: HeaderActionsProps) {
           <LoggedUserMenu usuario={user} />
         </div>
       ) : (
-        <Button variant="hubee_header" size="default" className="border-current font-semibold" asChild>
+        <Button
+          variant="hubee_header"
+          size="default"
+          className="rounded-full border-transparent bg-hubee-400 px-5 font-semibold text-hubee-900 hover:bg-hubee-300 hover:text-hubee-900 dark:bg-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:hover:text-hubee-50"
+          asChild
+        >
           <Link href={loginItem.href}>{loginItem.label}</Link>
         </Button>
       )}

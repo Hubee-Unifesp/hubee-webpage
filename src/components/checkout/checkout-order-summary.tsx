@@ -94,7 +94,7 @@ export function CheckoutOrderSummary({
                 onCheckedChange={(checked) => onToggleTerms(checked === true)}
                 aria-invalid={termsError ? true : undefined}
                 aria-describedby={termsError ? "checkout-termos-error" : undefined}
-                className="mt-0.5 border-hubee-300 data-checked:border-hubee-800 data-checked:bg-hubee-800 data-checked:text-hubee-50 dark:border-hubee-700 dark:data-checked:border-hubee-400 dark:data-checked:bg-hubee-400 dark:data-checked:text-hubee-800"
+                className="mt-0.5 border-hubee-300 data-checked:border-hubee-800 data-checked:bg-hubee-800 data-checked:text-hubee-50 dark:border-hubee-50/15 dark:data-checked:border-hubee-400 dark:data-checked:bg-hubee-400 dark:data-checked:text-hubee-800"
               />
               <Label
                 htmlFor="checkout-termos"

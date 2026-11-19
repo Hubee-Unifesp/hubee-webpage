@@ -37,7 +37,7 @@ export function ApiWakeNotice() {
       aria-live="polite"
       className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4 pointer-events-none"
     >
-      <div className="flex items-center gap-2.5 rounded-lg border border-hubee-400 bg-hubee-100 px-4 py-2.5 text-sm text-hubee-800 shadow-lg dark:border-hubee-500 dark:bg-hubee-50 dark:text-hubee-800">
+      <div className="flex items-center gap-2.5 rounded-lg border border-hubee-400 bg-hubee-100 px-4 py-2.5 text-sm text-hubee-800 shadow-lg dark:border-hubee-50/15 dark:bg-hubee-50 dark:text-hubee-800">
         <Loader2 aria-hidden="true" className="size-4 shrink-0 animate-spin" />
         <span>Iniciando serviços da colmeia… isso pode levar até um minuto.</span>
       </div>

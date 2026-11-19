@@ -109,7 +109,7 @@ export function FornecedorFormModal({ open, onOpenChange, fornecedor, categorias
             type="button"
             disabled={isSubmitting}
             onClick={() => handleOpenChange(false)}
-            className="h-10 cursor-pointer rounded-lg bg-hubee-100 px-5 font-semibold text-hubee-800 hover:bg-hubee-200 focus-visible:ring-hubee-800 dark:bg-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-900 dark:focus-visible:ring-hubee-400"
+            className="h-10 cursor-pointer rounded-lg bg-hubee-100 px-5 font-semibold text-hubee-800 hover:bg-hubee-200 focus-visible:ring-hubee-800 dark:bg-hubee-850 dark:text-hubee-50 dark:hover:bg-hubee-900 dark:focus-visible:ring-hubee-400"
           >
             Cancelar
           </Button>

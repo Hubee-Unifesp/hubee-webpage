@@ -42,7 +42,7 @@ export function LoteCard({ lote, podeGerenciar, onEditar, onExcluir }: LoteCardP
         <div className="flex min-w-0 flex-col gap-1.5">
           <h3 className="text-base font-semibold break-words">{lote.batch}</h3>
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center rounded-full border border-hubee-400/70 bg-hubee-100 px-2.5 py-0.5 text-xs font-semibold text-hubee-800 dark:border-hubee-500 dark:bg-hubee-800 dark:text-hubee-50">
+            <span className="inline-flex items-center rounded-full border border-hubee-400/70 bg-hubee-100 px-2.5 py-0.5 text-xs font-semibold text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50">
               {MODALIDADE_LABEL[lote.modality]}
             </span>
             <span

@@ -91,7 +91,7 @@ export function RegisterForm({
             {intentOptions.map(({ value, label, icon: Icon }) => (
               <label
                 key={value}
-                className="flex cursor-pointer flex-col items-start gap-2 rounded-xl border border-hubee-neutral-50 bg-white p-4 text-sm font-semibold text-hubee-800 transition-colors hover:bg-hubee-100 has-checked:border-hubee-500 has-checked:bg-hubee-100 has-checked:ring-1 has-checked:ring-hubee-500 has-focus-visible:ring-3 has-focus-visible:ring-hubee-500/50 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-800 dark:has-checked:bg-hubee-800"
+                className="flex cursor-pointer flex-col items-start gap-2 rounded-xl border border-hubee-neutral-50 bg-white p-4 text-sm font-semibold text-hubee-800 transition-colors hover:bg-hubee-100 has-checked:border-hubee-500 has-checked:bg-hubee-100 has-checked:ring-1 has-checked:ring-hubee-500 has-focus-visible:ring-3 has-focus-visible:ring-hubee-500/50 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:has-checked:bg-hubee-800"
               >
                 <input type="radio" value={value} className="peer sr-only" {...register("signupIntent")} />
                 <Icon aria-hidden="true" className="size-5 text-hubee-neutral-300 peer-checked:text-hubee-600 dark:peer-checked:text-hubee-400" />
@@ -102,7 +102,7 @@ export function RegisterForm({
         </fieldset>
 
         {isOrganizer && (
-          <p className="flex items-start gap-2 rounded-xl border border-hubee-500/40 bg-hubee-100/60 p-4 text-xs text-hubee-750 dark:border-hubee-700 dark:bg-hubee-800/60 dark:text-hubee-100">
+          <p className="flex items-start gap-2 rounded-xl border border-hubee-500/40 bg-hubee-100/60 p-4 text-xs text-hubee-750 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-100">
             <Building2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-hubee-600 dark:text-hubee-400" />
             Depois de criar a conta, você cadastra a sua organização e já passa a gerenciar os eventos dela.
           </p>

@@ -27,12 +27,12 @@ export function FornecedoresSkeleton() {
         </div>
       </div>
 
-      <div className="hidden flex-col overflow-hidden rounded-xl border border-hubee-200 xl:flex dark:border-hubee-750">
+      <div className="hidden flex-col overflow-hidden rounded-xl border border-hubee-200 xl:flex dark:border-hubee-50/15">
         <Skeleton className="h-11 w-full rounded-none" />
         {Array.from({ length: 5 }, (_, index) => (
           <div
             key={index}
-            className="flex items-center gap-6 border-t border-hubee-200 px-4 py-5 dark:border-hubee-750"
+            className="flex items-center gap-6 border-t border-hubee-200 px-4 py-5 dark:border-hubee-50/15"
           >
             <Skeleton className="h-4 w-1/5 rounded-full" />
             <Skeleton className="h-4 w-1/6 rounded-full" />

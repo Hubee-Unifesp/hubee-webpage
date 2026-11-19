@@ -79,7 +79,7 @@ export function SobreContent({ members }: SobreContentProps) {
   return (
     <div
       id="inicio"
-      className="flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50"
+      className="flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-850 dark:text-hubee-50"
     >
       <a
         href="#conteudo"
@@ -160,7 +160,6 @@ export function SobreContent({ members }: SobreContentProps) {
                 title,
                 badge,
                 code,
-                stamp,
                 description,
                 icon: Icon,
                 headerClassName,
