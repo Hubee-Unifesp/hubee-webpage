@@ -5,6 +5,7 @@ import {
   getAccountNavGroups,
   getAccountNavItems,
   getProfileMenuItems,
+  membersNavItem,
   myTicketsNavItem,
   organizerEventsNavItem,
   organizerManageEventsNavItem,
@@ -26,15 +27,17 @@ describe("account-nav.config", () => {
     expect(getAccountNavItems(false)).toEqual([myTicketsNavItem, ...buyerAccountNavItems]);
   });
 
-  it("acrescenta Meus eventos e Fornecedores no menu mobile para membros de organizações", () => {
+  it("acrescenta Meus eventos, Fornecedores e Membros no menu mobile para membros de organizações", () => {
     expect(getAccountNavItems(true).map((i) => i.href)).toEqual([
       "/meus-ingressos",
       "/meus-eventos",
       "/conta/pedidos",
       "/conta/perfil",
       "/conta/fornecedores",
+      "/conta/membros",
     ]);
     expect(suppliersNavItem.organizerOnly).toBe(true);
+    expect(membersNavItem.organizerOnly).toBe(true);
   });
 
   it("retorna Meus ingressos, pedidos e perfil no dropdown do perfil e acrescenta Meus eventos para organizadores", () => {
@@ -51,13 +54,16 @@ describe("account-nav.config", () => {
     ]);
   });
 
-  it("agrupa a sidebar em Minha Conta e, para organizadores, Organização com Fornecedores", () => {
+  it("agrupa a sidebar em Minha Conta e, para organizadores, Organização com Fornecedores e Membros", () => {
     expect(getAccountNavGroups(false).map((group) => group.label)).toEqual(["Minha Conta"]);
 
     const grupos = getAccountNavGroups(true);
     expect(grupos.map((group) => group.label)).toEqual(["Minha Conta", "Organização"]);
     expect(grupos[0].items).toEqual(buyerAccountNavItems);
-    expect(grupos[1].items.map((item) => item.href)).toEqual(["/conta/fornecedores"]);
+    expect(grupos[1].items.map((item) => item.href)).toEqual([
+      "/conta/fornecedores",
+      "/conta/membros",
+    ]);
   });
 
   it("formata o label do carrinho de acordo com a quantidade", () => {

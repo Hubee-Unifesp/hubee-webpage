@@ -1,4 +1,4 @@
-import { CalendarDays, ShoppingBag, Ticket, Truck, User, type LucideIcon } from "lucide-react";
+import { CalendarDays, ShoppingBag, Ticket, Truck, User, Users, type LucideIcon } from "lucide-react";
 
 export interface AccountNavItem {
   href: string;
@@ -41,6 +41,13 @@ export const suppliersNavItem: AccountNavItem = {
   organizerOnly: true,
 };
 
+export const membersNavItem: AccountNavItem = {
+  href: "/conta/membros",
+  label: "Membros",
+  icon: Users,
+  organizerOnly: true,
+};
+
 /** Itens exibidos no dropdown do perfil do usuário logado. */
 export function getProfileMenuItems(isOrganizer = false): readonly AccountNavItem[] {
   return [
@@ -56,6 +63,7 @@ export const accountNavItems: readonly AccountNavItem[] = [
   organizerEventsNavItem,
   ...buyerAccountNavItems,
   suppliersNavItem,
+  membersNavItem,
 ];
 
 /** Seções da conta que a pessoa usuária pode acessar: as de organizador só para membros de organizações. */
@@ -68,7 +76,7 @@ export interface AccountNavGroup {
   items: readonly AccountNavItem[];
 }
 
-export const organizationNavItems: readonly AccountNavItem[] = [suppliersNavItem];
+export const organizationNavItems: readonly AccountNavItem[] = [suppliersNavItem, membersNavItem];
 
 /** Grupos da sidebar e das abas da conta: "Minha Conta" para todos e "Organização" só para organizadores. */
 export function getAccountNavGroups(isOrganizer = false): readonly AccountNavGroup[] {
