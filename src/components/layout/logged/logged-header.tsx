@@ -7,16 +7,26 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { MainNavigation, ThemeToggle, getNavigationItems, isActiveRoute } from "@/components/layout/header";
 import type { UsuarioLogado } from "@/types/usuario";
-import { cartHref, formatCartLabel, notificationsHref } from "./account-nav.config";
+import {
+  cartHref,
+  formatBadgeCount,
+  formatCartLabel,
+  formatNotificationsLabel,
+  notificationsHref,
+} from "./account-nav.config";
 import { LoggedUserMenu } from "./logged-user-menu";
 import { MobileMenu } from "./mobile-menu";
 import { ThemedHubeeLogo } from "@/components/brand";
 
 /**
  * Header da área logada. Reaproveita o tema, a navegação principal e os botões do header da home;
- * muda as ações da conta (carrinho com contador, menu da usuária) e o menu mobile.
+ * muda as ações da conta (carrinho e notificações com contador, menu da usuária) e o menu mobile.
  */
-export function LoggedHeader({ usuario, itensNoCarrinho }: UsuarioLogado) {
+export function LoggedHeader({
+  usuario,
+  itensNoCarrinho,
+  notificacoesNaoLidas = 0,
+}: UsuarioLogado) {
   const pathname = usePathname();
   const { isOrganizer } = useAuth();
   const items = getNavigationItems(isOrganizer ? "organizer" : "user", "/");
@@ -54,24 +64,36 @@ export function LoggedHeader({ usuario, itensNoCarrinho }: UsuarioLogado) {
                     aria-hidden="true"
                     className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800"
                   >
-                    {itensNoCarrinho > 99 ? "99+" : itensNoCarrinho}
+                    {formatBadgeCount(itensNoCarrinho)}
                   </span>
                 )}
               </Link>
             </Button>
-            <Button variant="hubee_header" size="icon" asChild>
+            <Button variant="hubee_header" size="icon" className="relative" asChild>
               <Link
                 href={notificationsHref}
-                aria-label="Notificações"
+                aria-label={formatNotificationsLabel(notificacoesNaoLidas)}
                 aria-current={isActiveRoute(pathname, notificationsHref) ? "page" : undefined}
               >
                 <Bell aria-hidden="true" className="size-[18px]" />
+                {notificacoesNaoLidas > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800"
+                  >
+                    {formatBadgeCount(notificacoesNaoLidas)}
+                  </span>
+                )}
               </Link>
             </Button>
             <LoggedUserMenu usuario={usuario} />
           </div>
 
-          <MobileMenu navigationItems={items} itemsInCart={itensNoCarrinho} />
+          <MobileMenu
+            navigationItems={items}
+            itemsInCart={itensNoCarrinho}
+            unreadNotifications={notificacoesNaoLidas}
+          />
         </div>
       </header>
     </div>

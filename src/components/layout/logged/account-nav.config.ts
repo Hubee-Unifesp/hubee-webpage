@@ -92,3 +92,13 @@ export function formatCartLabel(count: number): string {
   if (count === 0) return "Carrinho vazio";
   return `Carrinho, ${count} ${count === 1 ? "item" : "itens"}`;
 }
+
+export function formatNotificationsLabel(count: number): string {
+  if (count <= 0) return "Notificações";
+  return `Notificações, ${count} ${count === 1 ? "não lida" : "não lidas"}`;
+}
+
+export function formatBadgeCount(count: number): string {
+  return count > 99 ? "99+" : String(count);
+}
+

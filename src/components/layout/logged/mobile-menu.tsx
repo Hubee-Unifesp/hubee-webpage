@@ -11,7 +11,14 @@ import { isActiveRoute, type NavigationItem } from "@/components/layout/header";
 import { loginItem, registerItem } from "@/components/layout/header/actions/actions.config";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { cartHref, formatCartLabel, getAccountNavItems, notificationsHref } from "./account-nav.config";
+import {
+  cartHref,
+  formatBadgeCount,
+  formatCartLabel,
+  formatNotificationsLabel,
+  getAccountNavItems,
+  notificationsHref,
+} from "./account-nav.config";
 import { ThemedHubeeLogo } from "@/components/brand";
 
 const itemClassName =
@@ -22,11 +29,17 @@ const groupLabelClassName = "px-3 pb-1 text-xs font-medium text-hubee-neutral-30
 interface MobileMenuProps {
   navigationItems: readonly NavigationItem[];
   itemsInCart?: number;
+  unreadNotifications?: number;
   homeHref?: string;
 }
 
 /** Menu lateral em tela cheia para telas menores que 768px (Radix Dialog: Esc fecha, foco preso). */
-export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }: MobileMenuProps) {
+export function MobileMenu({
+  navigationItems,
+  itemsInCart = 0,
+  unreadNotifications = 0,
+  homeHref = "/",
+}: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { user, logoutState, isOrganizer } = useAuth();
@@ -112,7 +125,7 @@ export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }:
                           aria-hidden="true"
                           className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-hubee-800 px-1.5 text-xs font-bold text-hubee-50 dark:bg-hubee-400 dark:text-hubee-800"
                         >
-                          {itemsInCart > 99 ? "99+" : itemsInCart}
+                          {formatBadgeCount(itemsInCart)}
                         </span>
                       )}
                     </Link>
@@ -121,11 +134,20 @@ export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }:
                     <Link
                       href={notificationsHref}
                       onClick={close}
+                      aria-label={formatNotificationsLabel(unreadNotifications)}
                       aria-current={isActiveRoute(pathname, notificationsHref) ? "page" : undefined}
                       className={itemClassName}
                     >
                       <Bell aria-hidden="true" />
                       Notificações
+                      {unreadNotifications > 0 && (
+                        <span
+                          aria-hidden="true"
+                          className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-hubee-800 px-1.5 text-xs font-bold text-hubee-50 dark:bg-hubee-400 dark:text-hubee-800"
+                        >
+                          {formatBadgeCount(unreadNotifications)}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 </ul>
