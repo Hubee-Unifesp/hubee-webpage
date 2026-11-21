@@ -9,10 +9,14 @@ import {
   type MouseEvent,
   type PointerEvent,
 } from "react";
+import { Anton } from "next/font/google";
 import { ChevronLeft, ChevronRight, Pause, Play, User } from "lucide-react";
+import { HexPattern } from "@/components/home/events/event-media";
 import { cn } from "@/lib/utils";
 import type { TeamMemberProfile } from "./team.config";
 import { TeamMemberDialog } from "./team-member-dialog";
+
+const display = Anton({ subsets: ["latin"], weight: "400", display: "swap" });
 
 const LINEAR_SPEED_PX_PER_SEC = 52;
 const DESKTOP_VISIBLE_COUNT = 4;
@@ -311,17 +315,20 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
     <section
       aria-labelledby="nosso-time-titulo"
       aria-roledescription="carrossel"
-      className="py-12 md:py-16"
+      className="py-4 md:py-6"
     >
       <div className="space-y-2">
         <h2
           id="nosso-time-titulo"
-          className="font-heading text-2xl font-bold tracking-tight text-hubee-800 md:text-3xl dark:text-hubee-50"
+          className={cn(
+            display.className,
+            "text-3xl tracking-tight text-hubee-800 uppercase md:text-5xl dark:text-hubee-50",
+          )}
         >
-          Nosso time
+          Nosso <span className="text-hubee-600 dark:text-hubee-400">time</span>
         </h2>
         <p className="text-base text-hubee-750 dark:text-hubee-50/90">
-          As pessoas por trás do Hubee. Arraste para navegar ou clique na foto
+          As pessoas por trás do Hubee. Arraste para navegar ou clique na credencial
           de um integrante para abrir seu README do GitHub.
         </p>
       </div>
@@ -337,7 +344,7 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
         onPointerCancel={endPointerDrag}
         onClickCapture={handleTrackClickCapture}
         className={cn(
-          "mt-8 flex gap-6 overflow-x-hidden pb-4 select-none touch-pan-y",
+          "mt-6 flex gap-6 overflow-x-hidden px-2 pt-4 pb-8 select-none touch-pan-y",
           canScroll && (isDragging ? "cursor-grabbing" : "cursor-grab"),
         )}
       >
@@ -346,6 +353,7 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
           const isMiddleCopy =
             !canScroll || (domIdx >= total && domIdx < total * 2);
           const imgFailed = Boolean(failedAvatars[member.id]);
+          const badgeCode = "HB-2026";
 
           return (
             <li
@@ -367,11 +375,12 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
                 onDragStart={(e) => e.preventDefault()}
                 onClick={() => handleOpenMember(member, logicalIdx)}
                 className={cn(
-                  "group flex h-full w-full flex-col overflow-hidden rounded-xl border border-hubee-200 bg-hubee-neutral-25 text-left transition-colors outline-none hover:border-hubee-400 focus-visible:ring-2 focus-visible:ring-hubee-800 focus-visible:ring-offset-2 focus-visible:ring-offset-hubee-50 dark:border-hubee-50/15 dark:bg-hubee-850 dark:hover:border-hubee-400 dark:focus-visible:ring-hubee-400 dark:focus-visible:ring-offset-hubee-800",
+                  "group relative flex h-full w-full flex-col overflow-hidden rounded-[24px] border border-hubee-300/70 bg-hubee-100 text-left transition-all duration-200 ease-out outline-none hover:-translate-y-1 hover:border-hubee-400 hover:shadow-md focus-visible:ring-3 focus-visible:ring-hubee-400 motion-reduce:transition-none motion-reduce:hover:translate-y-0 dark:border-hubee-50/15 dark:bg-hubee-900 dark:hover:border-hubee-400",
                   isDragging ? "cursor-grabbing" : "cursor-grab",
                 )}
               >
-                <div className="relative flex aspect-[4/3] w-full flex-col items-center justify-center overflow-hidden bg-hubee-100 p-5 dark:bg-hubee-900">
+                <div className="relative flex aspect-[4/3] w-full flex-col items-center justify-center overflow-hidden bg-hubee-900 p-5 text-hubee-50">
+                  <HexPattern className="text-hubee-400/20" />
                   {!imgFailed ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -386,28 +395,40 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
                           [member.id]: true,
                         }))
                       }
-                      className="pointer-events-none size-28 rounded-full border-2 border-hubee-200 object-cover transition-transform duration-200 group-hover:scale-105 motion-reduce:transition-none dark:border-hubee-50/15"
+                      className="pointer-events-none relative z-10 size-24 rounded-full object-cover transition-transform duration-200 ease-out group-hover:scale-105 motion-reduce:transition-none"
                     />
                   ) : (
-                    <div className="pointer-events-none flex size-28 items-center justify-center rounded-full border border-hubee-200 bg-hubee-50 text-hubee-750 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-200">
+                    <div className="pointer-events-none relative z-10 flex size-24 items-center justify-center rounded-full bg-hubee-800 text-hubee-400 transition-transform duration-200 ease-out group-hover:scale-105">
                       <User
                         aria-hidden="true"
                         className="size-10 stroke-[1.5]"
                       />
                     </div>
                   )}
-                  <span className="pointer-events-none mt-2.5 text-xs font-medium text-hubee-750 group-hover:underline dark:text-hubee-200">
-                    @{member.username} · ver README
+                  <span className="pointer-events-none relative z-10 mt-3 inline-flex items-center gap-1 rounded-full bg-hubee-800 px-3 py-0.5 text-xs font-semibold text-hubee-400 transition-colors duration-200 group-hover:bg-hubee-400 group-hover:text-hubee-900">
+                    @{member.username} · README
                   </span>
                 </div>
 
-                <div className="pointer-events-none flex flex-1 flex-col justify-between p-4">
-                  <h3 className="text-base font-bold text-hubee-800 dark:text-hubee-50">
-                    {member.name}
-                  </h3>
-                  <p className="mt-1 text-sm text-hubee-750 dark:text-hubee-200">
-                    {member.role}
-                  </p>
+                {/* Picote da credencial */}
+                <div aria-hidden="true" className="relative flex h-5 items-center">
+                  <span className="absolute -left-2.5 size-5 rounded-full bg-hubee-50 dark:bg-hubee-800" />
+                  <span className="mx-5 h-0 w-full border-t-2 border-dashed border-hubee-300 dark:border-hubee-700" />
+                  <span className="absolute -right-2.5 size-5 rounded-full bg-hubee-50 dark:bg-hubee-800" />
+                </div>
+
+                <div className="pointer-events-none flex flex-1 flex-col justify-between px-5 pt-1 pb-5">
+                  <div>
+                    <h3 className="text-base font-bold text-hubee-800 dark:text-hubee-50">
+                      {member.name}
+                    </h3>
+                    <p className="mt-0.5 text-sm text-hubee-750 dark:text-hubee-200">
+                      {member.role}
+                    </p>
+                  </div>
+                  <span className="mt-3 text-[11px] font-semibold tabular-nums text-hubee-700 dark:text-hubee-300">
+                    {badgeCode}
+                  </span>
                 </div>
               </button>
             </li>

@@ -231,7 +231,7 @@ function TicketCarousel() {
   );
 }
 
-function useFlyingBee(
+export function useFlyingBee(
   sectionRef: RefObject<HTMLElement | null>,
   beeRef: RefObject<HTMLDivElement | null>,
   perchRef: RefObject<HTMLSpanElement | null>,
