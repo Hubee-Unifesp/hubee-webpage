@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Ban, Building2, CalendarX, CloudOff, Info, Lock } from "lucide-react";
@@ -11,6 +11,13 @@ import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { useEventoEditor } from "@/hooks/useEventoEditor";
 import { getApiErrorMessage } from "@/lib/api/errors";
+import {
+  EVENT_AI_DRAFT_FIELD_META,
+  getInferredAiFields,
+  getMissingFormFields,
+  type EventAiDraft,
+  type EventAiDraftField,
+} from "@/lib/validations/event-ai-draft.schema";
 import { canCancelEvent } from "@/types/organizacao";
 import type { EventoPayload, LocalEvento, LocalPayload } from "@/types/evento-editor";
 import { StatusEventoBadge } from "../status-evento-badge";
@@ -18,6 +25,7 @@ import { ConfirmarAcaoEventoModal, type AcaoEvento } from "./confirmar-acao-even
 import { DadosEventoForm } from "./dados-evento-form";
 import { EtapasEvento } from "./etapas-evento";
 import { canEditEvent, type EtapaEvento } from "./evento-editor.data";
+import { GeradorIaEvento, type GeradorIaStatus } from "./gerador-ia-evento";
 import { IngressosEvento } from "./ingressos-evento";
 import { RevisaoEvento } from "./revisao-evento";
 
@@ -56,14 +64,23 @@ function EditorSkeleton() {
 interface EventoEditorProps {
   eventoId?: string;
   etapaInicial?: EtapaEvento;
+  /** Callback de integração HTTP para `POST /events/ai-draft` (conectado na GOL-266). */
+  onGerarRascunhoIa?: (prompt: string) => Promise<EventAiDraft>;
 }
 
-export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorProps) {
+const ERRO_IA_INDISPONIVEL =
+  "A geração com IA ainda não está conectada ao servidor. Preencha os campos manualmente abaixo.";
+
+export function EventoEditor({ eventoId, etapaInicial = "dados", onGerarRascunhoIa }: EventoEditorProps) {
   const router = useRouter();
   const toast = useToast();
   const [etapa, setEtapa] = useState<EtapaEvento>(etapaInicial);
   const [acao, setAcao] = useState<AcaoEvento | null>(null);
   const [acabouDePublicar, setAcabouDePublicar] = useState(false);
+  const [iaStatus, setIaStatus] = useState<GeradorIaStatus>("idle");
+  const [iaRascunho, setIaRascunho] = useState<EventAiDraft | null>(null);
+  const [iaErro, setIaErro] = useState<string | null>(null);
+  const [iaResolvidos, setIaResolvidos] = useState<ReadonlySet<EventAiDraftField>>(() => new Set());
   const {
     status,
     organizacoes,
@@ -80,6 +97,65 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
     editarLote,
     excluirLote,
   } = useEventoEditor(eventoId);
+
+  const camposPendentesIa = useMemo(() => {
+    if (!iaRascunho) return new Set<EventAiDraftField>();
+    return new Set(getMissingFormFields(iaRascunho).filter((campo) => !iaResolvidos.has(campo)));
+  }, [iaRascunho, iaResolvidos]);
+
+  const camposInferidosIa = useMemo(() => {
+    if (!iaRascunho) return new Set<EventAiDraftField>();
+    return new Set(getInferredAiFields(iaRascunho));
+  }, [iaRascunho]);
+
+  const handleGerarRascunhoIa = useCallback(
+    async (prompt: string) => {
+      if (!onGerarRascunhoIa) {
+        setIaErro(ERRO_IA_INDISPONIVEL);
+        setIaStatus("error");
+        return;
+      }
+
+      setIaStatus("loading");
+      setIaErro(null);
+      try {
+        const draft = await onGerarRascunhoIa(prompt);
+        setIaRascunho(draft);
+        setIaResolvidos(new Set());
+        setIaStatus("applied");
+      } catch (error) {
+        setIaErro(getApiErrorMessage(error, "A geração com IA não está disponível no momento. Tente novamente em instantes."));
+        setIaStatus("error");
+      }
+    },
+    [onGerarRascunhoIa],
+  );
+
+  const handleLimparIa = useCallback(() => {
+    setIaStatus("idle");
+    setIaRascunho(null);
+    setIaErro(null);
+    setIaResolvidos(new Set());
+  }, []);
+
+  const handleResolverPendenciaIa = useCallback((campo: EventAiDraftField) => {
+    setIaResolvidos((prev) => {
+      if (prev.has(campo)) return prev;
+      const next = new Set(prev);
+      next.add(campo);
+      return next;
+    });
+  }, []);
+
+  const handleFocarCampoIa = useCallback((campo: EventAiDraftField) => {
+    const { inputId } = EVENT_AI_DRAFT_FIELD_META[campo];
+    const element = document.getElementById(inputId);
+    if (!element) return;
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    if ("focus" in element && typeof element.focus === "function") {
+      element.focus();
+    }
+  }, []);
 
   if (status === "loading") {
     return (
@@ -241,15 +317,33 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
       <EtapasEvento atual={etapa} onChange={setEtapa} bloquearSeguintes={evento === null} />
 
       {etapa === "dados" && (
-        <DadosEventoForm
-          evento={evento}
-          locais={locais}
-          organizerId={organizacaoAtiva.orgId}
-          somenteLeitura={somenteLeitura}
-          onCriarLocal={handleCriarLocal}
-          onSubmit={handleSalvarDados}
-          onContinuar={() => setEtapa("lotes")}
-        />
+        <div className="flex flex-col gap-4">
+          {!evento && !somenteLeitura && (
+            <GeradorIaEvento
+              status={iaStatus}
+              rascunho={iaRascunho}
+              erro={iaErro}
+              camposPendentes={[...camposPendentesIa]}
+              onGerar={handleGerarRascunhoIa}
+              onLimpar={handleLimparIa}
+              onFocarCampo={handleFocarCampoIa}
+            />
+          )}
+          <DadosEventoForm
+            evento={evento}
+            locais={locais}
+            organizerId={organizacaoAtiva.orgId}
+            somenteLeitura={somenteLeitura}
+            rascunhoIa={iaRascunho}
+            gerandoComIa={iaStatus === "loading"}
+            camposPendentesIa={camposPendentesIa}
+            camposInferidosIa={camposInferidosIa}
+            onResolverPendenciaIa={handleResolverPendenciaIa}
+            onCriarLocal={handleCriarLocal}
+            onSubmit={handleSalvarDados}
+            onContinuar={() => setEtapa("lotes")}
+          />
+        </div>
       )}
 
       {etapa === "lotes" && evento && (
