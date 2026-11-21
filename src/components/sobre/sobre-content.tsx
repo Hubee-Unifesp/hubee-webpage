@@ -228,9 +228,9 @@ export function SobreContent({ members }: SobreContentProps) {
                     aria-hidden="true"
                     className="relative z-10 flex h-7 items-center bg-hubee-100 transition-colors duration-300 dark:bg-hubee-900"
                   >
-                    <span className="absolute -left-3.5 size-7 rounded-full bg-hubee-50 transition-transform duration-300 group-hover:scale-115 dark:bg-hubee-800" />
+                    <span className="absolute -left-3.5 size-7 rounded-full bg-hubee-50 transition-transform duration-300 group-hover:scale-115 dark:bg-hubee-900" />
                     <span className="mx-6 h-0 w-full border-t-2 border-dashed border-hubee-300 transition-all duration-300 group-hover:border-hubee-500 dark:border-hubee-700 dark:group-hover:border-hubee-400" />
-                    <span className="absolute -right-3.5 size-7 rounded-full bg-hubee-50 transition-transform duration-300 group-hover:scale-115 dark:bg-hubee-800" />
+                    <span className="absolute -right-3.5 size-7 rounded-full bg-hubee-50 transition-transform duration-300 group-hover:scale-115 dark:bg-hubee-900" />
                   </div>
 
                   {/* Canhoto inferior (descola levemente para baixo + carimbo de validação no hover) */}

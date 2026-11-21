@@ -412,9 +412,9 @@ export function TeamCarousel({ members }: TeamCarouselProps) {
 
                 {/* Picote da credencial */}
                 <div aria-hidden="true" className="relative flex h-5 items-center">
-                  <span className="absolute -left-2.5 size-5 rounded-full bg-hubee-50 dark:bg-hubee-800" />
+                  <span className="absolute -left-2.5 size-5 rounded-full bg-hubee-50 dark:bg-hubee-900" />
                   <span className="mx-5 h-0 w-full border-t-2 border-dashed border-hubee-300 dark:border-hubee-700" />
-                  <span className="absolute -right-2.5 size-5 rounded-full bg-hubee-50 dark:bg-hubee-800" />
+                  <span className="absolute -right-2.5 size-5 rounded-full bg-hubee-50 dark:bg-hubee-900" />
                 </div>
 
                 <div className="pointer-events-none flex flex-1 flex-col justify-between px-5 pt-1 pb-5">
