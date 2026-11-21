@@ -172,7 +172,7 @@ export function ConvidarMembroModal({
                       className={cn(
                         "flex w-full cursor-pointer items-start justify-between gap-3 rounded-xl border p-3 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-hubee-400 disabled:cursor-not-allowed disabled:opacity-60",
                         selecionado
-                          ? "border-2 border-hubee-400 bg-hubee-100/80 dark:border-hubee-400 dark:bg-hubee-800/80"
+                          ? "border-2 border-hubee-400 bg-hubee-100/80 dark:border-hubee-400 dark:bg-hubee-400/15"
                           : "border-hubee-200 bg-hubee-neutral-25 hover:border-hubee-300 dark:border-hubee-50/15 dark:bg-hubee-900/60 dark:hover:border-hubee-50/30",
                       )}
                     >

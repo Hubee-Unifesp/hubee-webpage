@@ -29,10 +29,10 @@ export function MembrosTabela({
   onRemover,
 }: MembroAcoesTabelaProps) {
   return (
-    <div className="hidden overflow-hidden rounded-xl border border-hubee-200 bg-hubee-neutral-25 xl:block dark:border-hubee-50/15 dark:bg-hubee-neutral-500">
+    <div className="hidden overflow-hidden rounded-xl border border-hubee-200 bg-hubee-neutral-25 xl:block dark:border-hubee-50/15 dark:bg-hubee-850">
       <table className="w-full text-xs">
         <caption className="sr-only">Membros da organização</caption>
-        <thead className="border-b border-hubee-200 bg-hubee-100/70 dark:border-hubee-50/15 dark:bg-hubee-850">
+        <thead className="border-b border-hubee-200 bg-hubee-100/70 dark:border-hubee-50/15 dark:bg-hubee-50/5">
           <tr>
             <th scope="col" className={thClassName}>
               Membro
@@ -64,7 +64,7 @@ export function MembrosTabela({
                   <div className="flex items-center gap-3">
                     <span
                       aria-hidden="true"
-                      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-hubee-400 text-[11px] font-bold text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50"
+                      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-hubee-400 text-[11px] font-bold text-hubee-800 dark:border dark:border-hubee-400/35 dark:bg-hubee-900 dark:text-hubee-400"
                     >
                       {formatMemberInitials(membro.fullName)}
                     </span>

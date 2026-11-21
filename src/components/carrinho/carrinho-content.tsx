@@ -63,7 +63,7 @@ export function CarrinhoContent() {
           {/* Cabeçalho Desktop (Produto | Quantidade | Preço) */}
           <div
             aria-hidden="true"
-            className="hidden rounded-full border border-hubee-300 bg-hubee-100/70 px-5 py-1.5 text-xs font-medium text-hubee-800 md:grid md:grid-cols-[minmax(0,1fr)_9.5rem_7.5rem] md:items-center md:gap-4 dark:border-hubee-50/15 dark:bg-hubee-900/70 dark:text-hubee-50"
+            className="hidden rounded-full border border-hubee-300 bg-hubee-100/70 px-5 py-1.5 text-xs font-medium text-hubee-800 md:grid md:grid-cols-[minmax(0,1fr)_9.5rem_7.5rem] md:items-center md:gap-4 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
           >
             <span>Produto</span>
             <span className="text-center">Quantidade</span>
@@ -97,7 +97,7 @@ export function CarrinhoContent() {
 
       <footer
         aria-labelledby="formas-pagamento-titulo"
-        className="rounded-2xl border border-hubee-300/60 bg-hubee-100 px-6 py-6 text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-900/90 dark:text-hubee-50"
+        className="rounded-2xl border border-hubee-300/60 bg-hubee-100 px-6 py-6 text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
       >
         <h2
           id="formas-pagamento-titulo"

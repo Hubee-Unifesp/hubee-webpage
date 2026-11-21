@@ -15,7 +15,7 @@ export function SessionHeader() {
 
   if (!user) {
     return (
-      <div className="w-full px-4 pt-4 sm:px-8 md:px-6">
+      <div className="sticky top-0 z-40 w-full px-4 pt-4 sm:px-8 md:px-6">
         <Skeleton className="mx-auto h-14 max-w-[52rem] rounded-xl" />
       </div>
     );

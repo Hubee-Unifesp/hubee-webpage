@@ -11,7 +11,7 @@ function iniciais(nome: string): string {
 /** Uma avaliação: autor, nota e comentário. */
 export function AvaliacaoCard({ avaliacao }: { avaliacao: AvaliacaoFornecedor }) {
   return (
-    <article className="flex flex-col gap-4 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 shadow-sm md:p-5 dark:border-hubee-50/15 dark:bg-hubee-neutral-500">
+    <article className="flex flex-col gap-4 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 shadow-sm md:p-5 dark:border-hubee-50/15 dark:bg-hubee-850">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span

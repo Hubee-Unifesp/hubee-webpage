@@ -29,10 +29,10 @@ const tdClassName = "px-3 py-4 align-middle";
  */
 export function FornecedoresTabela({ fornecedores, ...acoes }: FornecedoresTabelaProps) {
   return (
-    <div className="hidden overflow-hidden rounded-xl border border-hubee-200 bg-hubee-neutral-25 xl:block dark:border-hubee-50/15 dark:bg-hubee-neutral-500">
+    <div className="hidden overflow-hidden rounded-xl border border-hubee-200 bg-hubee-neutral-25 xl:block dark:border-hubee-50/15 dark:bg-hubee-850">
       <table className="w-full text-xs">
         <caption className="sr-only">Fornecedores cadastrados</caption>
-        <thead className="border-b border-hubee-200 bg-hubee-100/70 dark:border-hubee-50/15 dark:bg-hubee-850">
+        <thead className="border-b border-hubee-200 bg-hubee-100/70 dark:border-hubee-50/15 dark:bg-hubee-50/5">
           <tr>
             <th scope="col" className={thClassName}>
               Razão Social / Nome

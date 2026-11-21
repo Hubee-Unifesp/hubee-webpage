@@ -152,7 +152,7 @@ export function GeradorIaEvento({
     <section
       aria-label="Criar rascunho com IA"
       aria-busy={carregando}
-      className="rounded-xl border border-hubee-400 bg-[#FFF9E6] shadow-sm transition-colors dark:border-hubee-600 dark:bg-[#2B1E04]"
+      className="rounded-xl border border-hubee-400 bg-[#FFF9E6] shadow-sm transition-colors dark:border-hubee-400/35 dark:bg-hubee-850"
     >
       <button
         type="button"
@@ -165,7 +165,7 @@ export function GeradorIaEvento({
         <span className="flex min-w-0 items-center gap-3">
           <span
             aria-hidden="true"
-            className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-hubee-200 text-hubee-800 dark:bg-amber-950/90 dark:text-hubee-400"
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-hubee-200 text-hubee-800 dark:bg-hubee-400/15 dark:text-hubee-400"
           >
             <Sparkles className="size-4.5" />
           </span>
@@ -181,7 +181,7 @@ export function GeradorIaEvento({
           </span>
         </span>
 
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-hubee-300 bg-hubee-100 px-2.5 py-1.5 text-xs font-semibold text-hubee-800 dark:border-hubee-600/70 dark:bg-hubee-800/80 dark:text-hubee-200">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-hubee-300 bg-hubee-100 px-2.5 py-1.5 text-xs font-semibold text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-50/10 dark:text-hubee-200">
           <span className="hidden sm:inline">{expandido ? "Recolher" : "Usar assistente"}</span>
           <ChevronDown
             aria-hidden="true"
@@ -217,7 +217,7 @@ export function GeradorIaEvento({
                 maxLength={AI_DRAFT_PROMPT_MAX_LENGTH}
                 placeholder="Ex.: Hubee Tech Summit no dia 20/03/2027 das 09h às 18h, palestras e oficinas sobre tecnologia e carreira, classificação livre, com 1º lote promocional a R$ 60 (100 vagas) e 2º lote a R$ 120 (200 vagas)..."
                 className={cn(
-                  "min-h-24 rounded-lg border-hubee-300 bg-white text-sm text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 disabled:opacity-70 dark:border-hubee-600/60 dark:bg-hubee-900 dark:text-hubee-50 dark:placeholder:text-hubee-neutral-300",
+                  "min-h-24 rounded-lg border-hubee-300 bg-white text-sm text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 disabled:opacity-70 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:placeholder:text-hubee-neutral-300",
                   status === "error" && "border-red-600 dark:border-red-400",
                 )}
                 {...register("prompt")}
@@ -228,7 +228,7 @@ export function GeradorIaEvento({
               <div
                 role="status"
                 aria-live="polite"
-                className="flex items-start gap-2.5 rounded-lg border border-hubee-400 bg-hubee-100 px-3.5 py-3 text-xs text-hubee-800 dark:border-hubee-600 dark:bg-hubee-800/70 dark:text-hubee-100"
+                className="flex items-start gap-2.5 rounded-lg border border-hubee-400 bg-hubee-100 px-3.5 py-3 text-xs text-hubee-800 dark:border-hubee-400/35 dark:bg-hubee-900 dark:text-hubee-100"
               >
                 <Loader2
                   aria-hidden="true"
