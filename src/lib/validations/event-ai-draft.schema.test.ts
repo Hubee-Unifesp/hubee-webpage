@@ -3,6 +3,7 @@ import { emptyEventForm } from "./event.schema";
 import {
   AI_DRAFT_PROMPT_MAX_LENGTH,
   AI_DRAFT_PROMPT_MIN_LENGTH,
+  encontrarLocalSugerido,
   eventAiDraftPromptSchema,
   formatarSugestaoLocal,
   getInferredAiFields,
@@ -125,5 +126,23 @@ describe("helpers do rascunho de evento com IA", () => {
         state: null,
       }),
     ).toBe("Auditório Principal — São José dos Campos");
+  });
+});
+
+describe("encontrarLocalSugerido", () => {
+  const locais = [
+    { id: "a", nome: "Ginásio da Unifesp" },
+    { id: "b", nome: "Teatro Hubee" },
+  ];
+
+  it("casa o nome ignorando acentos e caixa", () => {
+    const venue = { name: "  GINASIO DA UNIFESP ", address: null, city: null, state: null };
+    expect(encontrarLocalSugerido(venue, locais)).toEqual(locais[0]);
+  });
+
+  it("devolve null sem correspondência, sem nome ou sem sugestão", () => {
+    expect(encontrarLocalSugerido({ name: "Outro lugar", address: null, city: null, state: null }, locais)).toBeNull();
+    expect(encontrarLocalSugerido({ name: null, address: "Rua X", city: null, state: null }, locais)).toBeNull();
+    expect(encontrarLocalSugerido(null, locais)).toBeNull();
   });
 });
