@@ -16,7 +16,7 @@ export function AccountSidebar() {
 
   return (
     <nav aria-label="Conta" className="hidden md:block">
-      <div className="sticky top-6 flex flex-col gap-5">
+      <div className="sticky top-20 flex flex-col gap-5">
         {getAccountNavGroups(isOrganizer).map((group) => (
           <div key={group.label} className="flex flex-col">
             <p className="mb-1.5 px-3 text-xs font-semibold text-hubee-750/75 dark:text-hubee-200">{group.label}</p>

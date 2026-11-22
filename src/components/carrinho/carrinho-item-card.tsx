@@ -29,7 +29,7 @@ export function CarrinhoItemCard({
   return (
     <article
       aria-label={`Item do carrinho: ${item.title}`}
-      className="flex flex-col gap-3 rounded-2xl border border-hubee-300 bg-hubee-100 p-4 text-hubee-800 shadow-xs transition-colors md:grid md:grid-cols-[minmax(0,1fr)_9.5rem_7.5rem] md:items-center md:gap-4 dark:border-hubee-50/15 dark:bg-hubee-900/90 dark:text-hubee-50"
+      className="flex flex-col gap-3 rounded-2xl border border-hubee-300 bg-hubee-100 p-4 text-hubee-800 shadow-xs transition-colors md:grid md:grid-cols-[minmax(0,1fr)_9.5rem_7.5rem] md:items-center md:gap-4 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
     >
       {/* Bloco do Produto (Miniatura + Título + Organização/Lote) */}
       <div className="flex min-w-0 items-center gap-3.5">
@@ -66,7 +66,7 @@ export function CarrinhoItemCard({
           <div
             role="group"
             aria-label={`Quantidade de ${item.title}`}
-            className="inline-flex h-9 items-center gap-3 rounded-full border border-hubee-200 bg-white px-2 text-hubee-800 shadow-2xs dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
+            className="inline-flex h-9 items-center gap-3 rounded-full border border-hubee-200 bg-white px-2 text-hubee-800 shadow-2xs dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50"
           >
             <button
               type="button"

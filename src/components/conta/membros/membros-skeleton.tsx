@@ -12,7 +12,7 @@ export function MembrosSkeleton() {
         </div>
       </div>
 
-      <div className="hidden flex-col gap-2 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 xl:flex dark:border-hubee-50/15 dark:bg-hubee-neutral-500">
+      <div className="hidden flex-col gap-2 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 xl:flex dark:border-hubee-50/15 dark:bg-hubee-850">
         {Array.from({ length: 4 }, (_, index) => (
           <div
             key={index}
@@ -25,7 +25,7 @@ export function MembrosSkeleton() {
         {Array.from({ length: 3 }, (_, index) => (
           <div
             key={index}
-            className="h-32 animate-pulse rounded-xl border border-hubee-200 bg-hubee-neutral-25 motion-reduce:animate-none dark:border-hubee-50/15 dark:bg-hubee-neutral-500"
+            className="h-32 animate-pulse rounded-xl border border-hubee-200 bg-hubee-neutral-25 motion-reduce:animate-none dark:border-hubee-50/15 dark:bg-hubee-850"
           />
         ))}
       </div>

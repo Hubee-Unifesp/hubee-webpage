@@ -53,7 +53,7 @@ export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }:
         <DialogOverlay />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed inset-y-0 right-0 z-50 flex w-[min(85vw,20rem)] flex-col gap-4 overflow-y-auto border-l border-hubee-800/25 bg-hubee-50 pb-6 text-hubee-800 shadow-xl outline-none duration-200 data-open:animate-in data-open:slide-in-from-right data-closed:animate-out data-closed:slide-out-to-right motion-reduce:animate-none dark:border-hubee-400 dark:bg-hubee-850 dark:text-hubee-50"
+          className="fixed inset-y-0 right-0 z-50 flex w-[min(85vw,20rem)] flex-col gap-4 overflow-y-auto border-l border-hubee-800/25 bg-hubee-50 pb-6 text-hubee-800 shadow-xl outline-none duration-200 data-open:animate-in data-open:slide-in-from-right data-closed:animate-out data-closed:slide-out-to-right motion-reduce:animate-none dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
         >
           <DialogTitle className="sr-only">Menu</DialogTitle>
 

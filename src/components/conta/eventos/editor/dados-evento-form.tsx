@@ -47,7 +47,7 @@ const campoPendenteClassName =
   "border-amber-500 bg-amber-50/70 focus-visible:border-amber-600 focus-visible:ring-amber-500/30 dark:border-amber-500 dark:bg-amber-950/35";
 const campoInferidoClassName = "border-emerald-500/70 dark:border-emerald-500/60";
 const campoCarregandoIaClassName =
-  "animate-pulse bg-hubee-100/70 motion-reduce:animate-none dark:bg-hubee-800/60";
+  "animate-pulse bg-hubee-100/70 motion-reduce:animate-none dark:bg-hubee-850/80";
 
 function AvisoCampoPendenteIa({ texto }: { texto: string }) {
   return (

@@ -92,7 +92,7 @@ function TicketTypeCard({
         <Button
           type="button"
           disabled
-          className="mt-5 h-10 w-full bg-cinzaclaro text-sm font-semibold text-hubee-neutral-300 focus-visible:ring-hubee-400 disabled:opacity-100 dark:bg-hubee-neutral-50 dark:text-hubee-neutral-300"
+          className="mt-5 h-10 w-full bg-cinzaclaro text-sm font-semibold text-hubee-neutral-300 focus-visible:ring-hubee-400 disabled:opacity-100 dark:bg-hubee-50/10 dark:text-hubee-neutral-200"
         >
           Comprar
           <span className="sr-only"> {ticket.batch} (esgotado)</span>

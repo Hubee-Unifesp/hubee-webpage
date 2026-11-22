@@ -29,7 +29,7 @@ export function MembroCard({
   const acaoLabel = membro.inviteStatus === "PENDING" ? "Cancelar" : "Remover";
 
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 dark:border-hubee-50/15 dark:bg-hubee-neutral-500">
+    <article className="flex flex-col gap-3 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 dark:border-hubee-50/15 dark:bg-hubee-850">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-bold text-hubee-800 dark:text-hubee-50">
