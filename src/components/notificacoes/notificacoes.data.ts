@@ -88,6 +88,7 @@ const DAY_MS = 24 * HOUR_MS;
 export function formatRelativeNotificationTime(
   createdAt: string,
   referenceDate: Date = new Date(),
+  timeZone?: string,
 ): string {
   const createdMs = Date.parse(createdAt);
   if (Number.isNaN(createdMs)) return "";
@@ -109,7 +110,7 @@ export function formatRelativeNotificationTime(
   return new Date(createdMs).toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "short",
-    timeZone: "UTC",
+    ...(timeZone ? { timeZone } : {}),
   });
 }
 

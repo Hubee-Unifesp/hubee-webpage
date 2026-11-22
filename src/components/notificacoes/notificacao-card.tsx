@@ -95,7 +95,7 @@ export function NotificacaoCard({
       className={cn(
         "flex items-start gap-3.5 rounded-xl border p-4 transition-colors md:gap-4 md:p-5",
         naoLida
-          ? "border-hubee-400 bg-hubee-100/80 hover:bg-hubee-100 dark:border-hubee-400/50 dark:bg-hubee-800/70 dark:hover:bg-hubee-800"
+          ? "border-hubee-400 bg-hubee-100/80 hover:bg-hubee-100 dark:border-hubee-400/50 dark:bg-hubee-850 dark:hover:border-hubee-400"
           : "border-hubee-200 bg-hubee-neutral-25 hover:border-hubee-400 hover:bg-hubee-100/60 dark:border-hubee-50/10 dark:bg-hubee-50/7 dark:hover:border-hubee-400/40 dark:hover:bg-hubee-50/12",
       )}
     >

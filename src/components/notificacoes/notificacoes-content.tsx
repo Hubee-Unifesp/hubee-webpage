@@ -66,28 +66,46 @@ export function NotificacoesContent({
   async function handleMarcarComoLida(id: string) {
     const agoraIso = new Date().toISOString();
     setLidasLocalmente((atual) => (atual[id] ? atual : { ...atual, [id]: agoraIso }));
-    if (onMarcarComoLida) {
+    if (!onMarcarComoLida) return;
+    try {
       await onMarcarComoLida(id);
+    } catch {
+      setLidasLocalmente((atual) => {
+        if (atual[id] !== agoraIso) return atual;
+        const proximo = { ...atual };
+        delete proximo[id];
+        return proximo;
+      });
     }
   }
 
   async function handleMarcarTodasComoLidas() {
     if (unreadCount === 0 || marcandoTodas) return;
     setMarcandoTodas(true);
+    const agoraIso = new Date().toISOString();
+    setLidasLocalmente((atual) => {
+      const proximo: Record<string, string> = { ...atual };
+      for (const item of notificacoes) {
+        if (item.readAt === null && !proximo[item.id]) {
+          proximo[item.id] = agoraIso;
+        }
+      }
+      return proximo;
+    });
     try {
-      const agoraIso = new Date().toISOString();
+      if (onMarcarTodasComoLidas) {
+        await onMarcarTodasComoLidas();
+      }
+    } catch {
       setLidasLocalmente((atual) => {
         const proximo: Record<string, string> = { ...atual };
-        for (const item of notificacoes) {
-          if (item.readAt === null && !proximo[item.id]) {
-            proximo[item.id] = agoraIso;
+        for (const [id, timestamp] of Object.entries(proximo)) {
+          if (timestamp === agoraIso) {
+            delete proximo[id];
           }
         }
         return proximo;
       });
-      if (onMarcarTodasComoLidas) {
-        await onMarcarTodasComoLidas();
-      }
     } finally {
       setMarcandoTodas(false);
     }

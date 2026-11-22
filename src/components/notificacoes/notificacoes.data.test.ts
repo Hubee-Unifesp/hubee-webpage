@@ -86,7 +86,8 @@ describe("notificacoes.data", () => {
     expect(formatRelativeNotificationTime("2026-11-20T13:00:00.000Z", ref)).toBe("há 2 h");
     expect(formatRelativeNotificationTime("2026-11-19T14:00:00.000Z", ref)).toBe("ontem");
     expect(formatRelativeNotificationTime("2026-11-17T14:00:00.000Z", ref)).toBe("há 3 dias");
-    expect(formatRelativeNotificationTime("2026-11-01T14:00:00.000Z", ref)).toMatch(/01/);
+    expect(formatRelativeNotificationTime("2026-11-01T14:00:00.000Z", ref, "UTC")).toMatch(/01/);
+    expect(formatRelativeNotificationTime("2026-11-01T23:30:00.000Z", ref, "America/Sao_Paulo")).toMatch(/01/);
     expect(formatRelativeNotificationTime("data-invalida", ref)).toBe("");
   });
 
