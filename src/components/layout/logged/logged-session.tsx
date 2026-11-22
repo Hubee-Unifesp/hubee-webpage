@@ -6,12 +6,14 @@ import { Skeleton } from "@/components/skeleton";
 import { Footer } from "@/components/layout/footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 import { LoggedHeader } from "./logged-header";
 
 /** Header da área logada com os dados da sessão. Enquanto carrega (ou se a sessão falhar), mostra só a barra. */
-export function SessionHeader({ notificacoesNaoLidas = 0 }: { notificacoesNaoLidas?: number }) {
+export function SessionHeader() {
   const { user } = useAuth();
   const { totalItens } = useCart();
+  const { unreadCount } = useNotifications();
 
   if (!user) {
     return (
@@ -25,7 +27,7 @@ export function SessionHeader({ notificacoesNaoLidas = 0 }: { notificacoesNaoLid
     <LoggedHeader
       usuario={user}
       itensNoCarrinho={totalItens}
-      notificacoesNaoLidas={notificacoesNaoLidas}
+      notificacoesNaoLidas={unreadCount}
     />
   );
 }

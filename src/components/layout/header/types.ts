@@ -6,7 +6,6 @@ export interface HeaderProps {
   fixed?: boolean;
   homeHref?: string;
   logoutHref?: string;
-  unreadNotifications?: number;
 }
 
 
