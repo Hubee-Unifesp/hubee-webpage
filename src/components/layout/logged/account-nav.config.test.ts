@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buyerAccountNavItems,
+  formatBadgeCount,
   formatCartLabel,
+  formatNotificationsLabel,
   getAccountNavGroups,
   getAccountNavItems,
   getProfileMenuItems,
@@ -70,5 +72,14 @@ describe("account-nav.config", () => {
     expect(formatCartLabel(0)).toBe("Carrinho vazio");
     expect(formatCartLabel(1)).toBe("Carrinho, 1 item");
     expect(formatCartLabel(3)).toBe("Carrinho, 3 itens");
+  });
+
+  it("formata o label de notificações e trunca o badge em 99+", () => {
+    expect(formatNotificationsLabel(0)).toBe("Notificações");
+    expect(formatNotificationsLabel(1)).toBe("Notificações, 1 não lida");
+    expect(formatNotificationsLabel(3)).toBe("Notificações, 3 não lidas");
+    expect(formatBadgeCount(3)).toBe("3");
+    expect(formatBadgeCount(99)).toBe("99");
+    expect(formatBadgeCount(128)).toBe("99+");
   });
 });

@@ -9,7 +9,7 @@ import { useCart } from "@/contexts/CartContext";
 import { LoggedHeader } from "./logged-header";
 
 /** Header da área logada com os dados da sessão. Enquanto carrega (ou se a sessão falhar), mostra só a barra. */
-export function SessionHeader() {
+export function SessionHeader({ notificacoesNaoLidas = 0 }: { notificacoesNaoLidas?: number }) {
   const { user } = useAuth();
   const { totalItens } = useCart();
 
@@ -21,7 +21,13 @@ export function SessionHeader() {
     );
   }
 
-  return <LoggedHeader usuario={user} itensNoCarrinho={totalItens} />;
+  return (
+    <LoggedHeader
+      usuario={user}
+      itensNoCarrinho={totalItens}
+      notificacoesNaoLidas={notificacoesNaoLidas}
+    />
+  );
 }
 
 /** Footer da área logada. Só aparece com a sessão carregada, para não mostrar os links de visitante. */

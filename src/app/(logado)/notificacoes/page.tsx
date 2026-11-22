@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { NotificacoesContent } from "@/components/notificacoes";
 
 export const metadata: Metadata = { title: "Notificações | Hubee" };
 
-// Placeholder: o conteúdo desta página entra em uma próxima task.
-export default function Page() {
-  return <h1 className="text-2xl font-bold">Notificações</h1>;
+export default function NotificacoesPage() {
+  return <NotificacoesContent />;
 }

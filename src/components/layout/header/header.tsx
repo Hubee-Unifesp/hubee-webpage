@@ -17,6 +17,7 @@ export function Header({
   className,
   fixed = false,
   homeHref = "/",
+  unreadNotifications = 0,
 }: Omit<HeaderProps, 'role' | 'logoutHref'>) {
   const pathname = usePathname();
   const { user, isOrganizer } = useAuth();
@@ -58,8 +59,12 @@ export function Header({
         <MainNavigation items={items} pathname={pathname} />
         <div className="flex items-center gap-0.5">
           <ThemeToggle className="md:hidden" />
-          <HeaderActions user={user} />
-          <MobileMenu navigationItems={items} homeHref={homeHref} />
+          <HeaderActions user={user} unreadNotifications={unreadNotifications} />
+          <MobileMenu
+            navigationItems={items}
+            homeHref={homeHref}
+            unreadNotifications={unreadNotifications}
+          />
         </div>
       </header>
     </div>

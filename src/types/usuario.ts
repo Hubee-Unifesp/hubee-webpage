@@ -42,4 +42,5 @@ export interface Usuario {
 export interface UsuarioLogado {
   usuario: Usuario;
   itensNoCarrinho: number;
+  notificacoesNaoLidas?: number;
 }
