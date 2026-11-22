@@ -25,7 +25,7 @@ export function CheckoutOrderSummary({
   isProcessing = false,
 }: CheckoutOrderSummaryProps) {
   return (
-    <aside aria-label="Resumo do pedido" className="lg:sticky lg:top-6">
+    <aside aria-label="Resumo do pedido" className="lg:sticky lg:top-20">
       <ContaCard title="Resumo do Pedido">
         <div className="flex flex-col gap-4">
           <div className="flex items-start gap-3">
