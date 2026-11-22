@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
+  encontrarLocalSugerido,
   formatarSugestaoLocal,
   toEventFormValuesFromAiDraft,
   type EventAiDraft,
@@ -110,8 +111,12 @@ export function DadosEventoForm({
   useEffect(() => {
     if (!rascunhoIa || rascunhoIa === ultimoRascunhoAplicado.current) return;
     ultimoRascunhoAplicado.current = rascunhoIa;
-    reset(toEventFormValuesFromAiDraft(rascunhoIa, getValues()));
-  }, [rascunhoIa, getValues, reset]);
+    const valores = toEventFormValuesFromAiDraft(rascunhoIa, getValues());
+    // Local já cadastrado com o nome sugerido: seleciona. Sem correspondência, segue pendente para o organizador.
+    const sugerido = valores.venueId ? null : encontrarLocalSugerido(rascunhoIa.venueSuggestion, locais);
+    reset(sugerido ? { ...valores, venueId: sugerido.id } : valores);
+    if (sugerido) onResolverPendenciaIa?.("venueSuggestion");
+  }, [rascunhoIa, locais, getValues, reset, onResolverPendenciaIa]);
 
   const [name, category, edition, ageRating, description, startDate, endDate, venueId] = useWatch({
     control,
