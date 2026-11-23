@@ -9,6 +9,8 @@ import { ListMessage } from "@/components/home/events/list-states";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
+import { getOrganizationMemberErrorMessage } from "@/lib/api/organization-members";
 import { toMemberRolePermission } from "@/lib/validations/organization-member.schema";
 import type { ConvidarMembroPayload, MembroOrganizacao } from "@/types/membro-organizacao";
 import type { OrganizationAccessLevel } from "@/types/usuario";
@@ -30,18 +32,22 @@ import { RemoverMembroModal } from "./remover-membro-modal";
 export type MembrosStatus = "loading" | "error" | "ok";
 
 export interface MembrosContentProps {
-  /** Lista controlada de membros (injetada na integração HTTP da GOL-278). */
+  /** Lista controlada de membros (`useMembrosOrganizacao`). Sem ela, a tela mostra só a pessoa logada. */
   membros?: readonly MembroOrganizacao[];
   status?: MembrosStatus;
   onRetry?: () => void;
-  /** Callbacks de integração HTTP (conectados na GOL-278). */
+  /** Ações integradas à `hubee-api` (`useMembrosOrganizacao`). */
   onConvidar?: (payload: ConvidarMembroPayload) => Promise<ResultadoConvite>;
   onAlterarPapel?: (membro: MembroOrganizacao, novoNivel: OrganizationAccessLevel) => Promise<void>;
   onRemover?: (membro: MembroOrganizacao) => Promise<void>;
 }
 
-const AVISO_INTEGRACAO_PENDENTE =
-  "A integração HTTP de membros ainda não está conectada ao servidor (GOL-278).";
+const AVISO_ACAO_INDISPONIVEL = "Esta ação não está disponível no momento. Tente novamente mais tarde.";
+
+const ERRO_CONVITE: Partial<Record<ResultadoConvite, string>> = {
+  "nao-encontrado": "Nenhuma conta encontrada com esse e-mail.",
+  "ja-vinculado": "Este usuário já está vinculado ou possui um convite pendente nesta organização.",
+};
 
 function Titulo({ organizationName }: { organizationName?: string }) {
   return (
@@ -67,7 +73,8 @@ export function MembrosContent({
 }: MembrosContentProps) {
   const router = useRouter();
   const toast = useToast();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user } = useAuth();
+  const { authLoading, organizacaoAtiva } = useOrganizacaoAtiva();
 
   const [busca, setBusca] = useState("");
   const [papel, setPapel] = useState<FiltroPapelMembro>(TODOS_PAPEIS);
@@ -75,8 +82,6 @@ export function MembrosContent({
   const [convidarAberto, setConvidarAberto] = useState(false);
   const [removendo, setRemovendo] = useState<MembroOrganizacao | null>(null);
   const [alterandoId, setAlterandoId] = useState<string | null>(null);
-
-  const organizacaoAtiva = user?.organizations?.[0] ?? null;
 
   const membrosDaSessao = useMemo<MembroOrganizacao[]>(() => {
     if (!user || !organizacaoAtiva) return [];
@@ -141,7 +146,7 @@ export function MembrosContent({
   if (statusAtual === "error") {
     return (
       <div className="flex flex-col gap-5">
-        <Titulo organizationName={organizacaoAtiva.organizationName} />
+        <Titulo organizationName={organizacaoAtiva.nome} />
         <ListMessage
           role="alert"
           variant="primary"
@@ -158,17 +163,19 @@ export function MembrosContent({
 
   async function handleConvidar(payload: ConvidarMembroPayload): Promise<ResultadoConvite> {
     if (!onConvidar) {
-      toast.error(AVISO_INTEGRACAO_PENDENTE);
+      toast.error(AVISO_ACAO_INDISPONIVEL);
       return "erro";
     }
     try {
       const resultado = await onConvidar(payload);
       if (resultado === "ok") {
         toast.success(`Convite enviado para ${payload.email}.`);
+      } else if (ERRO_CONVITE[resultado]) {
+        toast.error(ERRO_CONVITE[resultado]);
       }
       return resultado;
-    } catch {
-      toast.error("Não foi possível enviar o convite. Tente novamente.");
+    } catch (error) {
+      toast.error(getOrganizationMemberErrorMessage(error, "invite"));
       return "erro";
     }
   }
@@ -176,15 +183,15 @@ export function MembrosContent({
   async function handleAlterarPapel(membro: MembroOrganizacao, novoNivel: OrganizationAccessLevel) {
     if (novoNivel === membro.level) return;
     if (!onAlterarPapel) {
-      toast.error(AVISO_INTEGRACAO_PENDENTE);
+      toast.error(AVISO_ACAO_INDISPONIVEL);
       return;
     }
     setAlterandoId(membro.id);
     try {
       await onAlterarPapel(membro, novoNivel);
       toast.success(`Papel de ${membro.fullName} atualizado.`);
-    } catch {
-      toast.error("Não foi possível atualizar o papel do membro.");
+    } catch (error) {
+      toast.error(getOrganizationMemberErrorMessage(error, "update"));
     } finally {
       setAlterandoId(null);
     }
@@ -192,7 +199,7 @@ export function MembrosContent({
 
   async function handleConfirmarRemocao(membro: MembroOrganizacao) {
     if (!onRemover) {
-      toast.error(AVISO_INTEGRACAO_PENDENTE);
+      toast.error(AVISO_ACAO_INDISPONIVEL);
       setRemovendo(null);
       return;
     }
@@ -204,15 +211,15 @@ export function MembrosContent({
           ? "Convite cancelado com sucesso."
           : `${membro.fullName} foi removido da organização.`,
       );
-    } catch {
-      toast.error("Não foi possível concluir a ação. Tente novamente.");
+    } catch (error) {
+      toast.error(getOrganizationMemberErrorMessage(error, "remove"));
     }
   }
 
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <Titulo organizationName={organizacaoAtiva.organizationName} />
+        <Titulo organizationName={organizacaoAtiva.nome} />
         <Button
           type="button"
           variant="hubee_750"
@@ -309,13 +316,13 @@ export function MembrosContent({
       <ConvidarMembroModal
         open={convidarAberto}
         onOpenChange={setConvidarAberto}
-        organizationName={organizacaoAtiva.organizationName}
+        organizationName={organizacaoAtiva.nome}
         onSubmit={handleConvidar}
       />
 
       <RemoverMembroModal
         membro={removendo}
-        organizationName={organizacaoAtiva.organizationName}
+        organizationName={organizacaoAtiva.nome}
         onClose={() => setRemovendo(null)}
         onConfirm={handleConfirmarRemocao}
       />

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { MembrosContent } from "@/components/conta/membros/membros-content";
+import { MembrosPageContent } from "@/components/conta/membros/membros-page-content";
 
 export const metadata: Metadata = {
   title: "Membros | Hubee",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function MembrosPage() {
-  return <MembrosContent />;
+  return <MembrosPageContent />;
 }
