@@ -130,3 +130,7 @@ export function getNotificacaoActionLabel(
 
   return "Ver detalhes";
 }
+
+export function somarPendencias(notificacoesNaoLidas: number, convitesPendentes: number): number {
+  return Math.max(0, notificacoesNaoLidas) + Math.max(0, convitesPendentes);
+}

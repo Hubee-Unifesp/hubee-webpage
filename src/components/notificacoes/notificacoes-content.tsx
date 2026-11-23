@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, CheckCheck } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
@@ -26,6 +26,7 @@ export interface NotificacoesContentProps {
   onRetry?: () => void;
   onMarcarComoLida?: (id: string) => void | Promise<void>;
   onMarcarTodasComoLidas?: () => void | Promise<void>;
+  destaque?: ReactNode;
 }
 
 const LISTA_VAZIA: readonly NotificacaoItem[] = [];
@@ -38,6 +39,7 @@ export function NotificacoesContent({
   onRetry,
   onMarcarComoLida,
   onMarcarTodasComoLidas,
+  destaque,
 }: NotificacoesContentProps) {
   const router = useRouter();
   const [filtro, setFiltro] = useState<FiltroNotificacoes>(filtroInicial);
@@ -122,6 +124,8 @@ export function NotificacoesContent({
         marcandoTodas={marcandoTodas}
         exibirControles={status === "ok"}
       />
+
+      {destaque}
 
       {status === "loading" && <NotificacoesSkeleton />}
 
