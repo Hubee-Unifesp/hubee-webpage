@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, MapPin, Search, X } from "lucide-react";
+import { CalendarDays, Check, MapPin, Search, X } from "lucide-react";
 import { ptBR } from "react-day-picker/locale";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import type { EventCategory } from "@/lib/api/events";
+import { displayFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { categoryConfig } from "./categories.config";
-
-export type FilterTab = "todos" | "categoria" | "cidade" | "data";
+import { HexPattern } from "./event-media";
 
 export interface EventDateRange {
   start: Date | null;
@@ -46,12 +46,53 @@ const CATEGORY_LIST: readonly EventCategory[] = [
   "outros",
 ];
 
+type DatePresetId = "hoje" | "fim-de-semana" | "7-dias" | "mes";
+
+const DATE_PRESETS: readonly { id: DatePresetId; label: string }[] = [
+  { id: "hoje", label: "Hoje" },
+  { id: "fim-de-semana", label: "Fim de semana" },
+  { id: "7-dias", label: "Próximos 7 dias" },
+  { id: "mes", label: "Este mês" },
+];
+
 const normalizeText = (value: string) =>
   value
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
     .trim();
+
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+function presetRange(id: DatePresetId, now = new Date()): EventDateRange {
+  const today = startOfDay(now);
+  switch (id) {
+    case "hoje":
+      return { start: today, end: today };
+    case "fim-de-semana": {
+      const weekday = today.getDay();
+      const saturday = weekday === 0 ? addDays(today, -1) : addDays(today, 6 - weekday);
+      const start = saturday < today ? today : saturday;
+      return { start, end: addDays(saturday, 1) };
+    }
+    case "7-dias":
+      return { start: today, end: addDays(today, 6) };
+    case "mes":
+      return { start: today, end: new Date(today.getFullYear(), today.getMonth() + 1, 0) };
+  }
+}
+
+function sameDay(a: Date | null, b: Date | null): boolean {
+  return a !== null && b !== null && a.getTime() === b.getTime();
+}
+
+const sectionTitleClassName = "text-base font-semibold text-hubee-800 dark:text-hubee-50";
 
 interface EventFiltersModalProps {
   open: boolean;
@@ -60,76 +101,58 @@ interface EventFiltersModalProps {
   onFiltersChange: (filters: EventFiltersState) => void;
 }
 
-export function EventFiltersModal({
-  open,
-  onOpenChange,
-  filters,
-  onFiltersChange,
-}: EventFiltersModalProps) {
-  const [activeTab, setActiveTab] = useState<FilterTab>("todos");
-  const [cityQuery, setCityQuery] = useState(filters.city ?? "");
-  const hasActiveFilters =
-    filters.categories.length > 0 ||
-    filters.city !== null ||
-    filters.dateRange.start !== null;
+export function EventFiltersModal({ open, onOpenChange, filters, onFiltersChange }: EventFiltersModalProps) {
+  const [cityQuery, setCityQuery] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
 
-  const handleClearAllFilters = () => {
+  const activeCount =
+    filters.categories.length + (filters.city ? 1 : 0) + (filters.dateRange.start ? 1 : 0);
+
+  const activePreset = DATE_PRESETS.find(({ id }) => {
+    const range = presetRange(id);
+    return sameDay(range.start, filters.dateRange.start) && sameDay(range.end, filters.dateRange.end);
+  })?.id;
+  const hasCustomDate = filters.dateRange.start !== null && !activePreset;
+
+  const handleClearAll = () => {
     setCityQuery("");
-    onFiltersChange({
-      categories: [],
-      city: null,
-      dateRange: { start: null, end: null },
-    });
+    setShowCalendar(false);
+    onFiltersChange({ categories: [], city: null, dateRange: { start: null, end: null } });
   };
 
   const toggleCategory = (category: EventCategory) => {
-    const exists = filters.categories.includes(category);
-    const nextCategories = exists
+    const categories = filters.categories.includes(category)
       ? filters.categories.filter((item) => item !== category)
       : [...filters.categories, category];
-    onFiltersChange({ ...filters, categories: nextCategories });
+    onFiltersChange({ ...filters, categories });
   };
 
-  const handleCitySelect = (cityName: string) => {
-    const nextCity = filters.city === cityName ? null : cityName;
-    setCityQuery(nextCity ?? "");
-    onFiltersChange({ ...filters, city: nextCity });
+  const toggleCity = (cityName: string) => {
+    onFiltersChange({ ...filters, city: filters.city === cityName ? null : cityName });
   };
 
-  const handleClearCity = () => {
-    setCityQuery("");
-    onFiltersChange({ ...filters, city: null });
+  const togglePreset = (id: DatePresetId) => {
+    setShowCalendar(false);
+    onFiltersChange({
+      ...filters,
+      dateRange: activePreset === id ? { start: null, end: null } : presetRange(id),
+    });
   };
 
-  const handleDayClick = (dayDate: Date) => {
+  const handleDayClick = (day: Date) => {
     const { start, end } = filters.dateRange;
-    if (!start || (start && end)) {
-      onFiltersChange({
-        ...filters,
-        dateRange: { start: dayDate, end: null },
-      });
+    if (!start || end) {
+      onFiltersChange({ ...filters, dateRange: { start: day, end: null } });
       return;
     }
-
-    if (dayDate.getTime() === start.getTime()) {
-      onFiltersChange({
-        ...filters,
-        dateRange: { start: null, end: null },
-      });
+    if (day.getTime() === start.getTime()) {
+      onFiltersChange({ ...filters, dateRange: { start: null, end: null } });
       return;
     }
-
-    if (dayDate < start) {
-      onFiltersChange({
-        ...filters,
-        dateRange: { start: dayDate, end: start },
-      });
-    } else {
-      onFiltersChange({
-        ...filters,
-        dateRange: { start, end: dayDate },
-      });
-    }
+    onFiltersChange({
+      ...filters,
+      dateRange: day < start ? { start: day, end: start } : { start, end: day },
+    });
   };
 
   const normalizedCitySearch = normalizeText(cityQuery);
@@ -137,227 +160,180 @@ export function EventFiltersModal({
     normalizeText(city.name).includes(normalizedCitySearch),
   );
 
-  const showCategory = activeTab === "todos" || activeTab === "categoria";
-  const showCity = activeTab === "todos" || activeTab === "cidade";
-  const showDate = activeTab === "todos" || activeTab === "data";
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[375px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-3xl border border-hubee-200 bg-hubee-50 p-6 text-hubee-800 shadow-xl outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 md:max-w-2xl md:p-8 dark:border-hubee-750 dark:bg-hubee-800 dark:text-hubee-50"
+          className="fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col rounded-t-[28px] bg-hubee-50 text-hubee-800 outline-none data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom md:inset-y-3 md:right-3 md:left-auto md:max-h-none md:w-[440px] md:rounded-[28px] md:data-open:slide-in-from-right md:data-open:slide-in-from-bottom-0 md:data-closed:slide-out-to-right md:data-closed:slide-out-to-bottom-0 motion-reduce:animate-none dark:bg-hubee-850 dark:text-hubee-50"
         >
-          {/* Cabeçalho */}
-          <div className="relative flex items-center justify-between border-b border-hubee-800/40 pb-4 md:justify-center dark:border-hubee-50/40">
-            <DialogTitle className="font-sans text-2xl font-normal tracking-tight text-hubee-800 md:text-xl dark:text-hubee-50">
-              Filtros
-            </DialogTitle>
+          <div className="flex items-center justify-between gap-4 px-6 pt-6 pb-4">
+            <div className="flex items-center gap-3">
+              <DialogTitle className={cn(displayFont.className, "text-3xl leading-none uppercase")}>Filtros</DialogTitle>
+              {activeCount > 0 && (
+                <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-hubee-400 px-2 text-xs font-bold text-hubee-900">
+                  {activeCount}
+                </span>
+              )}
+            </div>
             <DialogPrimitive.Close
               type="button"
               aria-label="Fechar filtros"
-              className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-hubee-neutral-200 transition-colors outline-none hover:text-hubee-800 focus-visible:ring-2 focus-visible:ring-hubee-400 md:absolute md:right-0 dark:text-hubee-750 dark:hover:text-hubee-50"
+              className="inline-flex size-10 cursor-pointer items-center justify-center rounded-full bg-hubee-100 text-hubee-800 transition-colors outline-none hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:bg-hubee-50/10 dark:text-hubee-50 dark:hover:bg-hubee-50/15"
             >
               <X aria-hidden="true" className="size-5" />
             </DialogPrimitive.Close>
           </div>
 
-          <div className="border-b border-hubee-800/40 py-5 dark:border-hubee-50/40">
-            <h3 className="font-sans text-lg font-normal text-hubee-800 dark:text-hubee-50">
-              Tipos de filtros
-            </h3>
-            <div
-              role="tablist"
-              aria-label="Tipos de filtros"
-              className="mt-3 flex flex-wrap gap-2 md:grid md:grid-cols-4 md:gap-1.5"
-            >
-              {(
-                [
-                  { id: "todos", label: "Todos" },
-                  { id: "categoria", label: "Categoria" },
-                  { id: "cidade", label: "Cidade" },
-                  { id: "data", label: "Data" },
-                ] as const
-              ).map(({ id, label }, index) => {
-                const active = activeTab === id;
-                const desktopRadius =
-                  index === 0
-                    ? "md:rounded-l-full md:rounded-r-sm"
-                    : index === 3
-                      ? "md:rounded-r-full md:rounded-l-sm"
-                      : "md:rounded-sm";
-
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => setActiveTab(id)}
-                    className={cn(
-                      "inline-flex h-8 min-w-[96px] cursor-pointer items-center justify-center rounded-full px-4 text-xs transition-colors outline-none focus-visible:ring-2 focus-visible:ring-hubee-400",
-                      desktopRadius,
-                      active
-                        ? "border-2 border-hubee-750 bg-hubee-200 font-bold text-hubee-800 dark:border-hubee-400 dark:bg-hubee-400 dark:text-hubee-800"
-                        : "border border-hubee-750/70 bg-transparent font-normal text-hubee-800 hover:bg-hubee-100 dark:border-hubee-600 dark:text-hubee-50 dark:hover:bg-hubee-750",
-                    )}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Categoria */}
-          {showCategory && (
-            <div className="border-b border-hubee-800/40 py-5 dark:border-hubee-50/40">
-              <h3 className="font-sans text-lg font-normal text-hubee-800 dark:text-hubee-50">
+          <div className="flex-1 space-y-8 overflow-y-auto px-6 pt-2 pb-6">
+            <section aria-labelledby="filtro-categoria">
+              <h3 id="filtro-categoria" className={sectionTitleClassName}>
                 Categoria
               </h3>
-              <div
-                role="group"
-                aria-label="Selecionar categorias"
-                className="mt-3 flex flex-wrap gap-2.5"
-              >
-                {CATEGORY_LIST.map((categoryKey) => {
-                  const { label } = categoryConfig[categoryKey];
-                  const selected = filters.categories.includes(categoryKey);
+              <div role="group" aria-labelledby="filtro-categoria" className="mt-3 grid grid-cols-3 gap-2">
+                {CATEGORY_LIST.map((category) => {
+                  const { icon: Icon, label, mediaClassName, patternClassName } = categoryConfig[category];
+                  const selected = filters.categories.includes(category);
                   return (
                     <button
-                      key={categoryKey}
+                      key={category}
                       type="button"
                       aria-pressed={selected}
-                      onClick={() => toggleCategory(categoryKey)}
+                      onClick={() => toggleCategory(category)}
                       className={cn(
-                        "inline-flex h-8 min-w-[104px] cursor-pointer items-center justify-center gap-2 rounded-full border px-4 text-xs transition-colors outline-none focus-visible:ring-2 focus-visible:ring-hubee-400",
+                        "relative isolate flex h-24 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-left transition-[transform,box-shadow] duration-200 outline-none focus-visible:ring-3 focus-visible:ring-hubee-400 active:scale-95 motion-reduce:transition-none",
+                        mediaClassName,
                         selected
-                          ? "border-hubee-750 bg-hubee-200 font-medium text-hubee-800 dark:border-hubee-400 dark:bg-hubee-400 dark:text-hubee-800"
-                          : "border-hubee-750/70 bg-transparent text-hubee-800 hover:bg-hubee-100 dark:border-hubee-700 dark:bg-hubee-750/60 dark:text-hubee-50 dark:hover:bg-hubee-700",
+                          ? "ring-3 ring-hubee-800 ring-offset-2 ring-offset-hubee-50 dark:ring-hubee-400 dark:ring-offset-hubee-850"
+                          : "hover:-translate-y-0.5 dark:ring-1 dark:ring-hubee-50/10",
                       )}
                     >
-                      <span>{label}</span>
-                      {selected && <X aria-hidden="true" className="size-3.5" />}
+                      <HexPattern className={cn("-z-10", patternClassName)} />
+                      <Icon aria-hidden="true" strokeWidth={1.75} className="size-6" />
+                      <span className="text-base font-semibold">{label}</span>
+                      {selected && (
+                        <span className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-hubee-900 text-hubee-50">
+                          <Check aria-hidden="true" className="size-3" strokeWidth={3} />
+                        </span>
+                      )}
                     </button>
                   );
                 })}
               </div>
-            </div>
-          )}
+            </section>
 
-          {/* Cidade */}
-          {showCity && (
-            <div className="border-b border-hubee-800/40 py-5 dark:border-hubee-50/40">
-              <h3 className="font-sans text-lg font-normal text-hubee-800 dark:text-hubee-50">
+            <section aria-labelledby="filtro-data">
+              <h3 id="filtro-data" className={sectionTitleClassName}>
+                Quando
+              </h3>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {DATE_PRESETS.map(({ id, label }) => (
+                  <Pill key={id} selected={activePreset === id} onClick={() => togglePreset(id)}>
+                    {label}
+                  </Pill>
+                ))}
+                <Pill
+                  selected={hasCustomDate || showCalendar}
+                  onClick={() => setShowCalendar((value) => !value)}
+                  aria-expanded={showCalendar}
+                >
+                  <CalendarDays aria-hidden="true" className="size-4" />
+                  Escolher datas
+                </Pill>
+              </div>
+              {showCalendar && (
+                <Calendar
+                  mode="range"
+                  locale={ptBR}
+                  captionLayout="label"
+                  startMonth={new Date(2025, 0)}
+                  endMonth={new Date(2027, 11)}
+                  defaultMonth={filters.dateRange.start ?? undefined}
+                  selected={{ from: filters.dateRange.start ?? undefined, to: filters.dateRange.end ?? undefined }}
+                  onSelect={(_, day) => handleDayClick(day)}
+                  className="mt-3 w-full rounded-2xl bg-white p-3 text-hubee-800 [--cell-size:--spacing(9)] [--primary:var(--color-hubee-800)] [--primary-foreground:var(--color-hubee-50)] [--muted:var(--color-hubee-100)] [--muted-foreground:var(--color-hubee-neutral-300)] dark:bg-hubee-50/5 dark:text-hubee-50 dark:[--primary:var(--color-hubee-400)] dark:[--primary-foreground:var(--color-hubee-900)] dark:[--muted:rgb(255_251_237/0.1)] dark:[--muted-foreground:var(--color-hubee-200)]"
+                  classNames={{ root: "w-full", today: "rounded-(--cell-radius) font-semibold underline underline-offset-4" }}
+                />
+              )}
+            </section>
+
+            <section aria-labelledby="filtro-cidade">
+              <h3 id="filtro-cidade" className={sectionTitleClassName}>
                 Cidade
               </h3>
-              <div className="mt-3 w-full">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={cityQuery}
-                    onChange={(event) => setCityQuery(event.target.value)}
-                    placeholder="Busque por cidade"
-                    aria-label="Busque por cidade"
-                    className="h-10 w-full rounded-lg border border-hubee-750/70 bg-white pr-9 pl-3 text-xs text-hubee-800 placeholder:text-hubee-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-hubee-400 dark:border-hubee-700 dark:bg-hubee-750 dark:text-hubee-50 dark:placeholder:text-hubee-neutral-200"
-                  />
-                  <Search
-                    aria-hidden="true"
-                    className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-hubee-900 dark:text-hubee-50"
-                  />
-                </div>
-
-                {/* Lista de sugestões de cidade conforme o Figma */}
-                <div className="mt-3 overflow-hidden rounded-t-2xl border border-hubee-750/70 bg-hubee-200 text-hubee-800 dark:border-hubee-600 dark:bg-hubee-400 dark:text-hubee-800">
-                  <div className="flex h-10 items-center justify-between px-3">
-                    <button
-                      type="button"
-                      onClick={handleClearCity}
-                      aria-label="Voltar busca de cidade"
-                      className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full hover:bg-hubee-300/60 focus-visible:ring-2 focus-visible:ring-hubee-800 outline-none"
-                    >
-                      <ArrowLeft aria-hidden="true" className="size-4" />
-                    </button>
-                    <span className="flex-1 truncate px-2 text-xs font-medium">
-                      {cityQuery || filters.city || "São"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleClearCity}
-                      aria-label="Limpar cidade"
-                      className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full hover:bg-hubee-300/60 focus-visible:ring-2 focus-visible:ring-hubee-800 outline-none"
-                    >
-                      <X aria-hidden="true" className="size-4" />
-                    </button>
-                  </div>
-
-                  <ul role="listbox" aria-label="Cidades disponíveis">
-                    {matchingCities.map((city) => {
-                      const isSelected = filters.city === city.name;
-                      return (
-                        <li
-                          key={city.name}
-                          role="option"
-                          aria-selected={isSelected}
-                          className="border-t border-hubee-750/60"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleCitySelect(city.name)}
-                            className={cn(
-                              "flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left transition-colors outline-none hover:bg-hubee-300/70 focus-visible:bg-hubee-300/70",
-                              isSelected && "bg-hubee-300 font-semibold dark:bg-hubee-500",
-                            )}
-                          >
-                            <MapPin aria-hidden="true" className="size-4 shrink-0" />
-                            <div className="flex flex-col leading-tight">
-                              <span className="text-[11px] font-medium">{city.name}</span>
-                              <span className="text-[10px] opacity-80">{city.state}</span>
-                            </div>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
+              <div className="relative mt-3">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-hubee-750 dark:text-hubee-400"
+                />
+                <input
+                  type="search"
+                  value={cityQuery}
+                  onChange={(event) => setCityQuery(event.target.value)}
+                  placeholder="Buscar cidade"
+                  aria-label="Buscar cidade"
+                  className="h-11 w-full rounded-full bg-white pr-4 pl-10 text-sm text-hubee-800 outline-none placeholder:text-hubee-neutral-300 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:bg-hubee-50/5 dark:text-hubee-50 dark:placeholder:text-hubee-200/60"
+                />
               </div>
-            </div>
-          )}
+              <div role="group" aria-labelledby="filtro-cidade" className="mt-3 flex flex-wrap gap-2">
+                {matchingCities.map((city) => (
+                  <Pill key={city.name} selected={filters.city === city.name} onClick={() => toggleCity(city.name)}>
+                    <MapPin aria-hidden="true" className="size-4" />
+                    {city.name}
+                  </Pill>
+                ))}
+                {matchingCities.length === 0 && (
+                  <p className="text-sm text-hubee-neutral-300 dark:text-hubee-200/70">
+                    Nenhuma cidade encontrada.
+                  </p>
+                )}
+              </div>
+            </section>
+          </div>
 
-          {showDate && (
-            <div className="pt-5">
-              <h3 className="font-sans text-lg font-normal text-hubee-800 dark:text-hubee-50">
-                Data
-              </h3>
-<Calendar
-                mode="range"
-                locale={ptBR}
-                captionLayout="dropdown"
-                startMonth={new Date(2025, 0)}
-                endMonth={new Date(2027, 11)}
-                defaultMonth={filters.dateRange.start ?? undefined}
-                selected={{ from: filters.dateRange.start ?? undefined, to: filters.dateRange.end ?? undefined }}
-                onSelect={(_, dia) => handleDayClick(dia)}
-                className="mx-auto mt-3 w-full rounded-2xl bg-hubee-200 p-4 text-hubee-800 [--cell-size:--spacing(9)] [--foreground:var(--color-hubee-900)] [--muted-foreground:var(--color-hubee-neutral-300)] [--muted:white] [--popover:var(--color-hubee-50)] [--primary-foreground:var(--color-hubee-50)] [--primary:var(--color-hubee-900)] dark:bg-hubee-400"
-                classNames={{ root: "w-full", today: "rounded-(--cell-radius) font-semibold underline underline-offset-4" }}
-              />
-            </div>
-          )}
-
-          {hasActiveFilters && (
-            <div className="mt-5 flex justify-end border-t border-hubee-800/40 pt-4 dark:border-hubee-50/40">
-              <button
-                type="button"
-                onClick={handleClearAllFilters}
-                className="inline-flex h-9 cursor-pointer items-center justify-center rounded-full border border-hubee-750 px-4 text-xs font-medium text-hubee-800 transition-colors outline-none hover:bg-hubee-200 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:border-hubee-400 dark:text-hubee-50 dark:hover:bg-hubee-750"
-              >
-                Limpar filtros
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-3 bg-hubee-100 px-6 py-4 md:rounded-b-[28px] dark:bg-hubee-50/5">
+            <button
+              type="button"
+              onClick={handleClearAll}
+              disabled={activeCount === 0}
+              className="h-12 cursor-pointer rounded-full px-5 text-sm font-semibold text-hubee-800 underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-hubee-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:no-underline dark:text-hubee-50"
+            >
+              Limpar tudo
+            </button>
+            <DialogPrimitive.Close
+              type="button"
+              className="ml-auto inline-flex h-12 flex-1 cursor-pointer items-center justify-center rounded-full bg-hubee-800 px-6 text-sm font-semibold text-hubee-50 transition-colors outline-none hover:bg-hubee-750 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:bg-hubee-400 dark:text-hubee-900 dark:hover:bg-hubee-300"
+            >
+              Ver eventos
+            </DialogPrimitive.Close>
+          </div>
         </DialogPrimitive.Content>
       </DialogPortal>
     </Dialog>
+  );
+}
+
+function Pill({
+  selected,
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"button"> & { selected: boolean }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      className={cn(
+        "inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-full px-4 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-hubee-400 active:scale-[0.97]",
+        selected
+          ? "bg-hubee-800 text-hubee-50 dark:bg-hubee-400 dark:text-hubee-900"
+          : "bg-white text-hubee-800 hover:bg-hubee-200 dark:bg-hubee-50/5 dark:text-hubee-50 dark:hover:bg-hubee-50/10",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
   );
 }

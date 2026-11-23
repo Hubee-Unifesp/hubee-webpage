@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export const authInputClassName =
-  "h-9 border-hubee-neutral-50 bg-white text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50 dark:placeholder:text-hubee-neutral-300";
+  "h-9 border-hubee-neutral-50 bg-white text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:placeholder:text-hubee-neutral-300";
 
 export function AuthInput({ className, ...props }: ComponentProps<typeof Input>) {
   return <Input className={cn(authInputClassName, className)} {...props} />;

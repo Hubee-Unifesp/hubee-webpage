@@ -9,7 +9,6 @@
   --color-foreground: var(--foreground);
   --font-heading: var(--font-balete), var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-dm-serif), Georgia, serif;
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -60,6 +59,7 @@
   --color-hubee-700: #966800;
   --color-hubee-750: #634400;
   --color-hubee-800: #302100;
+  --color-hubee-850: #241a06;
   --color-hubee-900: #181000;
 
   --color-hubee-neutral-25: #fffdf6;
@@ -150,6 +150,7 @@
   html {
     @apply font-sans;
     scrollbar-gutter: stable;
+    scroll-padding-top: 5.5rem;
   }
   h1,
   h2,
@@ -164,5 +165,47 @@
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
+  }
+}
+
+@keyframes hero-bee {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(4deg);
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+.hero-bee {
+  animation: hero-bee 2.4s ease-in-out infinite;
+}
+
+.hero-hive-glow {
+  opacity: var(--hive-glow, 0);
+  transition: opacity 400ms ease;
+  mask-image: radial-gradient(
+    circle 240px at var(--hive-x, 50%) var(--hive-y, 50%),
+    #000 0%,
+    transparent 100%
+  );
+}
+
+.hero-rise {
+  animation: hero-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bee,
+  .hero-rise {
+    animation: none;
   }
 }

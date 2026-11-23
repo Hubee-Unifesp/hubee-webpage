@@ -67,7 +67,7 @@ function TicketTypeCard({
       className={cn(
         sectionCardClassName,
         "flex h-full flex-col p-4 md:p-5",
-        highlighted && !soldOut && "border-hubee-400 dark:border-hubee-500",
+        highlighted && !soldOut && "border-hubee-400 dark:border-hubee-50/15",
       )}
     >
       <div className="flex items-center justify-between gap-2">
@@ -92,7 +92,7 @@ function TicketTypeCard({
         <Button
           type="button"
           disabled
-          className="mt-5 h-10 w-full bg-cinzaclaro text-sm font-semibold text-hubee-neutral-300 focus-visible:ring-hubee-400 disabled:opacity-100 dark:bg-hubee-neutral-50 dark:text-hubee-neutral-300"
+          className="mt-5 h-10 w-full bg-cinzaclaro text-sm font-semibold text-hubee-neutral-300 focus-visible:ring-hubee-400 disabled:opacity-100 dark:bg-hubee-50/10 dark:text-hubee-neutral-200"
         >
           Comprar
           <span className="sr-only"> {ticket.batch} (esgotado)</span>
@@ -125,7 +125,7 @@ function TicketStatus({ soldOut }: { soldOut: boolean }) {
       className={cn(
         "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium",
         soldOut
-          ? "bg-hubee-neutral-50 text-hubee-neutral-300 dark:bg-hubee-750 dark:text-hubee-neutral-200"
+          ? "bg-hubee-neutral-50 text-hubee-neutral-300 dark:bg-hubee-850 dark:text-hubee-neutral-200"
           : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300",
       )}
     >

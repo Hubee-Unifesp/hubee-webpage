@@ -7,7 +7,7 @@ import { formatEventDate, formatPrice } from "./format";
 import { CategoryPill, EventMedia } from "./event-media";
 
 export const eventCardClassName =
-  "flex h-full flex-col overflow-hidden rounded-xl border border-hubee-400 bg-hubee-100 text-hubee-750 dark:border-hubee-500 dark:bg-hubee-750 dark:text-hubee-50";
+  "flex h-full flex-col overflow-hidden rounded-xl border border-hubee-400 bg-hubee-100 text-hubee-750 dark:border-hubee-50/10 dark:bg-hubee-850 dark:text-hubee-50";
 
 interface EventCardProps {
   event: EventSummary;
@@ -48,7 +48,7 @@ export function EventCard({ event, showSalesProgress = false, headingLevel: Head
 
         {showSalesProgress && !soldOut && <SalesProgress event={event} />}
 
-        <div className="mt-auto flex items-center justify-between gap-2 pt-3 md:mt-auto md:border-t md:border-hubee-400/60 md:pt-3 dark:md:border-hubee-500/60">
+        <div className="mt-auto flex items-center justify-between gap-2 pt-3 md:mt-auto md:border-t md:border-hubee-400/60 md:pt-3 dark:md:border-hubee-50/10">
           <span className="text-sm font-bold text-hubee-800 md:text-base dark:text-hubee-50">
             {formatPrice(event.price)}
           </span>
@@ -100,7 +100,7 @@ function SalesProgress({ event }: { event: EventSummary }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percentage}
-        className="mt-1 h-1.5 overflow-hidden rounded-full bg-hubee-200 dark:bg-hubee-800"
+        className="mt-1 h-1.5 overflow-hidden rounded-full bg-hubee-200 dark:bg-hubee-50/10"
       >
         <div
           className="h-full rounded-full bg-hubee-750 dark:bg-hubee-400"

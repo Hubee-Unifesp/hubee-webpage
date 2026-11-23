@@ -48,7 +48,7 @@ export function PedidoDetalhe({
         <Link
           href="/conta/pedidos"
           aria-label="Voltar para Meus pedidos"
-          className="rounded-md p-1 outline-none hover:bg-hubee-100 focus-visible:ring-3 focus-visible:ring-hubee-800 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400"
+          className="rounded-md p-1 outline-none hover:bg-hubee-100 focus-visible:ring-3 focus-visible:ring-hubee-800 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400"
         >
           <ArrowLeft aria-hidden="true" className="size-5" />
         </Link>
@@ -76,7 +76,7 @@ export function PedidoDetalhe({
       )}
 
       {pedido.status === "pendente" && (
-        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-hubee-200 bg-hubee-50/50 p-4 dark:border-hubee-50/15 dark:bg-hubee-750/30">
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-hubee-200 bg-hubee-50/50 p-4 dark:border-hubee-50/15 dark:bg-hubee-850">
           <Button
             variant="destructive"
             className="cursor-pointer"

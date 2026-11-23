@@ -8,6 +8,7 @@ export interface HeaderProps {
   logoutHref?: string;
 }
 
+
 export interface NavigationItem {
   href: string;
   label: string;

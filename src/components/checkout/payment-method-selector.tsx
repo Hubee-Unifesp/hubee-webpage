@@ -76,7 +76,7 @@ export function PaymentMethodSelector({
           </TabsList>
 
           <TabsContent value="pix">
-            <div className="flex items-start gap-3.5 rounded-xl border border-hubee-300 bg-hubee-100/80 p-4 text-hubee-800 sm:p-5 dark:border-hubee-700 dark:bg-hubee-800/70 dark:text-hubee-50">
+            <div className="flex items-start gap-3.5 rounded-xl border border-hubee-300 bg-hubee-100/80 p-4 text-hubee-800 sm:p-5 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50">
               <div
                 aria-hidden="true"
                 className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-hubee-300 text-hubee-800 dark:bg-hubee-400 dark:text-hubee-800"

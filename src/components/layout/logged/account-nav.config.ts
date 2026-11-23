@@ -1,4 +1,4 @@
-import { CalendarDays, ShoppingBag, Truck, User, type LucideIcon } from "lucide-react";
+import { CalendarDays, ShoppingBag, Ticket, Truck, User, Users, type LucideIcon } from "lucide-react";
 
 export interface AccountNavItem {
   href: string;
@@ -7,6 +7,12 @@ export interface AccountNavItem {
   /** Só aparece para quem pertence a uma organização. */
   organizerOnly?: boolean;
 }
+
+export const myTicketsNavItem: AccountNavItem = {
+  href: "/meus-ingressos",
+  label: "Meus ingressos",
+  icon: Ticket,
+};
 
 export const organizerEventsNavItem: AccountNavItem = {
   href: "/meus-eventos",
@@ -35,10 +41,29 @@ export const suppliersNavItem: AccountNavItem = {
   organizerOnly: true,
 };
 
-/** Seções da conta. Usadas pelas abas mobile, pela sidebar da conta e pelo menu mobile. */
+export const membersNavItem: AccountNavItem = {
+  href: "/conta/membros",
+  label: "Membros",
+  icon: Users,
+  organizerOnly: true,
+};
+
+/** Itens exibidos no dropdown do perfil do usuário logado. */
+export function getProfileMenuItems(isOrganizer = false): readonly AccountNavItem[] {
+  return [
+    myTicketsNavItem,
+    ...(isOrganizer ? [organizerEventsNavItem] : []),
+    ...buyerAccountNavItems,
+  ];
+}
+
+/** Seções da conta. Usadas pelo menu mobile. */
 export const accountNavItems: readonly AccountNavItem[] = [
+  myTicketsNavItem,
+  organizerEventsNavItem,
   ...buyerAccountNavItems,
   suppliersNavItem,
+  membersNavItem,
 ];
 
 /** Seções da conta que a pessoa usuária pode acessar: as de organizador só para membros de organizações. */
@@ -51,7 +76,7 @@ export interface AccountNavGroup {
   items: readonly AccountNavItem[];
 }
 
-export const organizationNavItems: readonly AccountNavItem[] = [suppliersNavItem];
+export const organizationNavItems: readonly AccountNavItem[] = [suppliersNavItem, membersNavItem];
 
 /** Grupos da sidebar e das abas da conta: "Minha Conta" para todos e "Organização" só para organizadores. */
 export function getAccountNavGroups(isOrganizer = false): readonly AccountNavGroup[] {
@@ -67,3 +92,13 @@ export function formatCartLabel(count: number): string {
   if (count === 0) return "Carrinho vazio";
   return `Carrinho, ${count} ${count === 1 ? "item" : "itens"}`;
 }
+
+export function formatNotificationsLabel(count: number): string {
+  if (count <= 0) return "Notificações";
+  return `Notificações, ${count} ${count === 1 ? "não lida" : "não lidas"}`;
+}
+
+export function formatBadgeCount(count: number): string {
+  return count > 99 ? "99+" : String(count);
+}
+

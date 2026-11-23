@@ -25,7 +25,7 @@ export function CheckoutOrderSummary({
   isProcessing = false,
 }: CheckoutOrderSummaryProps) {
   return (
-    <aside aria-label="Resumo do pedido" className="lg:sticky lg:top-6">
+    <aside aria-label="Resumo do pedido" className="lg:sticky lg:top-20">
       <ContaCard title="Resumo do Pedido">
         <div className="flex flex-col gap-4">
           <div className="flex items-start gap-3">
@@ -94,7 +94,7 @@ export function CheckoutOrderSummary({
                 onCheckedChange={(checked) => onToggleTerms(checked === true)}
                 aria-invalid={termsError ? true : undefined}
                 aria-describedby={termsError ? "checkout-termos-error" : undefined}
-                className="mt-0.5 border-hubee-300 data-checked:border-hubee-800 data-checked:bg-hubee-800 data-checked:text-hubee-50 dark:border-hubee-700 dark:data-checked:border-hubee-400 dark:data-checked:bg-hubee-400 dark:data-checked:text-hubee-800"
+                className="mt-0.5 border-hubee-300 data-checked:border-hubee-800 data-checked:bg-hubee-800 data-checked:text-hubee-50 dark:border-hubee-50/15 dark:data-checked:border-hubee-400 dark:data-checked:bg-hubee-400 dark:data-checked:text-hubee-800"
               />
               <Label
                 htmlFor="checkout-termos"

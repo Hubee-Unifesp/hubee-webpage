@@ -172,7 +172,7 @@ export function DadosPessoaisForm({ usuario }: { usuario: Usuario }) {
             <UserAvatar
               name={fullName}
               src={foto}
-              className="size-16 bg-hubee-neutral-50 text-lg text-hubee-neutral-300 dark:bg-hubee-neutral-50 dark:text-hubee-neutral-300"
+              className="size-16 bg-hubee-neutral-50 text-lg text-hubee-neutral-300 dark:border dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-400"
             />
             <label
               htmlFor="perfil-foto"

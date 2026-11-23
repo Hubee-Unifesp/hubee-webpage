@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { PerfilContent } from "@/components/conta/perfil/perfil-content";
+import { PerfilPageContent } from "@/components/conta/perfil/perfil-page-content";
 
 export const metadata: Metadata = { title: "Meu perfil | Hubee" };
 
 export default function PerfilPage() {
-  return <PerfilContent />;
+  return <PerfilPageContent />;
 }

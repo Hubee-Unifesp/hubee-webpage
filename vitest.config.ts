@@ -3,7 +3,10 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
-    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "next/font/google": fileURLToPath(new URL("./src/test-utils/next-font-google.ts", import.meta.url)),
+    },
   },
   test: {
     environment: "node",

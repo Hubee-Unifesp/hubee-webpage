@@ -102,9 +102,9 @@ export function MeuIngressoCard({ ingresso, encerrado = false }: MeuIngressoCard
 
       {/* Picote: as meias-luas usam a cor de fundo da página para "recortar" o cartão. */}
       <div aria-hidden="true" className="relative flex h-4 items-center overflow-hidden">
-        <span className="absolute -left-2 size-4 rounded-full border border-hubee-400 bg-hubee-50 dark:border-hubee-500 dark:bg-hubee-800" />
-        <span className="mx-4 w-full border-t border-dashed border-hubee-400 dark:border-hubee-500" />
-        <span className="absolute -right-2 size-4 rounded-full border border-hubee-400 bg-hubee-50 dark:border-hubee-500 dark:bg-hubee-800" />
+        <span className="absolute -left-2 size-4 rounded-full border border-hubee-400 bg-hubee-50 dark:border-hubee-50/15 dark:bg-hubee-850" />
+        <span className="mx-4 w-full border-t border-dashed border-hubee-400 dark:border-hubee-50/15" />
+        <span className="absolute -right-2 size-4 rounded-full border border-hubee-400 bg-hubee-50 dark:border-hubee-50/15 dark:bg-hubee-850" />
       </div>
 
       <div className="flex min-w-0 flex-col gap-2 p-3 pt-2 md:p-4 md:pt-2">
@@ -135,7 +135,7 @@ export function MeuIngressoCard({ ingresso, encerrado = false }: MeuIngressoCard
           </Button>
         </div>
 
-        <div className="flex justify-end border-t border-hubee-200/60 pt-1.5 dark:border-hubee-700/60">
+        <div className="flex justify-end border-t border-hubee-200/60 pt-1.5 dark:border-hubee-50/15">
           <Link
             href={`/conta/pedidos/${ingresso.pedidoId}`}
             className="inline-flex items-center gap-1 text-[11px] font-medium text-hubee-neutral-300 hover:text-hubee-800 hover:underline dark:text-hubee-200 dark:hover:text-hubee-50"

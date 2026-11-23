@@ -142,7 +142,7 @@ export function PermissoesCard({ usuario }: { usuario: Usuario }) {
               type="button"
               variant="outline"
               onClick={() => setFormMode({ type: "create" })}
-              className="h-7 rounded-md border-hubee-300 px-3 text-xs font-semibold text-hubee-800 hover:bg-hubee-100 dark:border-hubee-50/20 dark:bg-transparent dark:text-hubee-50 dark:hover:bg-hubee-750"
+              className="h-7 rounded-md border-hubee-300 px-3 text-xs font-semibold text-hubee-800 hover:bg-hubee-100 dark:border-hubee-50/20 dark:bg-transparent dark:text-hubee-50 dark:hover:bg-hubee-50/10"
             >
               <Plus aria-hidden="true" className="size-3.5" />
               Nova organização

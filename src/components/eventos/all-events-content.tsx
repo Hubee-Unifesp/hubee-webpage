@@ -159,7 +159,7 @@ export function AllEventsContent() {
                 type="button"
                 onClick={clearListSlug}
                 aria-label={`Remover filtro de lista ${LIST_LABELS[activeListSlug].title}`}
-                className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-hubee-400 bg-hubee-100 px-3 text-xs font-medium text-hubee-800 outline-none transition-colors hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:border-hubee-500 dark:bg-hubee-750 dark:text-hubee-50 dark:hover:bg-hubee-700"
+                className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-hubee-400 bg-hubee-100 px-3 text-xs font-medium text-hubee-800 outline-none transition-colors hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50 dark:hover:bg-hubee-50/10"
               >
                 <Sparkles aria-hidden="true" className="size-3.5" />
                 <span>{LIST_LABELS[activeListSlug].title}</span>

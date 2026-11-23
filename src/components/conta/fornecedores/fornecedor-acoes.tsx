@@ -26,7 +26,7 @@ export function FornecedorAcoes({ fornecedor, podeGerenciar, onEditar, onExcluir
         variant="ghost"
         size="icon-sm"
         title="Avaliações"
-        className="cursor-pointer text-hubee-800 hover:bg-hubee-200 hover:text-hubee-800 focus-visible:ring-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400"
+        className="cursor-pointer text-hubee-800 hover:bg-hubee-200 hover:text-hubee-800 focus-visible:ring-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400"
       >
         <Link href={`/conta/fornecedores/${fornecedor.id}/avaliacoes`} aria-label={`Avaliações de ${fornecedor.companyName}`}>
           <Star aria-hidden="true" />
@@ -40,7 +40,7 @@ export function FornecedorAcoes({ fornecedor, podeGerenciar, onEditar, onExcluir
         title={podeGerenciar ? "Editar" : semPermissao}
         aria-label={`Editar ${fornecedor.companyName}`}
         onClick={() => onEditar(fornecedor)}
-        className="cursor-pointer text-hubee-800 hover:bg-hubee-200 hover:text-hubee-800 focus-visible:ring-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400"
+        className="cursor-pointer text-hubee-800 hover:bg-hubee-200 hover:text-hubee-800 focus-visible:ring-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400"
       >
         <Pencil aria-hidden="true" />
       </Button>

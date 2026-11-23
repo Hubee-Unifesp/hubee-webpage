@@ -24,7 +24,7 @@ const DURATION_MS: Record<ToastVariant, number> = { success: 5000, error: 8000 }
 
 const variantStyles: Record<ToastVariant, { container: string; icon: typeof CircleCheck }> = {
   success: {
-    container: "border-hubee-400 bg-hubee-100 text-hubee-800 dark:border-hubee-500 dark:bg-hubee-50 dark:text-hubee-800",
+    container: "border-hubee-400 bg-hubee-100 text-hubee-800 dark:border-hubee-50/15 dark:bg-hubee-50 dark:text-hubee-800",
     icon: CircleCheck,
   },
   error: {

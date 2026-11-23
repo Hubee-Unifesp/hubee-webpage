@@ -11,21 +11,7 @@ export function HomeContent({ role, homeHref = "/" }: { role?: HeaderRole; homeH
   const { user, isOrganizer } = useAuth();
   const currentRole: HeaderRole =
     role ?? (user ? (isOrganizer ? "organizer" : "user") : "guest");
-  const isAuthenticated = currentRole !== "guest";
 
-  const aboutCtaLabel =
-    currentRole === "guest"
-      ? "Explorar eventos"
-      : currentRole === "organizer"
-        ? "Meus Eventos"
-        : "Meus Ingressos";
-
-  const aboutCtaHref =
-    currentRole === "guest"
-      ? "#eventos"
-      : currentRole === "organizer"
-        ? "/meus-eventos"
-        : "/meus-ingressos";
 
   const organizerHref =
     currentRole === "guest"
@@ -35,17 +21,21 @@ export function HomeContent({ role, homeHref = "/" }: { role?: HeaderRole; homeH
         : "/conta/perfil";
 
   return (
-    <div id="inicio" className="min-h-screen bg-hubee-50 text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50">
+    <div id="inicio" className="min-h-screen bg-hubee-50 text-hubee-800 dark:bg-hubee-900 dark:text-hubee-50">
       <Header homeHref={homeHref} />
       <main className="space-y-8 px-4 py-8 sm:px-8" id="conteudo" aria-label="Página inicial Hubee">
         <HeroSection
-          ctaLabel={isAuthenticated ? "Explorar Eventos" : "Criar Conta"}
-          ctaHref={isAuthenticated ? "/eventos" : "/cadastro"}
+          primary={{ label: "Explorar eventos", href: "/eventos" }}
+          secondary={
+            currentRole === "guest"
+              ? { label: "Vender na Hubee", href: organizerHref }
+              : currentRole === "organizer"
+                ? { label: "Meus eventos", href: organizerHref }
+                : undefined
+          }
         />
         <EventListingSection />
         <AboutSection
-          ctaLabel={aboutCtaLabel}
-          ctaHref={aboutCtaHref}
           organizerHref={organizerHref}
         />
       </main>

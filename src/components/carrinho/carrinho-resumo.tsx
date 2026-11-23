@@ -14,7 +14,7 @@ export function CarrinhoResumo({ summary }: CarrinhoResumoProps) {
   return (
     <aside
       aria-labelledby="resumo-carrinho-titulo"
-      className="flex flex-col rounded-2xl border border-hubee-300 bg-hubee-100 p-5 text-hubee-800 shadow-xs md:p-6 dark:border-hubee-600/80 dark:bg-hubee-900/90 dark:text-hubee-50"
+      className="flex flex-col rounded-2xl border border-hubee-300 bg-hubee-100 p-5 text-hubee-800 shadow-xs md:p-6 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
     >
       <h2 id="resumo-carrinho-titulo" className="sr-only">
         Resumo financeiro do carrinho
@@ -48,14 +48,14 @@ export function CarrinhoResumo({ summary }: CarrinhoResumoProps) {
       <div className="flex flex-col gap-3">
         <Link
           href="/eventos"
-          className="inline-flex h-10 w-full items-center rounded-xl bg-hubee-800 px-4 text-xs font-medium text-hubee-50 transition-colors outline-none hover:bg-hubee-900 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:bg-hubee-800/80 dark:text-hubee-50 dark:hover:bg-hubee-750"
+          className="inline-flex h-10 w-full items-center rounded-xl bg-hubee-800 px-4 text-xs font-medium text-hubee-50 transition-colors outline-none hover:bg-hubee-900 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:border dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50 dark:hover:bg-hubee-50/10"
         >
           Escolher mais produtos
         </Link>
 
         <Link
           href="/checkout"
-          className="inline-flex h-12 w-full items-center justify-between rounded-xl bg-hubee-800 px-4 text-sm font-medium text-hubee-50 transition-colors outline-none hover:bg-hubee-900 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:bg-hubee-800/90 dark:text-hubee-50 dark:hover:bg-hubee-750"
+          className="inline-flex h-12 w-full items-center justify-between rounded-xl bg-hubee-800 px-4 text-sm font-medium text-hubee-50 transition-colors outline-none hover:bg-hubee-900 focus-visible:ring-2 focus-visible:ring-hubee-400 dark:bg-hubee-400 dark:font-semibold dark:text-hubee-900 dark:hover:bg-hubee-300"
         >
           <span>Continuar compra</span>
           <ArrowRight aria-hidden="true" className="size-4" />

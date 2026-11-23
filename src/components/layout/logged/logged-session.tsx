@@ -6,22 +6,30 @@ import { Skeleton } from "@/components/skeleton";
 import { Footer } from "@/components/layout/footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 import { LoggedHeader } from "./logged-header";
 
 /** Header da área logada com os dados da sessão. Enquanto carrega (ou se a sessão falhar), mostra só a barra. */
 export function SessionHeader() {
   const { user } = useAuth();
   const { totalItens } = useCart();
+  const { unreadCount } = useNotifications();
 
   if (!user) {
     return (
-      <div className="w-full px-4 pt-4 sm:px-8 md:px-6">
+      <div className="sticky top-0 z-40 w-full px-4 pt-4 sm:px-8 md:px-6">
         <Skeleton className="mx-auto h-14 max-w-[52rem] rounded-xl" />
       </div>
     );
   }
 
-  return <LoggedHeader usuario={user} itensNoCarrinho={totalItens} />;
+  return (
+    <LoggedHeader
+      usuario={user}
+      itensNoCarrinho={totalItens}
+      notificacoesNaoLidas={unreadCount}
+    />
+  );
 }
 
 /** Footer da área logada. Só aparece com a sessão carregada, para não mostrar os links de visitante. */

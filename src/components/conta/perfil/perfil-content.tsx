@@ -6,14 +6,32 @@ import { ContaPageTitle } from "@/components/conta/conta-card";
 import { ListMessage } from "@/components/home/events/list-states";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import type { ConviteOrganizacaoPendente } from "@/types/membro-organizacao";
+import { ConvitesPendentesCard, type ConvitesPendentesStatus } from "./convites-pendentes-card";
 import { DadosPessoaisForm } from "./dados-pessoais-form";
 import { ExcluirContaCard } from "./excluir-conta-card";
 import { PerfilSkeleton } from "./perfil-skeleton";
 import { PermissoesCard } from "./permissoes-card";
 import { TrocarSenhaForm } from "./trocar-senha-form";
 
+interface PerfilContentProps {
+  /** Convites pendentes de organização (`useConvitesPendentes`). */
+  convitesPendentes?: readonly ConviteOrganizacaoPendente[];
+  convitesStatus?: ConvitesPendentesStatus;
+  onRetryConvites?: () => void;
+  onResponderConvite?: (
+    convite: ConviteOrganizacaoPendente,
+    resposta: "ACCEPTED" | "DECLINED",
+  ) => Promise<void>;
+}
+
 /** Conteúdo da página Meu Perfil: dados do usuário logado, com carregando, erro e o aviso de perfil incompleto. */
-export function PerfilContent() {
+export function PerfilContent({
+  convitesPendentes = [],
+  convitesStatus = "ok",
+  onRetryConvites,
+  onResponderConvite,
+}: PerfilContentProps = {}) {
   const { user, isLoading, hasError, refreshUser } = useAuth();
 
   return (
@@ -22,6 +40,13 @@ export function PerfilContent() {
 
       {user ? (
         <>
+          <ConvitesPendentesCard
+            convites={convitesPendentes}
+            status={convitesStatus}
+            onRetry={onRetryConvites}
+            onResponder={onResponderConvite}
+          />
+
           {!user.profileComplete && (
             <section
               aria-labelledby="aviso-perfil-titulo"

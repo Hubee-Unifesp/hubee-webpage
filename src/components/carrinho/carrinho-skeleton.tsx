@@ -11,7 +11,7 @@ export function CarrinhoSkeleton() {
           {Array.from({ length: 4 }, (_, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between gap-4 rounded-2xl border border-hubee-200 bg-hubee-100 p-4 dark:border-hubee-700 dark:bg-hubee-900/60"
+              className="flex items-center justify-between gap-4 rounded-2xl border border-hubee-200 bg-hubee-100 p-4 dark:border-hubee-50/15 dark:bg-hubee-850"
             >
               <div className="flex items-center gap-3.5">
                 <Skeleton className="size-16 shrink-0 rounded-xl" />
@@ -26,19 +26,19 @@ export function CarrinhoSkeleton() {
           ))}
         </div>
 
-        <div className="rounded-2xl border border-hubee-200 bg-hubee-100 p-6 dark:border-hubee-700 dark:bg-hubee-900/60">
+        <div className="rounded-2xl border border-hubee-200 bg-hubee-100 p-6 dark:border-hubee-50/15 dark:bg-hubee-850">
           <Skeleton className="h-5 w-20 rounded-full" />
           <div className="mt-3 flex gap-2.5">
             <Skeleton className="h-10 flex-1 rounded-xl" />
             <Skeleton className="h-10 w-24 rounded-xl" />
           </div>
-          <hr className="my-5 border-hubee-200 dark:border-hubee-700" />
+          <hr className="my-5 border-hubee-200 dark:border-hubee-50/15" />
           <div className="flex flex-col gap-3">
             <Skeleton className="h-4 w-full rounded-full" />
             <Skeleton className="h-4 w-full rounded-full" />
             <Skeleton className="h-6 w-full rounded-full" />
           </div>
-          <hr className="my-5 border-hubee-200 dark:border-hubee-700" />
+          <hr className="my-5 border-hubee-200 dark:border-hubee-50/15" />
           <div className="flex flex-col gap-3">
             <Skeleton className="h-10 w-full rounded-xl" />
             <Skeleton className="h-12 w-full rounded-xl" />

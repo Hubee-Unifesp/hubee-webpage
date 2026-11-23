@@ -11,22 +11,35 @@ import { isActiveRoute, type NavigationItem } from "@/components/layout/header";
 import { loginItem, registerItem } from "@/components/layout/header/actions/actions.config";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { cartHref, formatCartLabel, getAccountNavItems, notificationsHref } from "./account-nav.config";
+import {
+  cartHref,
+  formatBadgeCount,
+  formatCartLabel,
+  formatNotificationsLabel,
+  getAccountNavItems,
+  notificationsHref,
+} from "./account-nav.config";
 import { ThemedHubeeLogo } from "@/components/brand";
 
 const itemClassName =
-  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium outline-none hover:bg-hubee-100 focus-visible:ring-3 focus-visible:ring-hubee-800 aria-[current=page]:bg-hubee-400 aria-[current=page]:text-hubee-800 dark:hover:bg-hubee-750 dark:focus-visible:ring-hubee-400 dark:aria-[current=page]:bg-hubee-50 dark:aria-[current=page]:text-hubee-750 [&_svg]:size-[18px] [&_svg]:shrink-0";
+  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium outline-none hover:bg-hubee-100 focus-visible:ring-3 focus-visible:ring-hubee-800 aria-[current=page]:bg-hubee-400 aria-[current=page]:text-hubee-800 dark:hover:bg-hubee-50/10 dark:focus-visible:ring-hubee-400 dark:aria-[current=page]:bg-hubee-50 dark:aria-[current=page]:text-hubee-750 [&_svg]:size-[18px] [&_svg]:shrink-0";
 
 const groupLabelClassName = "px-3 pb-1 text-xs font-medium text-hubee-neutral-300 dark:text-hubee-200";
 
 interface MobileMenuProps {
   navigationItems: readonly NavigationItem[];
   itemsInCart?: number;
+  unreadNotifications?: number;
   homeHref?: string;
 }
 
 /** Menu lateral em tela cheia para telas menores que 768px (Radix Dialog: Esc fecha, foco preso). */
-export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }: MobileMenuProps) {
+export function MobileMenu({
+  navigationItems,
+  itemsInCart = 0,
+  unreadNotifications = 0,
+  homeHref = "/",
+}: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { user, logoutState, isOrganizer } = useAuth();
@@ -53,18 +66,18 @@ export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }:
         <DialogOverlay />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed inset-y-0 right-0 z-50 flex w-[min(85vw,20rem)] flex-col gap-4 overflow-y-auto border-l border-hubee-800/25 bg-hubee-50 pb-6 text-hubee-800 shadow-xl outline-none duration-200 data-open:animate-in data-open:slide-in-from-right data-closed:animate-out data-closed:slide-out-to-right motion-reduce:animate-none dark:border-hubee-400 dark:bg-hubee-800 dark:text-hubee-50"
+          className="fixed inset-y-0 right-0 z-50 flex w-[min(85vw,20rem)] flex-col gap-4 overflow-y-auto border-l border-hubee-800/25 bg-hubee-50 pb-6 text-hubee-800 shadow-xl outline-none duration-200 data-open:animate-in data-open:slide-in-from-right data-closed:animate-out data-closed:slide-out-to-right motion-reduce:animate-none dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50"
         >
           <DialogTitle className="sr-only">Menu</DialogTitle>
 
-          <div className="flex h-14 shrink-0 items-center justify-between bg-hubee-800 px-4 text-hubee-50 dark:bg-hubee-400 dark:text-hubee-800">
+          <div className="flex h-14 shrink-0 items-center justify-between bg-hubee-800 px-4 text-hubee-50 dark:bg-hubee-850 dark:text-hubee-50">
             <Link
               href={`${homeHref}#inicio`}
               onClick={close}
               aria-label="Hubee — página inicial"
-              className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:focus-visible:ring-hubee-800"
+              className="inline-flex shrink-0 items-center rounded-md outline-none hover:opacity-85 focus-visible:ring-3 focus-visible:ring-hubee-400"
             >
-              <ThemedHubeeLogo light="white" dark="dark_alt" className="h-8" />
+              <ThemedHubeeLogo light="white" dark="white" className="h-8" />
             </Link>
             <DialogPrimitive.Close asChild>
               <Button type="button" variant="hubee_header" size="icon" aria-label="Fechar menu">
@@ -112,7 +125,7 @@ export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }:
                           aria-hidden="true"
                           className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-hubee-800 px-1.5 text-xs font-bold text-hubee-50 dark:bg-hubee-400 dark:text-hubee-800"
                         >
-                          {itemsInCart > 99 ? "99+" : itemsInCart}
+                          {formatBadgeCount(itemsInCart)}
                         </span>
                       )}
                     </Link>
@@ -121,11 +134,20 @@ export function MobileMenu({ navigationItems, itemsInCart = 0, homeHref = "/" }:
                     <Link
                       href={notificationsHref}
                       onClick={close}
+                      aria-label={formatNotificationsLabel(unreadNotifications)}
                       aria-current={isActiveRoute(pathname, notificationsHref) ? "page" : undefined}
                       className={itemClassName}
                     >
                       <Bell aria-hidden="true" />
                       Notificações
+                      {unreadNotifications > 0 && (
+                        <span
+                          aria-hidden="true"
+                          className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-hubee-800 px-1.5 text-xs font-bold text-hubee-50 dark:bg-hubee-400 dark:text-hubee-800"
+                        >
+                          {formatBadgeCount(unreadNotifications)}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 </ul>

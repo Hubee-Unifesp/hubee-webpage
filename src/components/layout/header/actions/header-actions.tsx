@@ -4,8 +4,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { accountActions, loginItem } from "./actions.config";
 import { LoggedUserMenu } from "@/components/layout/logged";
-import { cartHref, formatCartLabel } from "@/components/layout/logged/account-nav.config";
+import {
+  cartHref,
+  formatBadgeCount,
+  formatCartLabel,
+  formatNotificationsLabel,
+  notificationsHref,
+} from "@/components/layout/logged/account-nav.config";
 import { useCart } from "@/contexts/CartContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 import type { Usuario } from "@/types/usuario";
 
 interface HeaderActionsProps {
@@ -13,9 +20,13 @@ interface HeaderActionsProps {
   signedIn?: boolean;
 }
 
-export function HeaderActions({ user, signedIn = !!user }: HeaderActionsProps) {
+export function HeaderActions({
+  user,
+  signedIn = !!user,
+}: HeaderActionsProps) {
   const isLogged = Boolean(user && signedIn);
   const { totalItens } = useCart();
+  const { unreadCount: unreadNotifications } = useNotifications();
 
   return (
     <div className="flex items-center gap-0.5">
@@ -23,23 +34,34 @@ export function HeaderActions({ user, signedIn = !!user }: HeaderActionsProps) {
         <div className="hidden items-center gap-0.5 md:flex">
           {accountActions.map(({ href, label, icon: Icon }) => {
             const isCart = href === cartHref;
+            const isNotifications = href === notificationsHref;
+            const badgeCount = isCart
+              ? totalItens
+              : isNotifications
+                ? unreadNotifications
+                : 0;
+            const ariaLabel = isCart
+              ? formatCartLabel(totalItens)
+              : isNotifications
+                ? formatNotificationsLabel(unreadNotifications)
+                : label;
 
             return (
               <Button
                 key={href}
                 variant="hubee_header"
                 size="icon"
-                className={isCart ? "relative" : undefined}
+                className={isCart || isNotifications ? "relative" : undefined}
                 asChild
               >
-                <Link href={href} aria-label={isCart ? formatCartLabel(totalItens) : label}>
+                <Link href={href} aria-label={ariaLabel}>
                   <Icon aria-hidden="true" className="size-[18px]" />
-                  {isCart && totalItens > 0 && (
+                  {badgeCount > 0 && (
                     <span
                       aria-hidden="true"
-                      className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800 dark:bg-hubee-800 dark:text-hubee-50"
+                      className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hubee-400 px-1 text-[10px] leading-none font-bold text-hubee-800"
                     >
-                      {totalItens > 99 ? "99+" : totalItens}
+                      {formatBadgeCount(badgeCount)}
                     </span>
                   )}
                 </Link>
@@ -49,7 +71,12 @@ export function HeaderActions({ user, signedIn = !!user }: HeaderActionsProps) {
           <LoggedUserMenu usuario={user} />
         </div>
       ) : (
-        <Button variant="hubee_header" size="default" className="border-current font-semibold" asChild>
+        <Button
+          variant="hubee_header"
+          size="default"
+          className="rounded-full border-transparent bg-hubee-400 px-5 font-semibold text-hubee-900 hover:bg-hubee-300 hover:text-hubee-900"
+          asChild
+        >
           <Link href={loginItem.href}>{loginItem.label}</Link>
         </Button>
       )}

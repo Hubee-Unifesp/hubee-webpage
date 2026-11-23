@@ -31,7 +31,7 @@ const labelClassName = "text-xs font-semibold";
 const hintClassName = "text-[11px] text-hubee-neutral-300 dark:text-hubee-200";
 const errorClassName = "text-xs text-red-700 dark:text-red-300";
 const controlClassName =
-  "border-hubee-neutral-50 bg-white text-hubee-800 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-700 dark:bg-hubee-900 dark:text-hubee-50";
+  "border-hubee-neutral-50 bg-white text-hubee-800 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50";
 
 /** Modal com o formulário de avaliação de um fornecedor: nota única e comentário opcional. */
 export function AvaliarFornecedorModal({ open, onOpenChange, fornecedorNome, onSubmit }: AvaliarFornecedorModalProps) {
@@ -76,7 +76,7 @@ export function AvaliarFornecedorModal({ open, onOpenChange, fornecedorNome, onS
             type="button"
             disabled={isSubmitting}
             onClick={() => onOpenChange(false)}
-            className="h-10 cursor-pointer rounded-lg bg-hubee-100 px-5 font-semibold text-hubee-800 hover:bg-hubee-200 focus-visible:ring-hubee-800 dark:bg-hubee-800 dark:text-hubee-50 dark:hover:bg-hubee-900 dark:focus-visible:ring-hubee-400"
+            className="h-10 cursor-pointer rounded-lg bg-hubee-100 px-5 font-semibold text-hubee-800 hover:bg-hubee-200 focus-visible:ring-hubee-800 dark:bg-hubee-850 dark:text-hubee-50 dark:hover:bg-hubee-900 dark:focus-visible:ring-hubee-400"
           >
             Cancelar
           </Button>
@@ -97,7 +97,7 @@ export function AvaliarFornecedorModal({ open, onOpenChange, fornecedorNome, onS
         <fieldset disabled={isSubmitting} className="flex min-w-0 flex-col gap-5">
           <legend className="sr-only">Avaliação do fornecedor</legend>
 
-          <div className="flex flex-col gap-2 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 dark:border-hubee-500/40 dark:bg-hubee-800/60">
+          <div className="flex flex-col gap-2 rounded-xl border border-hubee-200 bg-hubee-neutral-25 p-4 dark:border-hubee-50/15 dark:bg-hubee-850">
             <span id={notaLabelId} className={labelClassName}>
               Nota *
             </span>

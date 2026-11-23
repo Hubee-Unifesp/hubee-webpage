@@ -138,7 +138,7 @@ export function EventSearchBar({
         <div className="relative flex-1">
           <Search
             aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-hubee-750 dark:text-hubee-400"
+            className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-hubee-750 dark:text-hubee-400"
           />
           <Input
             type="search"
@@ -146,7 +146,7 @@ export function EventSearchBar({
             onChange={(event) => onQueryChange(event.target.value)}
             aria-label="Buscar por evento ou agremiação"
             placeholder="Buscar por evento ou agremiação"
-            className="h-10 border-hubee-400 bg-hubee-50 pl-9 text-hubee-800 placeholder:text-hubee-neutral-300 focus-visible:border-hubee-500 focus-visible:ring-hubee-400/50 dark:border-hubee-500 dark:bg-hubee-750 dark:text-hubee-50 dark:placeholder:text-hubee-neutral-200"
+            className="h-12 rounded-full border-transparent bg-white pl-10 text-base text-hubee-800 shadow-none placeholder:text-hubee-neutral-300 focus-visible:border-hubee-500 focus-visible:ring-hubee-400/50 md:text-sm dark:border-transparent dark:bg-hubee-850 dark:text-hubee-50 dark:placeholder:text-hubee-200/60"
           />
         </div>
         <button
@@ -155,10 +155,10 @@ export function EventSearchBar({
           aria-expanded={isFiltersOpen}
           onClick={() => onFiltersOpenChange(!isFiltersOpen)}
           className={cn(
-            "inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-4 text-xs font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-hubee-400",
+            "inline-flex h-12 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-5 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-hubee-400",
             isFiltersOpen || activeModalFilters
-              ? "border-hubee-750 bg-hubee-750 text-hubee-50 dark:border-hubee-400 dark:bg-hubee-400 dark:text-hubee-800"
-              : "border-hubee-400 bg-hubee-50 text-hubee-800 hover:border-hubee-750 hover:bg-hubee-750 hover:text-hubee-50 dark:border-hubee-500 dark:bg-hubee-750 dark:text-hubee-50 dark:hover:bg-hubee-400 dark:hover:text-hubee-800",
+              ? "border-hubee-800 bg-hubee-800 text-hubee-50 dark:border-hubee-400 dark:bg-hubee-400 dark:text-hubee-900"
+              : "border-transparent bg-white text-hubee-800 hover:bg-hubee-800 hover:text-hubee-50 dark:border-transparent dark:bg-hubee-850 dark:text-hubee-50 dark:hover:bg-hubee-50/10",
           )}
         >
           <ListFilter aria-hidden="true" strokeWidth={2} className="size-4" />
@@ -168,7 +168,7 @@ export function EventSearchBar({
           <button
             type="button"
             onClick={onClearAll}
-            className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-hubee-400 bg-transparent px-3 text-xs font-medium text-hubee-750 transition-colors outline-none hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:border-hubee-500 dark:text-hubee-50 dark:hover:bg-hubee-750"
+            className="inline-flex h-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-transparent bg-transparent px-3 text-sm font-medium text-hubee-750 transition-colors outline-none hover:bg-hubee-200 focus-visible:ring-3 focus-visible:ring-hubee-400 dark:border-hubee-50/10 dark:text-hubee-50 dark:hover:bg-hubee-50/10"
           >
             Limpar filtros
           </button>
