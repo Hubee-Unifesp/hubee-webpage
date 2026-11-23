@@ -34,11 +34,12 @@ export function ShareButton({ title, className }: ShareButtonProps) {
       onClick={handleShare}
       aria-label={copied ? "Link copiado" : "Compartilhar evento"}
       className={cn(
-        "flex size-9 items-center justify-center rounded-lg bg-hubee-50 text-hubee-800 shadow-sm outline-none transition-colors hover:bg-hubee-100 focus-visible:ring-3 focus-visible:ring-hubee-400",
+        "inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-hubee-50/25 bg-hubee-50/10 px-3 text-sm font-semibold text-hubee-50 outline-none backdrop-blur-sm transition-colors hover:bg-hubee-50/20 focus-visible:ring-3 focus-visible:ring-hubee-400",
         className,
       )}
     >
       {copied ? <Check aria-hidden="true" className="size-4" /> : <Share2 aria-hidden="true" className="size-4" />}
+      <span aria-hidden="true">{copied ? "Link copiado" : "Compartilhar"}</span>
       <span role="status" className="sr-only">
         {copied ? "Link copiado para a área de transferência" : ""}
       </span>
