@@ -18,6 +18,7 @@ import {
   type TicketTypeFormInputs,
   type TicketTypeFormValues,
 } from "@/lib/validations/ticket-type.schema";
+import type { SuggestedTicketType } from "@/lib/validations/event-ai-draft.schema";
 import type { LoteIngresso, LotePayload } from "@/types/lote-ingresso";
 import {
   botaoPrimarioClassName,
@@ -35,11 +36,22 @@ interface LoteFormModalProps {
   onOpenChange: (open: boolean) => void;
   /** Com lote, o modal é de edição; sem, de criação. */
   lote: LoteIngresso | null;
+  /** Lote sugerido pela IA: pré-preenche a criação (o que a IA não inferiu fica em branco). */
+  sugestao?: SuggestedTicketType | null;
   /** Deve resolver depois de salvar. Se rejeitar, o modal continua aberto e mostra o erro. */
   onSubmit: (payload: LotePayload) => Promise<void>;
 }
 
-function toFormValues(lote: LoteIngresso | null): TicketTypeFormInputs {
+function toFormValues(lote: LoteIngresso | null, sugestao: SuggestedTicketType | null): TicketTypeFormInputs {
+  if (!lote && sugestao) {
+    return {
+      ...emptyTicketTypeForm,
+      batch: sugestao.batch,
+      modality: sugestao.modality ?? emptyTicketTypeForm.modality,
+      price: sugestao.price === null ? "" : toPrecoInput(sugestao.price),
+      quantity: sugestao.quantity === null ? "" : String(sugestao.quantity),
+    };
+  }
   if (!lote) return emptyTicketTypeForm;
   return {
     batch: lote.batch,
@@ -52,7 +64,7 @@ function toFormValues(lote: LoteIngresso | null): TicketTypeFormInputs {
 }
 
 /** Modal com o formulário de criação e edição de lote, validado pelo schema Zod. */
-export function LoteFormModal({ open, onOpenChange, lote, onSubmit }: LoteFormModalProps) {
+export function LoteFormModal({ open, onOpenChange, lote, sugestao = null, onSubmit }: LoteFormModalProps) {
   const formId = useId();
   const edicao = lote !== null;
   const vendidos = lote ? getVendidos(lote) : 0;
@@ -70,14 +82,14 @@ export function LoteFormModal({ open, onOpenChange, lote, onSubmit }: LoteFormMo
     mode: "onSubmit",
     reValidateMode: "onChange",
     shouldFocusError: true,
-    defaultValues: toFormValues(lote),
+    defaultValues: toFormValues(lote, sugestao),
   });
 
   // Cada abertura começa com os dados do lote escolhido (ou em branco).
   useEffect(() => {
     if (!open) return;
-    reset(toFormValues(lote));
-  }, [open, lote, reset]);
+    reset(toFormValues(lote, sugestao));
+  }, [open, lote, sugestao, reset]);
 
   const [batch, salesStartDate] = useWatch({ control, name: ["batch", "salesStartDate"] });
 

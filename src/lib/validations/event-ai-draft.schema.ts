@@ -146,6 +146,24 @@ export function getMissingFormFields(draft: EventAiDraft): EventAiDraftField[] {
   return [...result];
 }
 
+function normalizarNome(valor: string): string {
+  return valor
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+}
+
+/** Procura, entre os locais cadastrados, o de mesmo nome que a IA sugeriu (ignora acentos e caixa). */
+export function encontrarLocalSugerido<Local extends { id: string; nome: string }>(
+  suggestion: VenueSuggestion | null,
+  locais: readonly Local[],
+): Local | null {
+  const nome = suggestion?.name ? normalizarNome(suggestion.name) : "";
+  if (!nome) return null;
+  return locais.find((local) => normalizarNome(local.nome) === nome) ?? null;
+}
+
 /** Formata a sugestão textual de local da IA (ex.: "Centro de Convenções Hubee — São Paulo/SP"). */
 export function formatarSugestaoLocal(suggestion: VenueSuggestion | null): string | null {
   if (!suggestion) return null;

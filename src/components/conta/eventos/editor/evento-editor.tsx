@@ -10,13 +10,16 @@ import { Skeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { useEventoEditor } from "@/hooks/useEventoEditor";
+import { generateEventAiDraft, getAiDraftErrorMessage } from "@/lib/api/event-ai-draft";
 import { getApiErrorMessage } from "@/lib/api/errors";
+import { carregarLotesSugeridos, salvarLotesSugeridos } from "@/lib/ai-draft-lotes";
 import {
   EVENT_AI_DRAFT_FIELD_META,
   getInferredAiFields,
   getMissingFormFields,
   type EventAiDraft,
   type EventAiDraftField,
+  type SuggestedTicketType,
 } from "@/lib/validations/event-ai-draft.schema";
 import { canCancelEvent } from "@/types/organizacao";
 import type { EventoPayload, LocalEvento, LocalPayload } from "@/types/evento-editor";
@@ -64,14 +67,11 @@ function EditorSkeleton() {
 interface EventoEditorProps {
   eventoId?: string;
   etapaInicial?: EtapaEvento;
-  /** Callback de integração HTTP para `POST /events/ai-draft` (conectado na GOL-266). */
+  /** Gera o rascunho com IA (`POST /events/ai-draft`). Substituível em testes. */
   onGerarRascunhoIa?: (prompt: string) => Promise<EventAiDraft>;
 }
 
-const ERRO_IA_INDISPONIVEL =
-  "A geração com IA ainda não está conectada ao servidor. Preencha os campos manualmente abaixo.";
-
-export function EventoEditor({ eventoId, etapaInicial = "dados", onGerarRascunhoIa }: EventoEditorProps) {
+export function EventoEditor({ eventoId, etapaInicial = "dados", onGerarRascunhoIa = generateEventAiDraft }: EventoEditorProps) {
   const router = useRouter();
   const toast = useToast();
   const [etapa, setEtapa] = useState<EtapaEvento>(etapaInicial);
@@ -81,6 +81,11 @@ export function EventoEditor({ eventoId, etapaInicial = "dados", onGerarRascunho
   const [iaRascunho, setIaRascunho] = useState<EventAiDraft | null>(null);
   const [iaErro, setIaErro] = useState<string | null>(null);
   const [iaResolvidos, setIaResolvidos] = useState<ReadonlySet<EventAiDraftField>>(() => new Set());
+  // Sobrevivem à troca de rota feita ao criar o rascunho. A página remonta o editor por evento (`key`) e
+  // só mostra o painel depois do carregamento, então ler a sessão aqui não diverge do HTML do servidor.
+  const [lotesSugeridos, setLotesSugeridos] = useState<SuggestedTicketType[]>(() =>
+    eventoId && typeof window !== "undefined" ? carregarLotesSugeridos(eventoId) : [],
+  );
   const {
     status,
     organizacoes,
@@ -110,12 +115,6 @@ export function EventoEditor({ eventoId, etapaInicial = "dados", onGerarRascunho
 
   const handleGerarRascunhoIa = useCallback(
     async (prompt: string) => {
-      if (!onGerarRascunhoIa) {
-        setIaErro(ERRO_IA_INDISPONIVEL);
-        setIaStatus("error");
-        return;
-      }
-
       setIaStatus("loading");
       setIaErro(null);
       try {
@@ -123,12 +122,30 @@ export function EventoEditor({ eventoId, etapaInicial = "dados", onGerarRascunho
         setIaRascunho(draft);
         setIaResolvidos(new Set());
         setIaStatus("applied");
+        toast.success(
+          getMissingFormFields(draft).length > 0
+            ? "Rascunho gerado. Revise os campos que a IA não identificou antes de salvar."
+            : "Rascunho gerado. Revise os campos antes de salvar.",
+        );
       } catch (error) {
-        setIaErro(getApiErrorMessage(error, "A geração com IA não está disponível no momento. Tente novamente em instantes."));
+        const mensagem = getAiDraftErrorMessage(error);
+        setIaErro(mensagem);
         setIaStatus("error");
+        toast.error(mensagem);
       }
     },
-    [onGerarRascunhoIa],
+    [onGerarRascunhoIa, toast],
+  );
+
+  const handleResolverLoteSugerido = useCallback(
+    (sugestao: SuggestedTicketType) => {
+      setLotesSugeridos((atuais) => {
+        const restantes = atuais.filter((item) => item !== sugestao);
+        if (eventoId) salvarLotesSugeridos(eventoId, restantes);
+        return restantes;
+      });
+    },
+    [eventoId],
   );
 
   const handleLimparIa = useCallback(() => {
@@ -237,6 +254,7 @@ export function EventoEditor({ eventoId, etapaInicial = "dados", onGerarRascunho
         toast.success(criando ? "Rascunho criado com sucesso." : "Dados do evento salvos.");
       }
       if (criando) {
+        if (iaRascunho) salvarLotesSugeridos(salvo.id, iaRascunho.suggestedTicketTypes);
         router.replace(`/meus-eventos/${salvo.id}/editar?etapa=lotes`);
         return;
       }
@@ -353,6 +371,8 @@ export function EventoEditor({ eventoId, etapaInicial = "dados", onGerarRascunho
           onCriarLote={criarLote}
           onEditarLote={editarLote}
           onExcluirLote={excluirLote}
+          lotesSugeridos={lotesSugeridos}
+          onResolverLoteSugerido={handleResolverLoteSugerido}
           onVoltar={() => setEtapa("dados")}
           onContinuar={() => setEtapa("revisao")}
         />
