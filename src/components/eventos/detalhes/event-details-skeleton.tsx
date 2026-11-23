@@ -17,7 +17,7 @@ export function EventDetailsSkeleton() {
         </div>
 
         <div aria-hidden="true" className="relative overflow-hidden bg-hubee-200/70 dark:bg-hubee-850">
-          <div className={cn(containerClassName, "flex min-h-[26rem] flex-col justify-end gap-3 pb-6 md:min-h-[32rem] md:pb-7")}>
+          <div className={cn(containerClassName, "flex min-h-60 flex-col justify-center gap-3 py-10 md:min-h-72 md:py-12")}>
             <Skeleton className="h-2.5 w-40 rounded-full bg-hubee-100 dark:bg-hubee-50/10" />
             <Skeleton className="h-10 w-4/5 max-w-sm bg-hubee-100 md:h-12 dark:bg-hubee-50/10" />
             <Skeleton className="h-10 w-3/5 max-w-xs bg-hubee-100 md:h-12 dark:bg-hubee-50/10" />

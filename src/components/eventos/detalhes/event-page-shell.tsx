@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { cn } from "@/lib/utils";
-import { displayFont } from "./fonts";
 
 interface EventPageShellProps {
   children: ReactNode;
@@ -16,10 +15,7 @@ export function EventPageShell({ children, label, className }: EventPageShellPro
   return (
     <div
       id="inicio"
-      className={cn(
-        "flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-900 dark:text-hubee-50",
-        displayFont.variable,
-      )}
+      className="flex min-h-screen flex-col bg-hubee-50 text-hubee-800 dark:bg-hubee-900 dark:text-hubee-50"
     >
       <a
         href="#conteudo"

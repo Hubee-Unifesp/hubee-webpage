@@ -11,7 +11,7 @@ export function EventNotFound() {
         <span className="flex size-20 items-center justify-center rounded-full bg-hubee-400 text-hubee-800 md:size-24">
           <CalendarX2 aria-hidden="true" strokeWidth={1.5} className="size-9 md:size-10" />
         </span>
-        <h1 className="mt-6 font-display text-4xl leading-tight text-hubee-800 md:text-5xl dark:text-hubee-50">
+        <h1 className="mt-6 font-heading text-4xl leading-tight font-bold tracking-tight text-hubee-800 md:text-5xl dark:text-hubee-50">
           Evento não encontrado
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-hubee-neutral-300 md:text-base dark:text-hubee-100">

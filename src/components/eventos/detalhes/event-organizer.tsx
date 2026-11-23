@@ -11,7 +11,7 @@ export function EventOrganizer({ organizer }: { organizer: EventOrganizerData })
       <div className="flex min-w-0 items-center gap-3">
         <span
           aria-hidden="true"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-hubee-400 font-display text-xl text-hubee-800 md:size-12"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-hubee-400 font-heading text-xl font-bold text-hubee-800 md:size-12"
         >
           {organizerInitial(organizer.name)}
         </span>

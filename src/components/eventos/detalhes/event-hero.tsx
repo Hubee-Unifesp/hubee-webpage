@@ -40,31 +40,41 @@ export function EventHero({ title, tagline, category, ageRating, startDate, phot
         className="absolute inset-0 -z-10 bg-linear-to-t from-hubee-900/95 via-hubee-900/50 to-hubee-900/10 md:bg-linear-to-r md:from-hubee-900/90 md:via-hubee-900/40 md:to-transparent"
       />
 
-      <div className={cn(containerClassName, "relative flex min-h-[26rem] flex-col justify-end pt-16 pb-6 md:min-h-[32rem] md:pb-7")}>
-        <ShareButton title={title} className="absolute top-4 right-4 sm:right-8 md:right-6" />
-
+      <div
+        className={cn(
+          containerClassName,
+          "relative flex flex-col justify-center py-10 md:py-12",
+          photoUrl ? "min-h-80 md:min-h-104" : "min-h-60 md:min-h-72",
+        )}
+      >
         {tagline && (
           <p className="text-[10px] font-semibold tracking-[0.2em] text-hubee-400 uppercase md:text-xs">{tagline}</p>
         )}
         <h1
           id="evento-titulo"
-          className="mt-2 max-w-xl font-display text-4xl leading-[1.05] text-white md:mt-3 md:text-6xl"
+          className="mt-2 max-w-2xl font-heading text-3xl leading-tight font-bold tracking-tight text-white md:mt-3 md:text-5xl"
         >
           {title}
         </h1>
 
-        <p className="mt-3 flex items-center gap-2 text-sm text-hubee-50 md:mt-4">
-          <CalendarDays aria-hidden="true" className="size-4" />
-          <time dateTime={startDate}>{formatEventDateTime(startDate)}</time>
-        </p>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-4 md:mt-4">
+          <div>
+            <p className="flex items-center gap-2 text-sm text-hubee-50">
+              <CalendarDays aria-hidden="true" className="size-4" />
+              <time dateTime={startDate}>{formatEventDateTime(startDate)}</time>
+            </p>
 
-        <ul aria-label="Categoria e classificação" className="mt-3 flex flex-wrap gap-2">
-          <li className="inline-flex items-center gap-1 rounded-md bg-hubee-400 px-2 py-1 text-xs font-semibold text-hubee-800">
-            <CategoryIcon aria-hidden="true" className="size-3.5" />
-            {categoryLabel}
-          </li>
-          {ageRating && <AgeRatingBadge rating={ageRating} />}
-        </ul>
+            <ul aria-label="Categoria e classificação" className="mt-3 flex flex-wrap gap-2">
+              <li className="inline-flex items-center gap-1 rounded-md bg-hubee-400 px-2 py-1 text-xs font-semibold text-hubee-800">
+                <CategoryIcon aria-hidden="true" className="size-3.5" />
+                {categoryLabel}
+              </li>
+              {ageRating && <AgeRatingBadge rating={ageRating} />}
+            </ul>
+          </div>
+
+          <ShareButton title={title} />
+        </div>
       </div>
     </header>
   );
