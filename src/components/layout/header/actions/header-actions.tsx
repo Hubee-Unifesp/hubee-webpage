@@ -12,21 +12,21 @@ import {
   notificationsHref,
 } from "@/components/layout/logged/account-nav.config";
 import { useCart } from "@/contexts/CartContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 import type { Usuario } from "@/types/usuario";
 
 interface HeaderActionsProps {
   user?: Usuario | null;
   signedIn?: boolean;
-  unreadNotifications?: number;
 }
 
 export function HeaderActions({
   user,
   signedIn = !!user,
-  unreadNotifications = 0,
 }: HeaderActionsProps) {
   const isLogged = Boolean(user && signedIn);
   const { totalItens } = useCart();
+  const { unreadCount: unreadNotifications } = useNotifications();
 
   return (
     <div className="flex items-center gap-0.5">

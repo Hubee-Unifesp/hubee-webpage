@@ -1,4 +1,5 @@
 export { NotificacaoCard, type NotificacaoCardProps } from "./notificacao-card";
+export { NotificacoesConectadas } from "./notificacoes-conectadas";
 export { NotificacoesContent, type NotificacoesContentProps } from "./notificacoes-content";
 export { NotificacoesHeader, type NotificacoesHeaderProps } from "./notificacoes-header";
 export { NotificacoesSkeleton } from "./notificacoes-skeleton";

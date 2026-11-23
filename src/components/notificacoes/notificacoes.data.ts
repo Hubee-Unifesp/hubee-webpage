@@ -1,3 +1,5 @@
+import type { NotificacaoItem, NotificacaoTipo } from "@/types/notificacao";
+
 export const FILTRO_TODAS_NOTIFICACOES = "all" as const;
 export const FILTRO_NAO_LIDAS = "unread" as const;
 
@@ -7,24 +9,11 @@ export type FiltroNotificacoes =
 
 export type NotificacoesStatus = "loading" | "error" | "ok";
 
-export type NotificacaoTipoConhecido =
-  | "ORDER_PAID"
-  | "TICKET_TYPE_SOLD_OUT"
-  | "NEW_SALE"
-  | "ORDER_CANCELLED"
-  | "EVENT_CANCELLED";
-
-export type NotificacaoTipo = NotificacaoTipoConhecido | (string & {});
-
-export interface NotificacaoItem {
-  id: string;
-  type: NotificacaoTipo;
-  title: string;
-  message: string;
-  href?: string | null;
-  readAt: string | null;
-  createdAt: string;
-}
+export type {
+  NotificacaoItem,
+  NotificacaoTipo,
+  NotificacaoTipoConhecido,
+} from "@/types/notificacao";
 
 /** Verifica se a notificação ainda não foi lida (`readAt === null`). */
 export function isNotificacaoNaoLida(item: Pick<NotificacaoItem, "readAt">): boolean {
@@ -132,6 +121,7 @@ export function getNotificacaoActionLabel(
   }
   if (
     type === "ORDER_CANCELLED" ||
+    type === "ORDER_REFUNDED" ||
     type === "EVENT_CANCELLED" ||
     href.startsWith("/conta/pedidos")
   ) {

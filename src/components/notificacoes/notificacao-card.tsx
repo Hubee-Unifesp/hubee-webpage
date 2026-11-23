@@ -52,6 +52,7 @@ function getNotificacaoIconAppearance(type: NotificacaoTipo): NotificacaoIconApp
           "border-hubee-400 bg-hubee-200 text-hubee-800 dark:border-hubee-400/40 dark:bg-hubee-400/20 dark:text-hubee-300",
       };
     case "ORDER_CANCELLED":
+    case "ORDER_REFUNDED":
       return {
         icon: RotateCcw,
         containerClassName:
