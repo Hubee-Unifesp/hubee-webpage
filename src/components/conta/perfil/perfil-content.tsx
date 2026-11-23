@@ -15,7 +15,7 @@ import { PermissoesCard } from "./permissoes-card";
 import { TrocarSenhaForm } from "./trocar-senha-form";
 
 interface PerfilContentProps {
-  /** Convites pendentes de organização (conectados à API na GOL-278). */
+  /** Convites pendentes de organização (`useConvitesPendentes`). */
   convitesPendentes?: readonly ConviteOrganizacaoPendente[];
   convitesStatus?: ConvitesPendentesStatus;
   onRetryConvites?: () => void;
