@@ -10,7 +10,7 @@ import { getNavigationItems } from "./navigation/navigation.config";
 import { ThemeToggle } from "./theme-toggle";
 import type { HeaderProps, HeaderRole } from "./types";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNotifications } from "@/contexts/NotificationsContext";
+import { useTotalNotificacoes } from "@/hooks/useTotalNotificacoes";
 import { ThemedHubeeLogo } from "@/components/brand";
 import { MobileMenu } from "@/components/layout/logged";
 
@@ -21,7 +21,7 @@ export function Header({
 }: Omit<HeaderProps, 'role' | 'logoutHref'>) {
   const pathname = usePathname();
   const { user, isOrganizer } = useAuth();
-  const { unreadCount: unreadNotifications } = useNotifications();
+  const unreadNotifications = useTotalNotificacoes();
   const currentRole: HeaderRole = user
     ? (isOrganizer ? 'organizer' : 'user')
     : 'guest';

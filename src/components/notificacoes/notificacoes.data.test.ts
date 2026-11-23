@@ -9,6 +9,7 @@ import {
   isNotificacaoNaoLida,
   markAllNotificacoesReadInList,
   markNotificacaoReadInList,
+  somarPendencias,
   type NotificacaoItem,
 } from "./notificacoes.data";
 
@@ -104,5 +105,17 @@ describe("notificacoes.data", () => {
       "Ver detalhes do pedido",
     );
     expect(getNotificacaoActionLabel("CUSTOM", "/eventos/1")).toBe("Ver detalhes");
+  });
+});
+
+describe("somarPendencias", () => {
+  it("soma notificações não lidas e convites pendentes para o badge do sino", () => {
+    expect(somarPendencias(3, 2)).toBe(5);
+    expect(somarPendencias(0, 1)).toBe(1);
+    expect(somarPendencias(0, 0)).toBe(0);
+  });
+
+  it("ignora contadores negativos", () => {
+    expect(somarPendencias(-1, 2)).toBe(2);
   });
 });

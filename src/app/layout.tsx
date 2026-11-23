@@ -6,6 +6,7 @@ import { themeInitScript } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { ConvitesProvider } from "@/contexts/ConvitesContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import { ApiWakeNotice } from "@/components/api-wake/api-wake-notice";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -49,7 +50,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             {/* No root, e não no layout logado: a página pública do evento também usa o carrinho. */}
             <CartProvider>
-              <NotificationsProvider>{children}</NotificationsProvider>
+              <NotificationsProvider>
+                <ConvitesProvider>{children}</ConvitesProvider>
+              </NotificationsProvider>
             </CartProvider>
           </AuthProvider>
           <ApiWakeNotice />
