@@ -4,21 +4,21 @@ import { useState } from "react";
 import { AlertTriangle, Sparkles, X } from "lucide-react";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
-import type { SuggestedTicketType } from "@/lib/validations/event-ai-draft.schema";
+import type { LoteSugerido } from "@/lib/lotes-sugeridos";
 import type { LotePayload } from "@/types/lote-ingresso";
 import { botaoSecundarioClassName, hintClassName } from "../editor/estilos";
 import { MODALIDADE_LABEL } from "./lotes.data";
 import { LoteFormModal } from "./lote-form-modal";
 
-interface LotesSugeridosIaProps {
-  sugestoes: readonly SuggestedTicketType[];
+interface LotesSugeridosProps {
+  sugestoes: readonly LoteSugerido[];
   /** Cria o lote no evento. Deve rejeitar se a API falhar, para o modal continuar aberto. */
   onCriar: (payload: LotePayload) => Promise<void>;
   /** Tira a sugestão da lista, depois de criada ou descartada. */
-  onResolver: (sugestao: SuggestedTicketType) => void;
+  onResolver: (sugestao: LoteSugerido) => void;
 }
 
-function descreverSugestao(sugestao: SuggestedTicketType): string {
+function descreverSugestao(sugestao: LoteSugerido): string {
   const partes: string[] = [];
   if (sugestao.modality) partes.push(MODALIDADE_LABEL[sugestao.modality]);
   if (sugestao.price !== null) {
@@ -30,7 +30,7 @@ function descreverSugestao(sugestao: SuggestedTicketType): string {
   return partes.join(" · ");
 }
 
-function camposFaltando(sugestao: SuggestedTicketType): string[] {
+function camposFaltando(sugestao: LoteSugerido): string[] {
   const faltando: string[] = [];
   if (sugestao.price === null) faltando.push("preço");
   if (sugestao.quantity === null) faltando.push("quantidade");
@@ -38,12 +38,12 @@ function camposFaltando(sugestao: SuggestedTicketType): string[] {
 }
 
 /**
- * Lotes que a IA sugeriu para o evento recém-criado (GOL-266). Nada é criado sozinho: cada sugestão
+ * Lotes que o assistente sugeriu para o evento recém-criado. Nada é criado sozinho: cada sugestão
  * abre o formulário de lote já preenchido, para o organizador revisar, completar e confirmar.
  */
-export function LotesSugeridosIa({ sugestoes, onCriar, onResolver }: LotesSugeridosIaProps) {
+export function LotesSugeridos({ sugestoes, onCriar, onResolver }: LotesSugeridosProps) {
   const toast = useToast();
-  const [emRevisao, setEmRevisao] = useState<SuggestedTicketType | null>(null);
+  const [emRevisao, setEmRevisao] = useState<LoteSugerido | null>(null);
 
   if (sugestoes.length === 0) return null;
 
@@ -57,7 +57,7 @@ export function LotesSugeridosIa({ sugestoes, onCriar, onResolver }: LotesSugeri
 
   return (
     <section
-      aria-labelledby="lotes-ia-titulo"
+      aria-labelledby="lotes-sugeridos-titulo"
       className="rounded-xl border border-hubee-400 bg-[#FFF9E6] p-5 shadow-sm md:p-6 dark:border-hubee-400/35 dark:bg-hubee-850"
     >
       <div className="flex items-start gap-3">
@@ -68,8 +68,8 @@ export function LotesSugeridosIa({ sugestoes, onCriar, onResolver }: LotesSugeri
           <Sparkles className="size-4.5" />
         </span>
         <div>
-          <h2 id="lotes-ia-titulo" className="text-base font-semibold">
-            Lotes sugeridos pela IA
+          <h2 id="lotes-sugeridos-titulo" className="text-base font-semibold">
+            Lotes sugeridos pelo assistente
           </h2>
           <p className={hintClassName}>
             Revise cada sugestão antes de criar o lote. Nada é criado ou publicado automaticamente.
@@ -77,7 +77,7 @@ export function LotesSugeridosIa({ sugestoes, onCriar, onResolver }: LotesSugeri
         </div>
       </div>
 
-      <ul aria-label="Lotes sugeridos pela IA" className="mt-4 grid gap-3 md:grid-cols-2">
+      <ul aria-label="Lotes sugeridos pelo assistente" className="mt-4 grid gap-3 md:grid-cols-2">
         {sugestoes.map((sugestao, indice) => {
           const faltando = camposFaltando(sugestao);
           return (
