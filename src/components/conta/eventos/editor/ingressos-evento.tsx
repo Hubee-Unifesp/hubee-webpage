@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { SuggestedTicketType } from "@/lib/validations/event-ai-draft.schema";
+import type { LoteSugerido } from "@/lib/lotes-sugeridos";
 import type { EventoEditavel } from "@/types/evento-editor";
 import type { LotePayload } from "@/types/lote-ingresso";
 import { LotesIngressosPanel } from "../lotes/lotes-ingressos-panel";
-import { LotesSugeridosIa } from "../lotes/lotes-sugeridos-ia";
+import { LotesSugeridos } from "../lotes/lotes-sugeridos";
 import { acoesEtapaClassName, botaoPrimarioClassName, botaoTextoClassName } from "./estilos";
 
 interface IngressosEventoProps {
@@ -13,9 +13,9 @@ interface IngressosEventoProps {
   onCriarLote: (payload: LotePayload) => Promise<void>;
   onEditarLote: (loteId: string, payload: LotePayload) => Promise<void>;
   onExcluirLote: (loteId: string) => Promise<void>;
-  /** Lotes sugeridos pela IA (GOL-266) ainda não criados nem descartados. */
-  lotesSugeridos?: readonly SuggestedTicketType[];
-  onResolverLoteSugerido?: (sugestao: SuggestedTicketType) => void;
+  /** Lotes sugeridos pelo assistente ainda não criados nem descartados. */
+  lotesSugeridos?: readonly LoteSugerido[];
+  onResolverLoteSugerido?: (sugestao: LoteSugerido) => void;
   onVoltar: () => void;
   onContinuar: () => void;
 }
@@ -34,7 +34,7 @@ export function IngressosEvento({
   return (
     <div className="flex flex-col gap-4">
       {!somenteLeitura && onResolverLoteSugerido && (
-        <LotesSugeridosIa sugestoes={lotesSugeridos} onCriar={onCriarLote} onResolver={onResolverLoteSugerido} />
+        <LotesSugeridos sugestoes={lotesSugeridos} onCriar={onCriarLote} onResolver={onResolverLoteSugerido} />
       )}
       <LotesIngressosPanel
         lotes={evento.lotes}

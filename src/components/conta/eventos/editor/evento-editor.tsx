@@ -11,8 +11,7 @@ import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { useEventoEditor } from "@/hooks/useEventoEditor";
 import { getApiErrorMessage } from "@/lib/api/errors";
-import { carregarLotesSugeridos, salvarLotesSugeridos } from "@/lib/ai-draft-lotes";
-import type { SuggestedTicketType } from "@/lib/validations/event-ai-draft.schema";
+import { carregarLotesSugeridos, salvarLotesSugeridos, type LoteSugerido } from "@/lib/lotes-sugeridos";
 import { canCancelEvent } from "@/types/organizacao";
 import type { EventoPayload, LocalEvento, LocalPayload } from "@/types/evento-editor";
 import { StatusEventoBadge } from "../status-evento-badge";
@@ -95,7 +94,7 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
   const [acabouDePublicar, setAcabouDePublicar] = useState(false);
   // Sobrevivem à troca de rota feita ao criar o rascunho. A página remonta o editor por evento (`key`) e
   // só mostra o painel depois do carregamento, então ler a sessão aqui não diverge do HTML do servidor.
-  const [lotesSugeridos, setLotesSugeridos] = useState<SuggestedTicketType[]>(() =>
+  const [lotesSugeridos, setLotesSugeridos] = useState<LoteSugerido[]>(() =>
     eventoId && typeof window !== "undefined" ? carregarLotesSugeridos(eventoId) : [],
   );
   const {
@@ -116,7 +115,7 @@ export function EventoEditor({ eventoId, etapaInicial = "dados" }: EventoEditorP
   } = useEventoEditor(eventoId);
 
   const handleResolverLoteSugerido = useCallback(
-    (sugestao: SuggestedTicketType) => {
+    (sugestao: LoteSugerido) => {
       setLotesSugeridos((atuais) => {
         const restantes = atuais.filter((item) => item !== sugestao);
         if (eventoId) salvarLotesSugeridos(eventoId, restantes);

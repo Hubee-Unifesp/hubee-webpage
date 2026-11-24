@@ -18,7 +18,7 @@ import {
   type TicketTypeFormInputs,
   type TicketTypeFormValues,
 } from "@/lib/validations/ticket-type.schema";
-import type { SuggestedTicketType } from "@/lib/validations/event-ai-draft.schema";
+import type { LoteSugerido } from "@/lib/lotes-sugeridos";
 import type { LoteIngresso, LotePayload } from "@/types/lote-ingresso";
 import {
   botaoPrimarioClassName,
@@ -36,13 +36,13 @@ interface LoteFormModalProps {
   onOpenChange: (open: boolean) => void;
   /** Com lote, o modal é de edição; sem, de criação. */
   lote: LoteIngresso | null;
-  /** Lote sugerido pela IA: pré-preenche a criação (o que a IA não inferiu fica em branco). */
-  sugestao?: SuggestedTicketType | null;
+  /** Lote sugerido pelo assistente: pré-preenche a criação, e o que ele não informou fica em branco. */
+  sugestao?: LoteSugerido | null;
   /** Deve resolver depois de salvar. Se rejeitar, o modal continua aberto e mostra o erro. */
   onSubmit: (payload: LotePayload) => Promise<void>;
 }
 
-function toFormValues(lote: LoteIngresso | null, sugestao: SuggestedTicketType | null): TicketTypeFormInputs {
+function toFormValues(lote: LoteIngresso | null, sugestao: LoteSugerido | null): TicketTypeFormInputs {
   if (!lote && sugestao) {
     return {
       ...emptyTicketTypeForm,

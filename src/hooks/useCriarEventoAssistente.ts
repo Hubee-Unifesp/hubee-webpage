@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
-import { salvarLotesSugeridos } from "@/lib/ai-draft-lotes";
+import { salvarLotesSugeridos } from "@/lib/lotes-sugeridos";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type { AssistantDraft, AssistantTicketType } from "@/lib/api/event-ai-assistant.types";
 import { createEvento } from "@/lib/api/organizer-events";
