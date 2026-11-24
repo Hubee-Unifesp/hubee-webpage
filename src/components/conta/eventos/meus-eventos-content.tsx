@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, CalendarDays, Info, ListFilter, Lock, Plus, Search } from "lucide-react";
+import { Building2, CalendarDays, Info, ListFilter, Lock, Plus, Search, Sparkles } from "lucide-react";
 import { ContaPageTitle } from "@/components/conta/conta-card";
 import { EmptyState } from "@/components/empty-state";
 import { ListMessage } from "@/components/home/events/list-states";
@@ -96,15 +96,26 @@ export function MeusEventosContent() {
           <ContaPageTitle>Meus Eventos</ContaPageTitle>
 
           {podeCriarEvento ? (
-            <Button
-              type="button"
-              variant="hubee_750"
-              onClick={handleCriarEvento}
-              className="h-10 self-start rounded-lg px-4 font-semibold sm:self-auto sm:translate-y-1.5 dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300"
-            >
-              <Plus aria-hidden="true" className="size-4" />
-              Criar Novo Evento
-            </Button>
+            <div className="flex flex-col gap-2 self-start sm:flex-row sm:self-auto sm:translate-y-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/meus-eventos/novo/assistente")}
+                className="h-10 rounded-lg border-hubee-400 bg-transparent px-4 font-semibold text-hubee-800 hover:bg-hubee-100 dark:border-hubee-400/50 dark:text-hubee-50 dark:hover:bg-hubee-50/10"
+              >
+                <Sparkles aria-hidden="true" className="size-4" />
+                Criar com assistente
+              </Button>
+              <Button
+                type="button"
+                variant="hubee_750"
+                onClick={handleCriarEvento}
+                className="h-10 rounded-lg px-4 font-semibold dark:bg-hubee-400 dark:text-hubee-800 dark:hover:bg-hubee-300"
+              >
+                <Plus aria-hidden="true" className="size-4" />
+                Criar Novo Evento
+              </Button>
+            </div>
           ) : (
             <Button
               type="button"

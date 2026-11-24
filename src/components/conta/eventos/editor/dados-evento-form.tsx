@@ -1,23 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { AlertTriangle, Loader2, MapPin, Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { AuthField, AuthInput, fieldA11y } from "@/components/auth/auth-field";
 import { DateTimePicker, formatDateTimeLabel } from "@/components/date-time-picker";
 import { categoryConfig } from "@/components/home/events/categories.config";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import {
-  encontrarLocalSugerido,
-  formatarSugestaoLocal,
-  toEventFormValuesFromAiDraft,
-  type EventAiDraft,
-  type EventAiDraftField,
-} from "@/lib/validations/event-ai-draft.schema";
 import {
   AGE_RATINGS,
   EVENT_CATEGORIES,
@@ -41,34 +34,13 @@ import {
   labelClassName,
   selectClassName,
 } from "./estilos";
-import { CampoIaBadge } from "./gerador-ia-evento";
 import { SecaoFormulario } from "./secao-formulario";
-
-const campoPendenteClassName =
-  "border-amber-500 bg-amber-50/70 focus-visible:border-amber-600 focus-visible:ring-amber-500/30 dark:border-amber-500 dark:bg-amber-950/35";
-const campoInferidoClassName = "border-emerald-500/70 dark:border-emerald-500/60";
-const campoCarregandoIaClassName =
-  "animate-pulse bg-hubee-100/70 motion-reduce:animate-none dark:bg-hubee-850/80";
-
-function AvisoCampoPendenteIa({ texto }: { texto: string }) {
-  return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
-      <AlertTriangle aria-hidden="true" className="size-3 shrink-0" />
-      {texto}
-    </span>
-  );
-}
 
 interface DadosEventoFormProps {
   evento: EventoEditavel | null;
   locais: readonly LocalEvento[];
   organizerId: string;
   somenteLeitura: boolean;
-  rascunhoIa?: EventAiDraft | null;
-  gerandoComIa?: boolean;
-  camposPendentesIa?: ReadonlySet<EventAiDraftField>;
-  camposInferidosIa?: ReadonlySet<EventAiDraftField>;
-  onResolverPendenciaIa?: (campo: EventAiDraftField) => void;
   onCriarLocal: (payload: LocalPayload) => Promise<LocalEvento | null>;
   onSubmit: (payload: EventoPayload, capa: File | null) => Promise<void>;
   onContinuar: () => void;
@@ -79,24 +51,16 @@ export function DadosEventoForm({
   locais,
   organizerId,
   somenteLeitura,
-  rascunhoIa = null,
-  gerandoComIa = false,
-  camposPendentesIa,
-  camposInferidosIa,
-  onResolverPendenciaIa,
   onCriarLocal,
   onSubmit,
   onContinuar,
 }: DadosEventoFormProps) {
   const [capa, setCapa] = useState<File | null>(null);
   const [cadastrandoLocal, setCadastrandoLocal] = useState(false);
-  const ultimoRascunhoAplicado = useRef<EventAiDraft | null>(null);
 
   const {
     control,
     register,
-    getValues,
-    reset,
     setValue,
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -108,19 +72,9 @@ export function DadosEventoForm({
     defaultValues: toEventFormValues(evento),
   });
 
-  useEffect(() => {
-    if (!rascunhoIa || rascunhoIa === ultimoRascunhoAplicado.current) return;
-    ultimoRascunhoAplicado.current = rascunhoIa;
-    const valores = toEventFormValuesFromAiDraft(rascunhoIa, getValues());
-    // Local já cadastrado com o nome sugerido: seleciona. Sem correspondência, segue pendente para o organizador.
-    const sugerido = valores.venueId ? null : encontrarLocalSugerido(rascunhoIa.venueSuggestion, locais);
-    reset(sugerido ? { ...valores, venueId: sugerido.id } : valores);
-    if (sugerido) onResolverPendenciaIa?.("venueSuggestion");
-  }, [rascunhoIa, locais, getValues, reset, onResolverPendenciaIa]);
-
-  const [name, category, edition, ageRating, description, startDate, endDate, venueId] = useWatch({
+  const [name, startDate, venueId] = useWatch({
     control,
-    name: ["name", "category", "edition", "ageRating", "description", "startDate", "endDate", "venueId"],
+    name: ["name", "startDate", "venueId"],
   });
   const local = locais.find((item) => item.id === venueId) ?? null;
 
@@ -128,7 +82,6 @@ export function DadosEventoForm({
     const novo = await onCriarLocal(payload);
     if (!novo) return false;
     setValue("venueId", novo.id, { shouldDirty: true, shouldValidate: true });
-    onResolverPendenciaIa?.("venueSuggestion");
     setCadastrandoLocal(false);
     return true;
   }
@@ -137,7 +90,7 @@ export function DadosEventoForm({
     await onSubmit(toEventPayload(values, organizerId), capa);
   }
 
-  const bloqueado = somenteLeitura || isSubmitting || gerandoComIa;
+  const bloqueado = somenteLeitura || isSubmitting;
   const nameError = errors.name?.message;
   const editionError = errors.edition?.message;
   const startError = errors.startDate?.message;
@@ -145,44 +98,10 @@ export function DadosEventoForm({
   const salesError = errors.salesStartDate?.message;
   const venueError = errors.venueId?.message;
 
-  const isPending = (campo: EventAiDraftField, valorAtual: string) =>
-    Boolean(camposPendentesIa?.has(campo)) && valorAtual.trim() === "";
-  const isInferred = (campo: EventAiDraftField, valorAtual: string) =>
-    Boolean(camposInferidosIa?.has(campo)) && !isPending(campo, valorAtual) && valorAtual.trim() !== "";
-
-  const namePending = isPending("name", name);
-  const categoryPending = isPending("category", category);
-  const editionPending = isPending("edition", edition);
-  const ageRatingPending = isPending("ageRating", ageRating);
-  const descriptionPending = isPending("description", description);
-  const startPending = isPending("startDate", startDate);
-  const endPending = isPending("endDate", endDate);
-  const venuePending = isPending("venueSuggestion", venueId);
-
-  const nameInferred = isInferred("name", name);
-  const categoryInferred = isInferred("category", category);
-  const editionInferred = isInferred("edition", edition);
-  const ageRatingInferred = isInferred("ageRating", ageRating);
-  const descriptionInferred = isInferred("description", description);
-  const startInferred = isInferred("startDate", startDate);
-  const endInferred = isInferred("endDate", endDate);
-
-  const sugestaoLocalTexto = formatarSugestaoLocal(rascunhoIa?.venueSuggestion ?? null);
-  const temPendenciaBasica =
-    namePending || categoryPending || editionPending || ageRatingPending || descriptionPending;
-  const temPendenciaData = startPending || endPending;
-
-  const fieldStateClass = (pending: boolean, inferred: boolean) =>
-    cn(
-      gerandoComIa && campoCarregandoIaClassName,
-      pending && campoPendenteClassName,
-      !pending && inferred && campoInferidoClassName,
-    );
-
   return (
     <form
       noValidate
-      aria-busy={isSubmitting || gerandoComIa}
+      aria-busy={isSubmitting}
       onSubmit={somenteLeitura ? (event) => event.preventDefault() : handleSubmit(enviar)}
       className="flex flex-col gap-4"
     >
@@ -191,28 +110,19 @@ export function DadosEventoForm({
         descricao="É o que o público vê na página do evento."
         resumo={name.trim() || "Nome, categoria e descrição"}
         inicialmenteAberta
-        forcarAberta={Boolean(nameError || editionError || temPendenciaBasica)}
+        forcarAberta={Boolean(nameError || editionError)}
       >
         <fieldset disabled={bloqueado} className="grid min-w-0 gap-4 md:grid-cols-2">
           <legend className="sr-only">Informações básicas</legend>
 
           <div className="md:col-span-2">
-            <div className="mb-1 flex flex-wrap items-center justify-between gap-1.5">
-              {namePending && <CampoIaBadge tipo="missing" />}
-              {nameInferred && <CampoIaBadge tipo="inferred" />}
-            </div>
             <AuthField
               id="evento-nome"
               label="Nome do evento *"
               labelClassName={labelClassName}
               error={nameError}
               description={
-                <span className="flex flex-wrap items-center justify-between gap-2" aria-live="polite">
-                  {namePending ? (
-                    <AvisoCampoPendenteIa texto="A IA não identificou o nome do evento. Informe antes de salvar." />
-                  ) : (
-                    <span />
-                  )}
+                <span className="flex flex-wrap items-center justify-end gap-2" aria-live="polite">
                   <span>
                     {name.length} / {EVENT_NAME_MAX_LENGTH}
                   </span>
@@ -224,41 +134,15 @@ export function DadosEventoForm({
                 aria-required="true"
                 placeholder="Ex.: Hubee Tech Summit"
                 maxLength={EVENT_NAME_MAX_LENGTH}
-                className={cn(inputClassName, fieldStateClass(namePending, nameInferred))}
-                {...register("name", {
-                  onChange: (event) => {
-                    if (event.target.value.trim()) onResolverPendenciaIa?.("name");
-                  },
-                })}
+                className={inputClassName}
+                {...register("name")}
               />
             </AuthField>
           </div>
 
           <div>
-            {(categoryPending || categoryInferred) && (
-              <div className="mb-1 flex justify-end">
-                <CampoIaBadge tipo={categoryPending ? "missing" : "inferred"} />
-              </div>
-            )}
-            <AuthField
-              id="evento-categoria"
-              label="Categoria"
-              labelClassName={labelClassName}
-              description={
-                categoryPending ? (
-                  <AvisoCampoPendenteIa texto="A IA não identificou a categoria. Selecione se desejar." />
-                ) : undefined
-              }
-            >
-              <select
-                id="evento-categoria"
-                className={cn(selectClassName, fieldStateClass(categoryPending, categoryInferred))}
-                {...register("category", {
-                  onChange: (event) => {
-                    if (event.target.value) onResolverPendenciaIa?.("category");
-                  },
-                })}
-              >
+            <AuthField id="evento-categoria" label="Categoria" labelClassName={labelClassName}>
+              <select id="evento-categoria" className={selectClassName} {...register("category")}>
                 <option value="">Selecione</option>
                 {EVENT_CATEGORIES.map((categoria) => (
                   <option key={categoria} value={categoria}>
@@ -270,44 +154,21 @@ export function DadosEventoForm({
           </div>
 
           <div>
-            {(editionPending || editionInferred) && (
-              <div className="mb-1 flex justify-end">
-                <CampoIaBadge tipo={editionPending ? "missing" : "inferred"} />
-              </div>
-            )}
-            <AuthField
-              id="evento-edicao"
-              label="Edição"
-              labelClassName={labelClassName}
-              error={editionError}
-              description={
-                editionPending ? (
-                  <AvisoCampoPendenteIa texto="A IA não identificou a edição no texto. Preencha ou deixe em branco." />
-                ) : undefined
-              }
-            >
+            <AuthField id="evento-edicao" label="Edição" labelClassName={labelClassName} error={editionError}>
               <AuthInput
                 {...fieldA11y("evento-edicao", editionError)}
                 placeholder="Ex.: 3ª edição"
                 maxLength={EVENT_EDITION_MAX_LENGTH}
-                className={cn(inputClassName, fieldStateClass(editionPending, editionInferred))}
-                {...register("edition", {
-                  onChange: (event) => {
-                    if (event.target.value.trim()) onResolverPendenciaIa?.("edition");
-                  },
-                })}
+                className={inputClassName}
+                {...register("edition")}
               />
             </AuthField>
           </div>
 
           <div className="flex flex-col gap-1 md:col-span-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span id="evento-classificacao" className={cn(labelClassName, "text-hubee-800 dark:text-hubee-50")}>
-                Classificação indicativa
-              </span>
-              {ageRatingPending && <CampoIaBadge tipo="missing" />}
-              {ageRatingInferred && <CampoIaBadge tipo="inferred" />}
-            </div>
+            <span id="evento-classificacao" className={cn(labelClassName, "text-hubee-800 dark:text-hubee-50")}>
+              Classificação indicativa
+            </span>
             <Controller
               control={control}
               name="ageRating"
@@ -315,10 +176,7 @@ export function DadosEventoForm({
                 <div
                   role="group"
                   aria-labelledby="evento-classificacao"
-                  className={cn(
-                    "grid grid-cols-6 gap-1.5 rounded-lg",
-                    ageRatingPending && "ring-2 ring-amber-500/80 ring-offset-2 ring-offset-hubee-50 dark:ring-offset-hubee-900",
-                  )}
+                  className="grid grid-cols-6 gap-1.5 rounded-lg"
                 >
                   {AGE_RATINGS.map((rating) => {
                     const ativo = field.value === rating;
@@ -327,11 +185,7 @@ export function DadosEventoForm({
                         key={rating}
                         type="button"
                         aria-pressed={ativo}
-                        onClick={() => {
-                          const proximo = ativo ? "" : rating;
-                          field.onChange(proximo);
-                          if (proximo) onResolverPendenciaIa?.("ageRating");
-                        }}
+                        onClick={() => field.onChange(ativo ? "" : rating)}
                         className={cn(
                           "h-11 min-w-0 cursor-pointer rounded-lg border text-sm font-semibold outline-none focus-visible:ring-3 focus-visible:ring-hubee-500/40 disabled:cursor-not-allowed disabled:opacity-60",
                           ativo
@@ -346,40 +200,16 @@ export function DadosEventoForm({
                 </div>
               )}
             />
-            {ageRatingPending && (
-              <AvisoCampoPendenteIa texto="A IA não identificou a classificação indicativa. Selecione uma opção se aplicável." />
-            )}
           </div>
 
           <div className="md:col-span-2">
-            {(descriptionPending || descriptionInferred) && (
-              <div className="mb-1 flex justify-end">
-                <CampoIaBadge tipo={descriptionPending ? "missing" : "inferred"} />
-              </div>
-            )}
-            <AuthField
-              id="evento-descricao"
-              label="Descrição"
-              labelClassName={labelClassName}
-              description={
-                descriptionPending ? (
-                  <AvisoCampoPendenteIa texto="A IA não gerou uma descrição. Escreva os detalhes do evento." />
-                ) : undefined
-              }
-            >
+            <AuthField id="evento-descricao" label="Descrição" labelClassName={labelClassName}>
               <Textarea
                 id="evento-descricao"
                 rows={4}
                 placeholder="Conte o que vai acontecer, quem participa e o que o público precisa saber."
-                className={cn(
-                  "min-h-24 rounded-lg border-hubee-neutral-50 bg-white text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50",
-                  fieldStateClass(descriptionPending, descriptionInferred),
-                )}
-                {...register("description", {
-                  onChange: (event) => {
-                    if (event.target.value.trim()) onResolverPendenciaIa?.("description");
-                  },
-                })}
+                className="min-h-24 rounded-lg border-hubee-neutral-50 bg-white text-hubee-800 placeholder:text-hubee-neutral-200 focus-visible:border-hubee-500 focus-visible:ring-hubee-500/30 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-50"
+                {...register("description")}
               />
             </AuthField>
           </div>
@@ -397,87 +227,43 @@ export function DadosEventoForm({
       <SecaoFormulario
         titulo="Data e horário"
         resumo={formatDateTimeLabel(startDate) ?? "Início, término e vendas"}
-        forcarAberta={Boolean(startError || endError || salesError || temPendenciaData)}
+        forcarAberta={Boolean(startError || endError || salesError)}
       >
         <fieldset disabled={bloqueado} className="grid min-w-0 gap-4 md:grid-cols-3">
           <legend className="sr-only">Data e horário</legend>
-          <div>
-            {(startPending || startInferred) && (
-              <div className="mb-1 flex justify-end">
-                <CampoIaBadge tipo={startPending ? "missing" : "inferred"} />
-              </div>
-            )}
-            <AuthField
-              id="evento-inicio"
-              label="Início do evento *"
-              labelClassName={labelClassName}
-              error={startError}
-              description={
-                startPending ? (
-                  <AvisoCampoPendenteIa texto="Obrigatório · Informe a data e hora de início." />
-                ) : undefined
-              }
-            >
-              <Controller
-                control={control}
-                name="startDate"
-                render={({ field }) => (
-                  <div className={cn(startPending && "rounded-lg ring-2 ring-amber-500/80")}>
-                    <DateTimePicker
-                      {...fieldA11y("evento-inicio", startError)}
-                      aria-required="true"
-                      value={field.value}
-                      onChange={(value) => {
-                        field.onChange(value);
-                        if (value) onResolverPendenciaIa?.("startDate");
-                      }}
-                      onBlur={field.onBlur}
-                      disabled={bloqueado}
-                    />
-                  </div>
-                )}
-              />
-            </AuthField>
-          </div>
-          <div>
-            {(endPending || endInferred) && (
-              <div className="mb-1 flex justify-end">
-                <CampoIaBadge tipo={endPending ? "missing" : "inferred"} />
-              </div>
-            )}
-            <AuthField
-              id="evento-termino"
-              label="Término do evento *"
-              labelClassName={labelClassName}
-              error={endError}
-              description={
-                endPending ? (
-                  <AvisoCampoPendenteIa texto="Obrigatório · Informe a data e hora de término." />
-                ) : undefined
-              }
-            >
-              <Controller
-                control={control}
-                name="endDate"
-                render={({ field }) => (
-                  <div className={cn(endPending && "rounded-lg ring-2 ring-amber-500/80")}>
-                    <DateTimePicker
-                      {...fieldA11y("evento-termino", endError)}
-                      aria-required="true"
-                      mesInicial={startDate}
-                      value={field.value}
-                      onChange={(value) => {
-                        field.onChange(value);
-                        if (value) onResolverPendenciaIa?.("endDate");
-                      }}
-                      onBlur={field.onBlur}
-                      disabled={bloqueado}
-                    />
-                  </div>
-                )}
-              />
-            </AuthField>
-          </div>
+          <AuthField id="evento-inicio" label="Início do evento *" labelClassName={labelClassName} error={startError}>
+            <Controller
+              control={control}
+              name="startDate"
+              render={({ field }) => (
+                <DateTimePicker
+                  {...fieldA11y("evento-inicio", startError)}
+                  aria-required="true"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  disabled={bloqueado}
+                />
+              )}
+            />
+          </AuthField>
+          <AuthField id="evento-termino" label="Término do evento *" labelClassName={labelClassName} error={endError}>
+            <Controller
+              control={control}
+              name="endDate"
+              render={({ field }) => (
+                <DateTimePicker
+                  {...fieldA11y("evento-termino", endError)}
+                  aria-required="true"
+                  mesInicial={startDate}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  disabled={bloqueado}
+                />
+              )}
+            />
+          </AuthField>
           <AuthField
             id="evento-vendas"
             label="Início das vendas"
@@ -505,68 +291,30 @@ export function DadosEventoForm({
 
       <SecaoFormulario
         titulo="Local"
-        resumo={local?.nome ?? (venuePending ? "Pendente de revisão (IA)" : "Selecione um local")}
-        forcarAberta={Boolean(venueError || venuePending)}
+        resumo={local?.nome ?? "Selecione um local"}
+        forcarAberta={Boolean(venueError)}
       >
         <fieldset disabled={bloqueado} className="grid min-w-0 gap-4 md:grid-cols-2">
           <legend className="sr-only">Local</legend>
-          <div>
-            {venuePending && (
-              <div className="mb-1 flex justify-end">
-                <CampoIaBadge tipo="missing" />
-              </div>
-            )}
-            <AuthField
-              id="evento-local"
-              label="Local do evento *"
-              labelClassName={labelClassName}
-              error={venueError}
-              description={
-                venuePending ? (
-                  <AvisoCampoPendenteIa texto='Obrigatório · Selecione o local cadastrado ou clique em "+ Cadastrar novo local".' />
-                ) : undefined
-              }
+          <AuthField id="evento-local" label="Local do evento *" labelClassName={labelClassName} error={venueError}>
+            <select
+              {...fieldA11y("evento-local", venueError)}
+              aria-required="true"
+              className={selectClassName}
+              {...register("venueId")}
             >
-              <Controller
-                control={control}
-                name="venueId"
-                render={({ field }) => (
-                  <select
-                    {...fieldA11y("evento-local", venueError)}
-                    aria-required="true"
-                    className={cn(selectClassName, venuePending && campoPendenteClassName)}
-                    name={field.name}
-                    ref={field.ref}
-                    value={field.value}
-                    onBlur={field.onBlur}
-                    onChange={(event) => {
-                      field.onChange(event);
-                      if (event.target.value) onResolverPendenciaIa?.("venueSuggestion");
-                    }}
-                  >
-                    <option value="">Selecione um local</option>
-                    {locais.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.nome}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              />
-            </AuthField>
-          </div>
+              <option value="">Selecione um local</option>
+              {locais.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.nome}
+                </option>
+              ))}
+            </select>
+          </AuthField>
           {local ? (
             <div className="flex flex-col justify-center gap-0.5 rounded-lg bg-hubee-100 px-3 py-2.5 text-sm dark:bg-hubee-850">
               <span className="font-semibold">{local.nome}</span>
               <span className="text-xs">Capacidade máxima: {local.capacidade.toLocaleString("pt-BR")} pessoas</span>
-            </div>
-          ) : sugestaoLocalTexto ? (
-            <div className="flex items-start gap-2 rounded-lg border border-amber-500/60 bg-amber-50 px-3 py-2.5 text-xs text-amber-900 dark:border-amber-500/50 dark:bg-amber-950/50 dark:text-amber-200">
-              <MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-              <div className="flex flex-col gap-0.5">
-                <span className="font-semibold">Local mencionado na descrição (IA):</span>
-                <span>{sugestaoLocalTexto}</span>
-              </div>
             </div>
           ) : (
             <span aria-hidden="true" className="hidden md:block" />

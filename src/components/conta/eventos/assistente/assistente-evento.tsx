@@ -1,19 +1,23 @@
 "use client";
 
+import { useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Lock, RotateCcw } from "lucide-react";
 import { ContaPageTitle } from "@/components/conta/conta-card";
 import { EmptyState } from "@/components/empty-state";
 import { Skeleton } from "@/components/skeleton";
+import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAssistenteEvento, type EnviarRodada } from "@/hooks/useAssistenteEvento";
+import type { EventoCriado } from "@/hooks/useCriarEventoAssistente";
 import { podePular } from "@/lib/assistente-evento";
 import { canCreateEvents } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import { botaoTextoClassName } from "../editor/estilos";
 import { ChatAssistente } from "./chat-assistente";
+import { CriarEventoCard } from "./criar-evento-card";
 import { ResumoRascunho } from "./resumo-rascunho";
 
 function VoltarParaMeusEventos() {
@@ -31,8 +35,22 @@ function VoltarParaMeusEventos() {
 export function AssistenteEvento({ enviarRodada }: { enviarRodada?: EnviarRodada }) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const toast = useToast();
   const { conversa, carregado, enviando, erro, podeTentarDeNovo, enviar, tentarDeNovo, recomecar } =
     useAssistenteEvento(enviarRodada);
+
+  const aoCriar = useCallback(
+    ({ eventoId, lotesPendentes }: EventoCriado) => {
+      recomecar();
+      toast.success(
+        lotesPendentes > 0
+          ? `Rascunho criado. ${lotesPendentes} ${lotesPendentes === 1 ? "lote ficou" : "lotes ficaram"} como sugestão na etapa de ingressos.`
+          : "Rascunho criado. Revise os dados e adicione a capa antes de publicar.",
+      );
+      router.push(`/meus-eventos/${eventoId}/editar`);
+    },
+    [recomecar, router, toast],
+  );
 
   if (isLoading || !carregado) {
     return (
@@ -84,16 +102,19 @@ export function AssistenteEvento({ enviarRodada }: { enviarRodada?: EnviarRodada
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-        <ChatAssistente
-          mensagens={conversa.mensagens}
-          enviando={enviando}
-          erro={erro}
-          podePular={podePular(conversa)}
-          podeTentarDeNovo={podeTentarDeNovo}
-          concluido={conversa.done}
-          onEnviar={enviar}
-          onTentarDeNovo={tentarDeNovo}
-        />
+        <div className="flex flex-col gap-4">
+          <ChatAssistente
+            mensagens={conversa.mensagens}
+            enviando={enviando}
+            erro={erro}
+            podePular={podePular(conversa)}
+            podeTentarDeNovo={podeTentarDeNovo}
+            concluido={conversa.done}
+            onEnviar={enviar}
+            onTentarDeNovo={tentarDeNovo}
+          />
+          {conversa.done && <CriarEventoCard draft={conversa.draft} onCriado={aoCriar} />}
+        </div>
         <div className="order-first lg:sticky lg:top-24 lg:order-none">
           <ResumoRascunho
             draft={conversa.draft}
