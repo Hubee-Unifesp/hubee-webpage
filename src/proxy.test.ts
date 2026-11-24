@@ -22,6 +22,7 @@ describe("proxy (BUG-20 e BUG-25)", () => {
     "/meus-eventos/novo",
     "/meus-eventos/evt-1/editar",
     "/meus-ingressos",
+    "/minha-organizacao",
     "/notificacoes",
     "/organizacoes/nova",
   ])("redireciona rota privada %s sem sessão para /login", (pathname) => {

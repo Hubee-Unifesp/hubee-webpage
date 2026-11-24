@@ -11,8 +11,18 @@ const navigationEntries: readonly NavigationEntry[] = [
   { href: "/sobre", label: "Sobre" },
 ];
 
-export function getNavigationItems(_role: HeaderRole, homeHref: string): NavigationItem[] {
-  return navigationEntries.map(({ href, label }) => ({
+const organizerNavigationEntry: NavigationEntry = {
+  href: "/minha-organizacao",
+  label: "Organização",
+};
+
+export function getNavigationItems(role: HeaderRole, homeHref: string): NavigationItem[] {
+  const entries =
+    role === "organizer"
+      ? [...navigationEntries, organizerNavigationEntry]
+      : navigationEntries;
+
+  return entries.map(({ href, label }) => ({
     href: href.startsWith("#") ? `${homeHref}${href}` : href,
     label,
   }));

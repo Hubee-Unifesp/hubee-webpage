@@ -9,6 +9,7 @@ const PROTECTED_ROUTE_PREFIXES = [
   '/conta',
   '/meus-eventos',
   '/meus-ingressos',
+  '/minha-organizacao',
   '/notificacoes',
   '/organizacoes',
 ];

@@ -8,6 +8,7 @@ import {
   getAccountNavItems,
   getProfileMenuItems,
   membersNavItem,
+  myOrganizationNavItem,
   myTicketsNavItem,
   organizerEventsNavItem,
   organizerManageEventsNavItem,
@@ -29,20 +30,22 @@ describe("account-nav.config", () => {
     expect(getAccountNavItems(false)).toEqual([myTicketsNavItem, ...buyerAccountNavItems]);
   });
 
-  it("acrescenta Meus eventos, Fornecedores e Membros no menu mobile para membros de organizações", () => {
+  it("acrescenta Minha organização, Meus eventos, Fornecedores e Membros no menu mobile para membros de organizações", () => {
     expect(getAccountNavItems(true).map((i) => i.href)).toEqual([
       "/meus-ingressos",
+      "/minha-organizacao",
       "/meus-eventos",
       "/conta/pedidos",
       "/conta/perfil",
       "/conta/fornecedores",
       "/conta/membros",
     ]);
+    expect(myOrganizationNavItem.organizerOnly).toBe(true);
     expect(suppliersNavItem.organizerOnly).toBe(true);
     expect(membersNavItem.organizerOnly).toBe(true);
   });
 
-  it("retorna Meus ingressos, pedidos e perfil no dropdown do perfil e acrescenta Meus eventos para organizadores", () => {
+  it("retorna Meus ingressos, pedidos e perfil no dropdown do perfil e acrescenta Minha organização e Meus eventos para organizadores", () => {
     expect(getProfileMenuItems(false).map((i) => i.href)).toEqual([
       "/meus-ingressos",
       "/conta/pedidos",
@@ -50,6 +53,7 @@ describe("account-nav.config", () => {
     ]);
     expect(getProfileMenuItems(true).map((i) => i.href)).toEqual([
       "/meus-ingressos",
+      "/minha-organizacao",
       "/meus-eventos",
       "/conta/pedidos",
       "/conta/perfil",
