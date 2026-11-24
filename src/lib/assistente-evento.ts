@@ -16,7 +16,7 @@ export const MENSAGEM_INICIAL =
   "Oi! Me conta sobre o evento que você quer criar: o que é, quando e onde vai ser, e como serão os ingressos. Eu vou perguntando o que faltar.";
 
 export const MENSAGEM_FINAL =
-  "Tudo pronto! O rascunho do evento está completo. Confira o resumo e, se quiser mudar algo, é só escrever.";
+  "Tudo pronto! Confira o resumo e, se quiser mudar algo, é só escrever. Quando estiver certo, crie o rascunho do evento logo abaixo.";
 
 export type AutorMensagem = "assistente" | "organizador";
 

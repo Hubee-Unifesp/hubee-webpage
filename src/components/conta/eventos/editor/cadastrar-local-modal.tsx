@@ -36,9 +36,17 @@ interface CadastrarLocalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (payload: LocalPayload) => Promise<boolean>;
+  valoresIniciais?: Partial<VenueFormInputs>;
+  descricao?: string;
 }
 
-export function CadastrarLocalModal({ open, onOpenChange, onSubmit }: CadastrarLocalModalProps) {
+export function CadastrarLocalModal({
+  open,
+  onOpenChange,
+  onSubmit,
+  valoresIniciais,
+  descricao = "O local fica disponível para os próximos eventos.",
+}: CadastrarLocalModalProps) {
   const formId = useId();
   const {
     control,
@@ -55,8 +63,8 @@ export function CadastrarLocalModal({ open, onOpenChange, onSubmit }: CadastrarL
   });
 
   useEffect(() => {
-    if (open) reset(emptyVenueForm);
-  }, [open, reset]);
+    if (open) reset({ ...emptyVenueForm, ...valoresIniciais });
+  }, [open, reset, valoresIniciais]);
 
   async function enviar(values: VenueFormValues) {
     await onSubmit(toVenuePayload(values));
@@ -70,7 +78,7 @@ export function CadastrarLocalModal({ open, onOpenChange, onSubmit }: CadastrarL
       onOpenChange={onOpenChange}
       dismissible={!isSubmitting}
       title="Cadastrar local"
-      description="O local fica disponível para os próximos eventos."
+      description={descricao}
       className="max-w-xl"
       footer={
         <>
