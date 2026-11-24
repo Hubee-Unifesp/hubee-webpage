@@ -5,16 +5,25 @@ Estrutura da área logada, integrada com a `hubee-api`: o header usa a sessão (
 ## Rotas
 
 ```text
-app/(logado)/layout.tsx            # header da sessão + <main> protegido + ToastProvider (todas as páginas logadas)
-├── carrinho/page.tsx              # placeholder
-├── notificacoes/page.tsx          # placeholder
-├── meus-ingressos/page.tsx        # placeholder
-├── meus-eventos/page.tsx          # placeholder
+app/(logado)/layout.tsx              # header da sessão + <main> protegido + ToastProvider (todas as páginas logadas)
+├── carrinho/page.tsx                # carrinho
+├── checkout/page.tsx                # checkout e pagamento
+├── notificacoes/page.tsx            # central de notificações
+├── meus-ingressos/page.tsx          # ingressos do usuário com QR code
+├── meus-eventos/page.tsx            # eventos das organizações do usuário
+├── meus-eventos/novo/page.tsx       # criação de evento (com rascunho por IA)
+├── meus-eventos/[id]/editar/page.tsx
+├── organizacoes/nova/page.tsx       # cadastro de organização
 └── conta/
-    ├── layout.tsx                 # lateral (desktop) e abas (mobile) da conta
-    ├── pedidos/page.tsx           # lista de pedidos
-    ├── pedidos/[id]/page.tsx      # detalhe do pedido
-    └── perfil/page.tsx            # meu perfil
+    ├── layout.tsx                   # lateral (desktop) e abas (mobile) da conta
+    ├── completar-perfil/page.tsx
+    ├── eventos/page.tsx
+    ├── fornecedores/page.tsx
+    ├── fornecedores/[id]/avaliacoes/page.tsx
+    ├── membros/page.tsx
+    ├── pedidos/page.tsx             # lista de pedidos
+    ├── pedidos/[id]/page.tsx        # detalhe do pedido
+    └── perfil/page.tsx              # meu perfil
 ```
 
 A navegação da conta fica em `conta/layout.tsx` para que o carrinho use o mesmo header, mas sem a lateral.
@@ -39,7 +48,7 @@ A navegação da conta fica em `conta/layout.tsx` para que o carrinho use o mesm
 
 ## Sessão
 
-O token fica no `localStorage` (lido pelo axios) e num cookie `token` (lido pelo `middleware.ts`, que roda no servidor), os dois gravados e limpos juntos por `lib/session.ts`. O cookie só indica que há sessão; quem valida o token é a API. O contador do carrinho fica em 0 até existir API de carrinho (`TODO(cart-api)`).
+O token fica no `localStorage` (lido pelo axios) e num cookie `token` (lido pelo `middleware.ts`, que roda no servidor), os dois gravados e limpos juntos por `lib/session.ts`. O cookie só indica que há sessão; quem valida o token é a API. O carrinho não tem API: fica no `CartContext`, salvo em `sessionStorage` para que preço e saldo do lote não envelheçam entre visitas, e o contador do header mostra o total de ingressos dele.
 
 ## Telas da conta
 
@@ -51,7 +60,7 @@ O token fica no `localStorage` (lido pelo axios) e num cookie `token` (lido pelo
 
 ### Pedidos: o que a API entrega
 
-O pedido da API tem só valor, status e data. O evento e os itens vêm dos ingressos emitidos (`GET /users/me/tickets`), então um pedido pendente ou cancelado aparece sem evento e sem itens (a tela mostra data, valor e status). O número exibido é um código curto derivado do id. Procure por `TODO(orders-api)` para o QR code, que ainda é um placeholder.
+O pedido da API tem só valor, status e data. O evento e os itens vêm dos ingressos emitidos (`GET /users/me/tickets`), então um pedido pendente ou cancelado aparece sem evento e sem itens (a tela mostra data, valor e status). O número exibido é um código curto derivado do id. O QR code de cada ingresso é gerado no front (`qrcode.react`) a partir do código que a API devolve em `qrCode`.
 
 ### Perfil: regras que dependem da API
 

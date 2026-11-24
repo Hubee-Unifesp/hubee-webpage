@@ -1,11 +1,9 @@
 export type HeaderRole = "guest" | "user" | "organizer";
 
 export interface HeaderProps {
-  role?: HeaderRole;
   className?: string;
   fixed?: boolean;
   homeHref?: string;
-  logoutHref?: string;
 }
 
 

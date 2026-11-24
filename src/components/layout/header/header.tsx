@@ -18,7 +18,7 @@ export function Header({
   className,
   fixed = false,
   homeHref = "/",
-}: Omit<HeaderProps, 'role' | 'logoutHref'>) {
+}: HeaderProps) {
   const pathname = usePathname();
   const { user, isOrganizer } = useAuth();
   const unreadNotifications = useTotalNotificacoes();

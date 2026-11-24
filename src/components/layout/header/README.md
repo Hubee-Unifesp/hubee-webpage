@@ -1,29 +1,25 @@
 # Header Hubee
 
-A home (`/`) usa o estado de visitante e `/login` apresenta o mock de usuário logado.
+O header das páginas públicas (home, `/eventos`, detalhe do evento e `/sobre`) lê a sessão com `useAuth()`: sem usuário mostra o estado de visitante (`guest`), com usuário mostra `user` ou `organizer`. O perfil controla apenas a apresentação, não a autorização.
 
 ```tsx
-<Header role="organizer" />
+<Header />
 ```
 
-- `role`: `guest` (padrão), `user` ou `organizer`. Forneça o valor da sessão real. Essa propriedade controla apenas a apresentação, não a autorização.
 - `fixed`: `false` por padrão: o conjunto formado pelo botão de tema (à esquerda) e a header em formato de pílula (centralizada, até 832px de largura) fica grudado no topo (`sticky`) e acompanha a rolagem sem precisar reservar espaço no conteúdo. Com `true`, usa `position: fixed`; nesse caso reserve 80px no conteúdo em telas menores que 768px e 96px nas demais.
 - `homeHref`: caminho da home para os links de início, eventos e logo (padrão `/`).
-- `logoutHref`: destino opcional de “Sair” para a simulação.
 - `className`: estilos adicionais para o container.
 
 No tema claro a pílula é escura (`hubee-800`) com hover amarelo (`hubee-400`); no tema escuro ela é amarela (`hubee-400`) com hover claro (`hubee-50`). O link da rota ativa usa a mesma cor do hover.
 
 Em telas menores que 768px, a navegação principal e os botões de ação horizontais ficam ocultos na barra e passam a ser acessíveis pelo menu lateral (`MobileMenu` / gaveta hambúrguer), garantindo acesso a “Início”, “Eventos”, “Sobre”, “Meus Ingressos” e “Meus Eventos” (para organizadores), além das ações da conta (`Entrar` e `Criar conta` para visitantes, ou atalhos da conta e `Sair` para usuários autenticados) em todas as páginas públicas.
-O texto LOGO segue o placeholder da referência e pode ser substituído pela marca final.
+A marca é o `ThemedHubeeLogo` de `@/components/brand`, que troca a versão conforme o tema.
 
 O link “Eventos” aponta para `/eventos`, a página dedicada com a listagem de todos os eventos da plataforma.
 
-Os destinos `/meus-ingressos`, `/meus-eventos`, `/notificacoes`, `/carrinho` e `/conta/perfil` existem como páginas na área logada (placeholders, exceto `/conta/perfil`). Veja [`../logged/README.md`](../logged/README.md).
+Os destinos `/meus-ingressos`, `/meus-eventos`, `/notificacoes`, `/carrinho` e `/conta/*` são páginas da área logada, integradas com a `hubee-api`. Veja [`../logged/README.md`](../logged/README.md).
 
-A rota `/login` exibe uma cópia da home com usuário simulado (`role="user"`). Não há autenticação, sessão ou acesso a dados reais. “Início” e “Eventos” navegam dentro dessa versão; “Sair” no menu do usuário retorna à home de visitante.
-
-A página de mock é temporária e deve ser removida ou substituída ao integrar a autenticação real. Veja o [plano de remoção](../../../app/login/README.md).
+A rota `/login` é a tela de login real (`LoginScreen`), que autentica na API e grava a sessão.
 
 ## Organização
 
@@ -47,7 +43,7 @@ Importe o componente e seus tipos por `@/components/layout/header`. Os component
 
 - Adicione links principais em `navigation/navigation.config.ts`. Esses links aparecem apenas no desktop.
 - Use `roles` quando um item só deve aparecer para determinados perfis. Omitir `roles` deixa o link visível para todos; isso controla apresentação, não autorização.
-- Para seções da home, use `#nome-da-secao`. O destino será combinado com `homeHref`, preservando o mock em `/login`.
+- Para seções da home, use `#nome-da-secao`. O destino será combinado com `homeHref`.
 - Adicione atalhos com ícones da conta em `actions/actions.config.ts`. “Entrar” também tem um destino único nesse arquivo.
 - Mantenha comportamento de tema em `theme-toggle.tsx`, comportamento da conta em `LoggedUserMenu` e a navegação principal em `navigation/main-navigation.tsx`.
 - O tema claro/escuro é global: `ThemeProvider` (`src/components/theme-provider.tsx`, ligado em `src/app/layout.tsx`) aplica a classe `.dark` no `<html>` e expõe `useTheme()`. A escolha é salva no cookie `hubee_theme` (`light` ou `dark`, válido por 1 ano) e mantida entre visitas e abas; um script no `<head>` do layout aplica `.dark` antes da primeira pintura, evitando o flash de tema claro. Sem cookie, o tema começa claro. Estilize as duas versões com a variante `dark:` do Tailwind e as cores `hubee-*` de `globals.css`.
