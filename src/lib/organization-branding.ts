@@ -1,59 +1,15 @@
-export type OrganizationAccent = "yellow" | "gold" | "hive" | "cream";
-
-export interface OrganizationAccentOption {
-  id: OrganizationAccent;
-  label: string;
-  swatchClassName: string;
-  headerClassName: string;
-  patternClassName: string;
-}
-
-export const ORGANIZATION_ACCENTS: readonly OrganizationAccentOption[] = [
-  {
-    id: "yellow",
-    label: "Amarelo Hubee",
-    swatchClassName: "bg-hubee-400 border-hubee-600",
-    headerClassName: "bg-hubee-400 text-hubee-900",
-    patternClassName: "text-hubee-800/15",
-  },
-  {
-    id: "gold",
-    label: "Ouro Colmeia",
-    swatchClassName: "bg-hubee-500 border-hubee-700",
-    headerClassName: "bg-hubee-500 text-hubee-900",
-    patternClassName: "text-hubee-900/15",
-  },
-  {
-    id: "hive",
-    label: "Colmeia Escura",
-    swatchClassName: "bg-hubee-800 border-hubee-400",
-    headerClassName: "bg-hubee-800 text-hubee-50",
-    patternClassName: "text-hubee-400/20",
-  },
-  {
-    id: "cream",
-    label: "Creme Claro",
-    swatchClassName: "bg-hubee-200 border-hubee-500",
-    headerClassName: "bg-hubee-200 text-hubee-900",
-    patternClassName: "text-hubee-800/15",
-  },
-];
-
 export interface OrganizationBranding {
   coverImage: string | null;
-  logoImage: string | null;
-  tagline: string;
-  accent: OrganizationAccent;
+  titleColor: string | null;
+  descriptionColor: string | null;
 }
 
 export const DEFAULT_ORGANIZATION_BRANDING: OrganizationBranding = {
   coverImage: null,
-  logoImage: null,
-  tagline: "",
-  accent: "yellow",
+  titleColor: null,
+  descriptionColor: null,
 };
 
-export const ORG_TAGLINE_MAX_LENGTH = 40;
 export const ORG_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
 export const ORG_IMAGE_ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
@@ -77,14 +33,10 @@ export function subscribeOrganizationBranding(listener: () => void): () => void 
   };
 }
 
-function isValidAccent(value: unknown): value is OrganizationAccent {
-  return ORGANIZATION_ACCENTS.some((option) => option.id === value);
-}
-
-export function getOrganizationAccentOption(accent: OrganizationAccent): OrganizationAccentOption {
-  return (
-    ORGANIZATION_ACCENTS.find((option) => option.id === accent) ?? ORGANIZATION_ACCENTS[0]
-  );
+function normalizeHexColor(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return /^#[0-9a-fA-F]{6}$/.test(trimmed) ? trimmed.toUpperCase() : null;
 }
 
 export function validateOrganizationImageFile(file: { type: string; size: number }): string | null {
@@ -119,11 +71,8 @@ export function loadOrganizationBranding(orgId: string): OrganizationBranding {
       coverImage: typeof parsed.coverImage === "string" && parsed.coverImage.startsWith("data:image/")
         ? parsed.coverImage
         : null,
-      logoImage: typeof parsed.logoImage === "string" && parsed.logoImage.startsWith("data:image/")
-        ? parsed.logoImage
-        : null,
-      tagline: typeof parsed.tagline === "string" ? parsed.tagline.slice(0, ORG_TAGLINE_MAX_LENGTH) : "",
-      accent: isValidAccent(parsed.accent) ? parsed.accent : DEFAULT_ORGANIZATION_BRANDING.accent,
+      titleColor: normalizeHexColor(parsed.titleColor),
+      descriptionColor: normalizeHexColor(parsed.descriptionColor),
     };
 
     snapshotCache.set(orgId, { raw, value });
@@ -138,9 +87,8 @@ export function saveOrganizationBranding(orgId: string, branding: OrganizationBr
   try {
     const sanitized: OrganizationBranding = {
       coverImage: branding.coverImage,
-      logoImage: branding.logoImage,
-      tagline: branding.tagline.trim().slice(0, ORG_TAGLINE_MAX_LENGTH),
-      accent: isValidAccent(branding.accent) ? branding.accent : DEFAULT_ORGANIZATION_BRANDING.accent,
+      titleColor: normalizeHexColor(branding.titleColor),
+      descriptionColor: normalizeHexColor(branding.descriptionColor),
     };
     const serialized = JSON.stringify(sanitized);
     window.localStorage.setItem(`${STORAGE_PREFIX}${orgId}`, serialized);

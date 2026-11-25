@@ -7,7 +7,9 @@ import {
   ArrowRight,
   Building2,
   Calendar,
+  CalendarDays,
   ChevronDown,
+  Globe,
   ImageUp,
   Lock,
   Palette,
@@ -42,7 +44,6 @@ import {
 import { MinhaOrganizacaoSkeleton } from "./minha-organizacao-skeleton";
 import { OrganizacaoAparenciaForm } from "./organizacao-aparencia-form";
 import { OrganizacaoEventosSection } from "./organizacao-eventos-section";
-import { OrganizacaoHeroCard } from "./organizacao-hero-card";
 
 const hiveCells: readonly HoneycombCell[] = Array.from({ length: 30 * 8 }, (_, index) => {
   const col = index % 30;
@@ -251,157 +252,152 @@ export function MinhaOrganizacaoContent() {
 
   return (
     <>
-      {/* SEÇÃO 1 — HERO DA ORGANIZAÇÃO (padrão visual da Hero da Home + capa personalizada) */}
+      {/* SEÇÃO 1 — HERO DA ORGANIZAÇÃO (foco na capa personalizada) */}
       <section
         aria-labelledby="minha-org-hero-titulo"
-        className="relative isolate flex min-h-[420px] items-center overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:min-h-[470px] md:py-16 lg:px-16 lg:py-20"
+        className="relative isolate flex min-h-[400px] items-end overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:min-h-[460px] md:items-center md:py-16 lg:px-16 lg:py-20"
       >
-        {/* Capa personalizada no fundo da Hero com overlay escuro para preservar legibilidade */}
-        {branding.coverImage && (
+        {/* Capa personalizada no fundo da Hero ou grade de colmeia padrão */}
+        {branding.coverImage ? (
           <>
             <Image
               src={branding.coverImage}
-              alt=""
+              alt={`Capa de ${nomeAtual}`}
               fill
               unoptimized
               sizes="100vw"
-              className="absolute inset-0 -z-20 object-cover opacity-30"
+              className="absolute inset-0 -z-20 object-cover object-center"
             />
             <div
               aria-hidden="true"
-              className="absolute inset-0 -z-20 bg-gradient-to-r from-hubee-900 via-hubee-900/85 to-hubee-900/65"
+              className="absolute inset-0 -z-20 bg-gradient-to-r from-hubee-900/95 via-hubee-900/75 to-hubee-900/25"
+            />
+          </>
+        ) : (
+          <>
+            <Honeycomb
+              cells={hiveCells}
+              orientation="pointy"
+              preserveAspectRatio="xMidYMid slice"
+              className="absolute inset-0 -z-10 size-full fill-none stroke-hubee-400/10 stroke-[1.5]"
+            />
+            <Honeycomb
+              cells={hiveCells}
+              orientation="pointy"
+              preserveAspectRatio="xMidYMid slice"
+              className="hero-hive-glow absolute inset-0 -z-10 size-full fill-hubee-400/[0.06] stroke-hubee-400 stroke-2"
             />
           </>
         )}
 
-        {/* Grade de colmeia + brilho interativo */}
-        <Honeycomb
-          cells={hiveCells}
-          orientation="pointy"
-          preserveAspectRatio="xMidYMid slice"
-          className="absolute inset-0 -z-10 size-full fill-none stroke-hubee-400/10 stroke-[1.5]"
-        />
-        <Honeycomb
-          cells={hiveCells}
-          orientation="pointy"
-          preserveAspectRatio="xMidYMid slice"
-          className="hero-hive-glow absolute inset-0 -z-10 size-full fill-hubee-400/[0.06] stroke-hubee-400 stroke-2"
-        />
+        <div className="flex w-full max-w-3xl flex-col items-start gap-6">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-hubee-400/40 bg-hubee-400/15 px-3.5 py-1 text-xs font-bold tracking-wider text-hubee-300 uppercase">
+              <ShieldCheck aria-hidden="true" className="size-3.5" />
+              {formatOrganizerRoleLabel(organizacaoAtiva.papel)}
+            </span>
 
-        <div className="grid w-full items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
-          {/* Coluna esquerda: identidade, seletor de organização, descrição e CTAs */}
-          <div className="flex min-w-0 flex-col items-start gap-6">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-hubee-400/40 bg-hubee-400/15 px-3.5 py-1 text-xs font-bold tracking-wider text-hubee-300 uppercase">
-                <ShieldCheck aria-hidden="true" className="size-3.5" />
-                {formatOrganizerRoleLabel(organizacaoAtiva.papel)}
-              </span>
-
-              {organizacoes.length > 1 && (
-                <div className="relative inline-flex items-center">
-                  <label htmlFor="org-hero-selector" className="sr-only">
-                    Selecionar organização ativa
-                  </label>
-                  <select
-                    id="org-hero-selector"
-                    value={organizacaoAtiva.orgId}
-                    onChange={(event) => handleTrocarOrganizacao(event.target.value)}
-                    className="h-8 cursor-pointer appearance-none rounded-full border border-hubee-50/20 bg-hubee-850 pr-8 pl-3.5 text-xs font-semibold text-hubee-50 transition-colors outline-none hover:border-hubee-400/60 focus-visible:ring-2 focus-visible:ring-hubee-400"
-                  >
-                    {organizacoes.map((org) => (
-                      <option key={org.orgId} value={org.orgId} className="bg-hubee-900 text-hubee-50">
-                        {org.nome}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="pointer-events-none absolute right-2.5 size-3.5 text-hubee-300"
-                  />
-                </div>
-              )}
-            </div>
-
-            <h1
-              id="minha-org-hero-titulo"
-              className={cn(
-                display.className,
-                "max-w-full text-[clamp(2.75rem,5.4vw,4.75rem)] leading-[0.94] tracking-tight break-words uppercase",
-              )}
-            >
-              <span className="block text-hubee-50">{firstLine}</span>
-              <span className="block text-hubee-400">{secondLine}</span>
-            </h1>
-
-            <p className="max-w-xl text-base leading-relaxed text-hubee-100/85 md:text-lg">
-              {detalhesCarregando
-                ? "Carregando os detalhes da sua organização..."
-                : descricaoAtual
-                  ? descricaoAtual
-                  : podeEditarOrg
-                    ? "Adicione uma descrição e personalize a capa para apresentar sua organização, seus eventos e sua proposta."
-                    : "Acompanhe os eventos, lotes, equipe e fornecedores desta organização em um só lugar."}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              {podeEditarOrg ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => abrirPainel("aparencia")}
-                    className="inline-flex h-13 cursor-pointer items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
-                  >
-                    <ImageUp aria-hidden="true" className="size-4" />
-                    Personalizar capa
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => abrirPainel("dados")}
-                    className="inline-flex h-13 cursor-pointer items-center gap-2 rounded-full border border-hubee-50/20 bg-hubee-850/70 px-5 text-sm font-semibold text-hubee-50 transition-colors hover:border-hubee-400/60 hover:text-hubee-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50"
-                  >
-                    <Pencil aria-hidden="true" className="size-4" />
-                    Editar dados
-                  </button>
-                </>
-              ) : podeCriarEvento ? (
-                <Link
-                  href="/meus-eventos/novo"
-                  className="inline-flex h-13 items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
+            {organizacoes.length > 1 && (
+              <div className="relative inline-flex items-center">
+                <label htmlFor="org-hero-selector" className="sr-only">
+                  Selecionar organização ativa
+                </label>
+                <select
+                  id="org-hero-selector"
+                  value={organizacaoAtiva.orgId}
+                  onChange={(event) => handleTrocarOrganizacao(event.target.value)}
+                  className="h-8 cursor-pointer appearance-none rounded-full border border-hubee-50/20 bg-hubee-850 pr-8 pl-3.5 text-xs font-semibold text-hubee-50 transition-colors outline-none hover:border-hubee-400/60 focus-visible:ring-2 focus-visible:ring-hubee-400"
                 >
-                  <Sparkles aria-hidden="true" className="size-4" />
-                  Criar evento
-                </Link>
-              ) : (
-                <Link
-                  href="/meus-eventos"
-                  className="inline-flex h-13 items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
-                >
-                  Ver eventos
-                  <ArrowRight aria-hidden="true" className="size-4" />
-                </Link>
-              )}
-
-              {podeCriarEvento && (
-                <Link
-                  href="/meus-eventos/novo"
-                  className="inline-flex h-13 items-center gap-2 rounded-full px-3 text-base font-semibold text-hubee-50 transition-colors hover:text-hubee-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50"
-                >
-                  <Plus aria-hidden="true" className="size-4" />
-                  Novo evento
-                </Link>
-              )}
-            </div>
+                  {organizacoes.map((org) => (
+                    <option key={org.orgId} value={org.orgId} className="bg-hubee-900 text-hubee-50">
+                      {org.nome}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-2.5 size-3.5 text-hubee-300"
+                />
+              </div>
+            )}
           </div>
 
-          {/* Coluna direita: Cartão-ingresso da organização */}
-          <OrganizacaoHeroCard
-            nome={nomeAtual}
-            papel={organizacaoAtiva.papel}
-            totalEventos={eventos.length}
-            eventosPublicados={eventosPublicados}
-            criadaEm={detalhes?.createdAt ?? null}
-            branding={branding}
-          />
+          <h1
+            id="minha-org-hero-titulo"
+            style={branding.titleColor ? { color: branding.titleColor } : undefined}
+            className={cn(
+              display.className,
+              "max-w-full text-[clamp(2.75rem,5.4vw,4.75rem)] leading-[0.94] tracking-tight break-words uppercase drop-shadow-sm",
+            )}
+          >
+            <span className={cn("block", !branding.titleColor && "text-hubee-50")}>{firstLine}</span>
+            <span className={cn("block", !branding.titleColor && "text-hubee-400")}>{secondLine}</span>
+          </h1>
+
+          <p
+            style={branding.descriptionColor ? { color: branding.descriptionColor } : undefined}
+            className={cn(
+              "max-w-xl text-base leading-relaxed md:text-lg",
+              !branding.descriptionColor && "text-hubee-100/85",
+            )}
+          >
+            {detalhesCarregando
+              ? "Carregando os detalhes da sua organização..."
+              : descricaoAtual
+                ? descricaoAtual
+                : podeEditarOrg
+                  ? "Adicione uma descrição e personalize a capa para apresentar sua organização, seus eventos e sua proposta."
+                  : "Acompanhe os eventos, lotes, equipe e fornecedores desta organização em um só lugar."}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            {podeEditarOrg ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => abrirPainel("aparencia")}
+                  className="inline-flex h-13 cursor-pointer items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
+                >
+                  <ImageUp aria-hidden="true" className="size-4" />
+                  Personalizar capa
+                </button>
+                <button
+                  type="button"
+                  onClick={() => abrirPainel("dados")}
+                  className="inline-flex h-13 cursor-pointer items-center gap-2 rounded-full border border-hubee-50/20 bg-hubee-850/70 px-5 text-sm font-semibold text-hubee-50 transition-colors hover:border-hubee-400/60 hover:text-hubee-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50"
+                >
+                  <Pencil aria-hidden="true" className="size-4" />
+                  Editar dados
+                </button>
+              </>
+            ) : podeCriarEvento ? (
+              <Link
+                href="/meus-eventos/novo"
+                className="inline-flex h-13 items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
+              >
+                <Sparkles aria-hidden="true" className="size-4" />
+                Criar evento
+              </Link>
+            ) : (
+              <Link
+                href="/meus-eventos"
+                className="inline-flex h-13 items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
+              >
+                Ver eventos
+                <ArrowRight aria-hidden="true" className="size-4" />
+              </Link>
+            )}
+
+            {podeCriarEvento && (
+              <Link
+                href="/meus-eventos/novo"
+                className="inline-flex h-13 items-center gap-2 rounded-full px-3 text-base font-semibold text-hubee-50 transition-colors hover:text-hubee-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50"
+              >
+                <Plus aria-hidden="true" className="size-4" />
+                Novo evento
+              </Link>
+            )}
+          </div>
         </div>
       </section>
 
@@ -536,27 +532,13 @@ export function MinhaOrganizacaoContent() {
             ) : (
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="rounded-2xl border border-hubee-200 bg-hubee-50/80 p-4 md:col-span-2 dark:border-hubee-50/10 dark:bg-hubee-900/60">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <span className="text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
-                        Sobre a organização
-                      </span>
-                      <h3 className="mt-1 text-lg font-bold text-hubee-800 dark:text-hubee-50">
-                        {nomeAtual}
-                      </h3>
-                    </div>
-                    {branding.logoImage && (
-                      <span className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-hubee-300 dark:border-hubee-50/15">
-                        <Image
-                          src={branding.logoImage}
-                          alt={`Logo de ${nomeAtual}`}
-                          fill
-                          unoptimized
-                          sizes="44px"
-                          className="object-cover"
-                        />
-                      </span>
-                    )}
+                  <div>
+                    <span className="text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
+                      Sobre a organização
+                    </span>
+                    <h3 className="mt-1 text-lg font-bold text-hubee-800 dark:text-hubee-50">
+                      {nomeAtual}
+                    </h3>
                   </div>
                   <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-hubee-750 dark:text-hubee-200">
                     {detalhesCarregando
@@ -567,6 +549,27 @@ export function MinhaOrganizacaoContent() {
                 </div>
 
                 <dl className="flex flex-col justify-between gap-4 rounded-2xl border border-hubee-200 bg-hubee-50/80 p-4 dark:border-hubee-50/10 dark:bg-hubee-900/60">
+                  <div className="grid grid-cols-2 gap-4 border-b border-hubee-200 pb-3 dark:border-hubee-50/10">
+                    <div>
+                      <dt className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
+                        <CalendarDays aria-hidden="true" className="size-3.5" />
+                        Eventos
+                      </dt>
+                      <dd className="mt-1 text-2xl font-extrabold tabular-nums text-hubee-800 dark:text-hubee-50">
+                        {eventos.length}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
+                        <Globe aria-hidden="true" className="size-3.5" />
+                        Publicados
+                      </dt>
+                      <dd className="mt-1 text-2xl font-extrabold tabular-nums text-hubee-800 dark:text-hubee-50">
+                        {eventosPublicados}
+                      </dd>
+                    </div>
+                  </div>
+
                   <div>
                     <dt className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
                       <ShieldCheck aria-hidden="true" className="size-3.5" />

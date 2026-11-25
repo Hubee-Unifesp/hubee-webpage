@@ -1,14 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Building2, CalendarDays, ShieldCheck } from "lucide-react";
 import { HexPattern } from "@/components/home/events/event-media";
 import { displayFont as display } from "@/lib/fonts";
-import {
-  DEFAULT_ORGANIZATION_BRANDING,
-  getOrganizationAccentOption,
-  type OrganizationBranding,
-} from "@/lib/organization-branding";
 import { cn } from "@/lib/utils";
 import { formatOrganizerRoleLabel, type PapelOrganizador } from "@/types/organizacao";
 
@@ -23,7 +17,6 @@ interface OrganizacaoHeroCardProps {
   secondaryMetricLabel?: string;
   secondaryMetricValue?: number;
   criadaEm: string | null;
-  branding?: OrganizationBranding;
 }
 
 function getInitials(nome: string): string {
@@ -46,7 +39,7 @@ function formatCreatedYear(iso: string | null): string {
 /**
  * Cartão-ingresso da organização exibido na Hero de `/minha-organizacao`,
  * seguindo a linguagem visual dos ingressos da Hero da Home (picote, código de barras e selo)
- * com suporte a capa personalizada, logo, slogan e cor de destaque.
+ * com suporte a logo, slogan e cor de destaque.
  */
 export function OrganizacaoHeroCard({
   nome,
@@ -57,13 +50,9 @@ export function OrganizacaoHeroCard({
   secondaryMetricLabel = "Publicados",
   secondaryMetricValue,
   criadaEm,
-  branding = DEFAULT_ORGANIZATION_BRANDING,
 }: OrganizacaoHeroCardProps) {
   const sigla = getInitials(nome);
   const codigo = formatCreatedYear(criadaEm);
-  const accentOption = getOrganizationAccentOption(branding.accent);
-  const hasCover = Boolean(branding.coverImage);
-  const tagline = branding.tagline.trim() || "Colmeia ativa";
   const resolvedBadge = badgeLabel ?? (papel ? formatOrganizerRoleLabel(papel) : "Organização");
   const resolvedSecondaryValue = secondaryMetricValue ?? eventosPublicados;
 
@@ -77,75 +66,25 @@ export function OrganizacaoHeroCard({
 
       {/* Cartão-ingresso principal */}
       <div className="relative z-10 flex flex-col overflow-hidden rounded-[26px] bg-hubee-50 text-hubee-800 shadow-[0_24px_54px_-16px_rgba(0,0,0,0.65)] transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-1 hover:rotate-[0.7deg] motion-reduce:transition-none motion-reduce:hover:transform-none">
-        {/* Topo do ingresso: capa personalizada ou cor de destaque da paleta Hubee */}
-        <div
-          className={cn(
-            "relative flex aspect-[4/2.7] flex-col justify-between overflow-hidden p-5",
-            hasCover ? "bg-hubee-900 text-hubee-50" : accentOption.headerClassName,
-          )}
-        >
-          {branding.coverImage ? (
-            <>
-              <Image
-                src={branding.coverImage}
-                alt={`Capa de ${nome}`}
-                fill
-                unoptimized
-                sizes="350px"
-                className="object-cover"
-              />
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-t from-hubee-900/90 via-hubee-900/45 to-hubee-900/25"
-              />
-            </>
-          ) : (
-            <HexPattern className={accentOption.patternClassName} />
-          )}
+        {/* Topo do ingresso com padrão colmeia e cor da paleta Hubee */}
+        <div className="relative flex aspect-[4/2.7] flex-col justify-between overflow-hidden bg-hubee-400 p-5 text-hubee-900">
+          <HexPattern className="text-hubee-800/15" />
 
           <div className="relative z-10 flex items-center justify-between gap-2">
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wider uppercase",
-                hasCover ? "bg-hubee-900/70 text-hubee-300 backdrop-blur-xs" : "bg-black/15",
-              )}
-            >
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/15 px-2.5 py-0.5 text-[11px] font-bold tracking-wider uppercase">
               <ShieldCheck aria-hidden="true" className="size-3.5" />
               {resolvedBadge}
             </span>
 
-            {branding.logoImage ? (
-              <span className="relative size-10 shrink-0 overflow-hidden rounded-xl border border-white/30 bg-hubee-900 shadow-sm">
-                <Image
-                  src={branding.logoImage}
-                  alt={`Logo de ${nome}`}
-                  fill
-                  unoptimized
-                  sizes="40px"
-                  className="object-cover"
-                />
-              </span>
-            ) : (
-              <span
-                className={cn(
-                  "flex size-9 items-center justify-center rounded-xl text-xs font-extrabold tracking-wider",
-                  hasCover ? "bg-hubee-900/70 text-hubee-50 backdrop-blur-xs" : "bg-black/15",
-                )}
-              >
-                {sigla}
-              </span>
-            )}
+            <span className="flex size-9 items-center justify-center rounded-xl bg-black/15 text-xs font-extrabold tracking-wider">
+              {sigla}
+            </span>
           </div>
 
           <div className="relative z-10 flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <span
-                className={cn(
-                  "block truncate text-[10px] font-bold tracking-[0.16em] uppercase",
-                  hasCover ? "text-hubee-300" : "opacity-75",
-                )}
-              >
-                {tagline}
+              <span className="block truncate text-[10px] font-bold tracking-[0.16em] uppercase opacity-75">
+                Colmeia ativa
               </span>
               <p
                 className={cn(
@@ -156,12 +95,7 @@ export function OrganizacaoHeroCard({
                 {nome}
               </p>
             </div>
-            <div
-              className={cn(
-                "flex size-12 shrink-0 items-center justify-center rounded-2xl",
-                hasCover ? "bg-hubee-900/65 text-hubee-400 backdrop-blur-xs" : "bg-black/10",
-              )}
-            >
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-black/10">
               <Building2 aria-hidden="true" strokeWidth={1.6} className="size-7" />
             </div>
           </div>

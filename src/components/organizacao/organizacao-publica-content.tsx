@@ -240,40 +240,25 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
         )}
 
         <div className="flex w-full max-w-3xl flex-col items-start gap-6">
-          {(branding.logoImage || branding.tagline.trim()) && (
-            <div className="flex items-center gap-3">
-              {branding.logoImage && (
-                <span className="relative size-14 shrink-0 overflow-hidden rounded-2xl border-2 border-hubee-400/60 bg-hubee-900 shadow-lg">
-                  <Image
-                    src={branding.logoImage}
-                    alt={`Logo de ${organizacao.name}`}
-                    fill
-                    unoptimized
-                    sizes="56px"
-                    className="object-cover"
-                  />
-                </span>
-              )}
-              {branding.tagline.trim() && (
-                <span className="rounded-full border border-hubee-400/40 bg-hubee-900/75 px-3.5 py-1 text-xs font-bold tracking-wider text-hubee-300 uppercase backdrop-blur-xs">
-                  {branding.tagline.trim()}
-                </span>
-              )}
-            </div>
-          )}
-
           <h1
             id="org-publica-hero-titulo"
+            style={branding.titleColor ? { color: branding.titleColor } : undefined}
             className={cn(
               display.className,
               "max-w-full text-[clamp(2.75rem,5.4vw,5rem)] leading-[0.94] tracking-tight break-words uppercase drop-shadow-sm",
             )}
           >
-            <span className="block text-hubee-50">{firstLine}</span>
-            <span className="block text-hubee-400">{secondLine}</span>
+            <span className={cn("block", !branding.titleColor && "text-hubee-50")}>{firstLine}</span>
+            <span className={cn("block", !branding.titleColor && "text-hubee-400")}>{secondLine}</span>
           </h1>
 
-          <p className="max-w-xl text-base leading-relaxed text-hubee-100/90 md:text-lg">
+          <p
+            style={branding.descriptionColor ? { color: branding.descriptionColor } : undefined}
+            className={cn(
+              "max-w-xl text-base leading-relaxed md:text-lg",
+              !branding.descriptionColor && "text-hubee-100/90",
+            )}
+          >
             {descricao ||
               `Confira os próximos eventos e novidades organizados por ${organizacao.name} na Hubee.`}
           </p>
@@ -322,23 +307,9 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
 
           <div className="mt-6 grid gap-6 lg:grid-cols-3">
             <div className="rounded-2xl border border-hubee-200 bg-hubee-50/80 p-5 lg:col-span-2 dark:border-hubee-50/10 dark:bg-hubee-900/60">
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-lg font-bold text-hubee-800 dark:text-hubee-50">
-                  {organizacao.name}
-                </h3>
-                {branding.logoImage && (
-                  <span className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-hubee-300 dark:border-hubee-50/15">
-                    <Image
-                      src={branding.logoImage}
-                      alt={`Logo de ${organizacao.name}`}
-                      fill
-                      unoptimized
-                      sizes="44px"
-                      className="object-cover"
-                    />
-                  </span>
-                )}
-              </div>
+              <h3 className="text-lg font-bold text-hubee-800 dark:text-hubee-50">
+                {organizacao.name}
+              </h3>
               <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-hubee-750 dark:text-hubee-200">
                 {descricao ||
                   `${organizacao.name} é uma organização ativa na Hubee. Acompanhe abaixo os eventos disponíveis para garantir seus ingressos.`}
