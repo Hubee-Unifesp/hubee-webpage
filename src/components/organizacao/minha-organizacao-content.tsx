@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -8,7 +8,9 @@ import {
   Building2,
   Calendar,
   ChevronDown,
+  ImageUp,
   Lock,
+  Palette,
   Pencil,
   Plus,
   ShieldCheck,
@@ -23,6 +25,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMeusEventos } from "@/hooks/useMeusEventos";
 import { getOrganizationById } from "@/lib/api/organizations";
 import { displayFont as display } from "@/lib/fonts";
+import {
+  DEFAULT_ORGANIZATION_BRANDING,
+  loadOrganizationBranding,
+  resetOrganizationBranding,
+  saveOrganizationBranding,
+  subscribeOrganizationBranding,
+  type OrganizationBranding,
+} from "@/lib/organization-branding";
 import { cn } from "@/lib/utils";
 import {
   canCreateOrEditEvent,
@@ -31,6 +41,7 @@ import {
   type PapelOrganizador,
 } from "@/types/organizacao";
 import { MinhaOrganizacaoSkeleton } from "./minha-organizacao-skeleton";
+import { OrganizacaoAparenciaForm } from "./organizacao-aparencia-form";
 import { OrganizacaoEventosSection } from "./organizacao-eventos-section";
 import { OrganizacaoHeroCard } from "./organizacao-hero-card";
 
@@ -42,9 +53,9 @@ const hiveCells: readonly HoneycombCell[] = Array.from({ length: 30 * 8 }, (_, i
 
 const ROLE_DESCRIPTIONS: Record<PapelOrganizador, string> = {
   administrador:
-    "Gerencia os dados cadastrais, convida e altera membros, e pode criar, editar, publicar e cancelar eventos.",
+    "Gerencia os dados cadastrais, personaliza capa e aparência, convida membros e gerencia eventos.",
   membro:
-    "Cria, edita e publica eventos e lotes da organização. Dados cadastrais são editados apenas por administradores.",
+    "Cria, edita e personaliza eventos e lotes da organização. Dados da organização são editados apenas por administradores.",
   leitura:
     "Consulta eventos, vendas e informações da organização em modo somente leitura.",
 };
@@ -52,6 +63,8 @@ const ROLE_DESCRIPTIONS: Record<PapelOrganizador, string> = {
 type DetalhesFetchState =
   | { orgId: string; status: "ok"; data: Organizacao }
   | { orgId: string; status: "error"; data: null };
+
+type ModoPainel = "visualizar" | "dados" | "aparencia";
 
 function splitHeroTitle(name: string): { firstLine: string; secondLine: string } {
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -76,10 +89,12 @@ function formatCreatedDate(iso: string | null | undefined): string {
   });
 }
 
+const getServerBrandingSnapshot = () => DEFAULT_ORGANIZATION_BRANDING;
+
 /**
  * Página full-width `/minha-organizacao`: hub visual do organizador no padrão da Hero da Home,
- * com edição dos dados cadastrais da organização (`PATCH /organizations/:id`), troca de organização
- * ativa, prévia/customização de eventos e atalhos para equipe e fornecedores.
+ * com customização de capa/aparência da organização, edição de dados cadastrais (`PATCH /organizations/:id`),
+ * troca de organização ativa, edição rápida de capa/dados de eventos e atalhos para equipe e fornecedores.
  */
 export function MinhaOrganizacaoContent() {
   const { user, isLoading: authLoading } = useAuth();
@@ -95,7 +110,7 @@ export function MinhaOrganizacaoContent() {
 
   const [detalhesState, setDetalhesState] = useState<DetalhesFetchState | null>(null);
   const [detalhesAttempt, setDetalhesAttempt] = useState(0);
-  const [editando, setEditando] = useState(false);
+  const [modoPainel, setModoPainel] = useState<ModoPainel>("visualizar");
 
   const heroSectionRef = useRef<HTMLElement>(null);
   const beeRef = useRef<HTMLDivElement>(null);
@@ -105,6 +120,17 @@ export function MinhaOrganizacaoContent() {
   useFlyingBee(heroSectionRef, beeRef, perchRef);
 
   const activeOrgId = organizacaoAtiva?.orgId ?? null;
+
+  const getBrandingSnapshot = useCallback(
+    () => (activeOrgId ? loadOrganizationBranding(activeOrgId) : DEFAULT_ORGANIZATION_BRANDING),
+    [activeOrgId],
+  );
+
+  const branding = useSyncExternalStore(
+    subscribeOrganizationBranding,
+    getBrandingSnapshot,
+    getServerBrandingSnapshot,
+  );
 
   useEffect(() => {
     if (authLoading || !activeOrgId) return;
@@ -205,29 +231,57 @@ export function MinhaOrganizacaoContent() {
   const podeCriarEvento = canCreateOrEditEvent(organizacaoAtiva.papel);
   const { firstLine, secondLine } = splitHeroTitle(nomeAtual);
 
-  function handleAbrirEdicao() {
-    setEditando(true);
+  function abrirPainel(modo: Exclude<ModoPainel, "visualizar">) {
+    setModoPainel(modo);
     dadosSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function handleTrocarOrganizacao(novoOrgId: string) {
-    setEditando(false);
+    setModoPainel("visualizar");
     selecionarOrganizacao(novoOrgId);
   }
 
   function handleSalvo(atualizada: Organizacao) {
     setDetalhesState({ orgId: atualizada.id, status: "ok", data: atualizada });
-    setEditando(false);
+    setModoPainel("visualizar");
+  }
+
+  function handleBrandingChange(next: OrganizationBranding): boolean {
+    if (!activeOrgId) return false;
+    return saveOrganizationBranding(activeOrgId, next);
+  }
+
+  function handleBrandingReset(): void {
+    if (!activeOrgId) return;
+    resetOrganizationBranding(activeOrgId);
   }
 
   return (
     <>
-      {/* SEÇÃO 1 — HERO DA ORGANIZAÇÃO (padrão visual da Hero da Home) */}
+      {/* SEÇÃO 1 — HERO DA ORGANIZAÇÃO (padrão visual da Hero da Home + capa personalizada) */}
       <section
         ref={heroSectionRef}
         aria-labelledby="minha-org-hero-titulo"
         className="relative isolate flex min-h-[420px] items-center overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:min-h-[470px] md:py-16 lg:px-16 lg:py-20"
       >
+        {/* Capa personalizada no fundo da Hero com overlay escuro para preservar legibilidade */}
+        {branding.coverImage && (
+          <>
+            <Image
+              src={branding.coverImage}
+              alt=""
+              fill
+              unoptimized
+              sizes="100vw"
+              className="absolute inset-0 -z-20 object-cover opacity-30"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 -z-20 bg-gradient-to-r from-hubee-900 via-hubee-900/85 to-hubee-900/65"
+            />
+          </>
+        )}
+
         {/* Grade de colmeia + brilho interativo */}
         <Honeycomb
           cells={hiveCells}
@@ -309,20 +363,30 @@ export function MinhaOrganizacaoContent() {
                 : descricaoAtual
                   ? descricaoAtual
                   : podeEditarOrg
-                    ? "Adicione uma descrição para apresentar sua organização, seus eventos e sua proposta para o público."
+                    ? "Adicione uma descrição e personalize a capa para apresentar sua organização, seus eventos e sua proposta."
                     : "Acompanhe os eventos, lotes, equipe e fornecedores desta organização em um só lugar."}
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
               {podeEditarOrg ? (
-                <button
-                  type="button"
-                  onClick={handleAbrirEdicao}
-                  className="inline-flex h-13 cursor-pointer items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
-                >
-                  <Pencil aria-hidden="true" className="size-4" />
-                  Editar organização
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => abrirPainel("aparencia")}
+                    className="inline-flex h-13 cursor-pointer items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
+                  >
+                    <ImageUp aria-hidden="true" className="size-4" />
+                    Personalizar capa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => abrirPainel("dados")}
+                    className="inline-flex h-13 cursor-pointer items-center gap-2 rounded-full border border-hubee-50/20 bg-hubee-850/70 px-5 text-sm font-semibold text-hubee-50 transition-colors hover:border-hubee-400/60 hover:text-hubee-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50"
+                  >
+                    <Pencil aria-hidden="true" className="size-4" />
+                    Editar dados
+                  </button>
+                </>
               ) : podeCriarEvento ? (
                 <Link
                   href="/meus-eventos/novo"
@@ -344,7 +408,7 @@ export function MinhaOrganizacaoContent() {
               {podeCriarEvento && (
                 <Link
                   href="/meus-eventos/novo"
-                  className="inline-flex h-13 items-center gap-2 rounded-full px-4 text-base font-semibold text-hubee-50 transition-colors hover:text-hubee-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50"
+                  className="inline-flex h-13 items-center gap-2 rounded-full px-3 text-base font-semibold text-hubee-50 transition-colors hover:text-hubee-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50"
                 >
                   <Plus aria-hidden="true" className="size-4" />
                   Novo evento
@@ -360,12 +424,13 @@ export function MinhaOrganizacaoContent() {
             totalEventos={eventos.length}
             eventosPublicados={eventosPublicados}
             criadaEm={detalhes?.createdAt ?? null}
+            branding={branding}
             perchRef={perchRef}
           />
         </div>
       </section>
 
-      {/* SEÇÃO 2 — INFORMAÇÕES E EDIÇÃO DA ORGANIZAÇÃO */}
+      {/* SEÇÃO 2 — INFORMAÇÕES, CAPA E CUSTOMIZAÇÃO DA ORGANIZAÇÃO */}
       <section
         ref={dadosSectionRef}
         id="dados-organizacao"
@@ -376,7 +441,7 @@ export function MinhaOrganizacaoContent() {
           <div className="flex flex-col justify-between gap-4 border-b border-hubee-200 pb-5 sm:flex-row sm:items-center dark:border-hubee-50/15">
             <div>
               <p className="text-xs font-bold tracking-[0.16em] text-hubee-700 uppercase dark:text-hubee-400">
-                Identidade e cadastro
+                Identidade e personalização
               </p>
               <h2
                 id="org-dados-titulo"
@@ -389,19 +454,59 @@ export function MinhaOrganizacaoContent() {
               </h2>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              {podeEditarOrg && !editando && (
-                <Button
-                  type="button"
-                  onClick={() => setEditando(true)}
-                  className="h-10 rounded-full bg-hubee-400 px-5 text-sm font-semibold text-hubee-900 hover:bg-hubee-300"
+            <div className="flex flex-wrap items-center gap-2">
+              {podeEditarOrg ? (
+                <div
+                  role="tablist"
+                  aria-label="Modos de visualização e personalização da organização"
+                  className="inline-flex flex-wrap items-center gap-1 rounded-full border border-hubee-300/80 bg-hubee-50 p-1 dark:border-hubee-50/15 dark:bg-hubee-900"
                 >
-                  <Pencil aria-hidden="true" className="size-4" />
-                  Editar informações
-                </Button>
-              )}
-
-              {!podeEditarOrg && (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={modoPainel === "visualizar"}
+                    onClick={() => setModoPainel("visualizar")}
+                    className={cn(
+                      "h-8 cursor-pointer rounded-full px-3.5 text-xs font-semibold transition-colors",
+                      modoPainel === "visualizar"
+                        ? "bg-hubee-800 text-hubee-50 dark:bg-hubee-400 dark:text-hubee-900"
+                        : "text-hubee-750 hover:text-hubee-900 dark:text-hubee-200 dark:hover:text-hubee-50",
+                    )}
+                  >
+                    Visão geral
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={modoPainel === "dados"}
+                    onClick={() => setModoPainel("dados")}
+                    className={cn(
+                      "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-colors",
+                      modoPainel === "dados"
+                        ? "bg-hubee-800 text-hubee-50 dark:bg-hubee-400 dark:text-hubee-900"
+                        : "text-hubee-750 hover:text-hubee-900 dark:text-hubee-200 dark:hover:text-hubee-50",
+                    )}
+                  >
+                    <Pencil aria-hidden="true" className="size-3" />
+                    Editar dados
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={modoPainel === "aparencia"}
+                    onClick={() => setModoPainel("aparencia")}
+                    className={cn(
+                      "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-colors",
+                      modoPainel === "aparencia"
+                        ? "bg-hubee-800 text-hubee-50 dark:bg-hubee-400 dark:text-hubee-900"
+                        : "text-hubee-750 hover:text-hubee-900 dark:text-hubee-200 dark:hover:text-hubee-50",
+                    )}
+                  >
+                    <Palette aria-hidden="true" className="size-3" />
+                    Capa e aparência
+                  </button>
+                </div>
+              ) : (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-hubee-300/80 bg-hubee-50 px-3.5 py-1.5 text-xs font-semibold text-hubee-750 dark:border-hubee-50/15 dark:bg-hubee-900 dark:text-hubee-200">
                   <Lock aria-hidden="true" className="size-3.5" />
                   Edição restrita a administradores
@@ -422,7 +527,7 @@ export function MinhaOrganizacaoContent() {
           </div>
 
           <div className="pt-6">
-            {editando && podeEditarOrg ? (
+            {modoPainel === "dados" && podeEditarOrg ? (
               <div className="max-w-2xl">
                 <OrganizacaoForm
                   key={organizacaoAtiva.orgId}
@@ -431,10 +536,16 @@ export function MinhaOrganizacaoContent() {
                     orgId: organizacaoAtiva.orgId,
                     initialName: nomeAtual,
                   }}
-                  onCancel={() => setEditando(false)}
+                  onCancel={() => setModoPainel("visualizar")}
                   onSuccess={handleSalvo}
                 />
               </div>
+            ) : modoPainel === "aparencia" && podeEditarOrg ? (
+              <OrganizacaoAparenciaForm
+                branding={branding}
+                onChange={handleBrandingChange}
+                onReset={handleBrandingReset}
+              />
             ) : detalhesErro ? (
               <ListMessage
                 role="alert"
@@ -450,17 +561,33 @@ export function MinhaOrganizacaoContent() {
             ) : (
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="rounded-2xl border border-hubee-200 bg-hubee-50/80 p-4 md:col-span-2 dark:border-hubee-50/10 dark:bg-hubee-900/60">
-                  <span className="text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
-                    Sobre a organização
-                  </span>
-                  <h3 className="mt-1 text-lg font-bold text-hubee-800 dark:text-hubee-50">
-                    {nomeAtual}
-                  </h3>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
+                        Sobre a organização
+                      </span>
+                      <h3 className="mt-1 text-lg font-bold text-hubee-800 dark:text-hubee-50">
+                        {nomeAtual}
+                      </h3>
+                    </div>
+                    {branding.logoImage && (
+                      <span className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-hubee-300 dark:border-hubee-50/15">
+                        <Image
+                          src={branding.logoImage}
+                          alt={`Logo de ${nomeAtual}`}
+                          fill
+                          unoptimized
+                          sizes="44px"
+                          className="object-cover"
+                        />
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-hubee-750 dark:text-hubee-200">
                     {detalhesCarregando
                       ? "Carregando descrição..."
                       : descricaoAtual ||
-                        "Nenhuma descrição cadastrada ainda. Use o botão \"Editar informações\" para contar quem organiza e quais eventos vocês realizam."}
+                        "Nenhuma descrição cadastrada ainda. Use a aba \"Editar dados\" para contar quem organiza e quais eventos vocês realizam."}
                   </p>
                 </div>
 

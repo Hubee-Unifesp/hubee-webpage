@@ -1,15 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
   CalendarDays,
+  ImageUp,
   Plus,
   Sparkles,
   Truck,
   Users,
   type LucideIcon,
 } from "lucide-react";
+import { canEditEvent } from "@/components/conta/eventos/editor/evento-editor.data";
 import { EventoOrganizadorCard } from "@/components/conta/eventos/evento-organizador-card";
 import { HexPattern } from "@/components/home/events/event-media";
 import { ListMessage } from "@/components/home/events/list-states";
@@ -22,6 +25,7 @@ import {
   type EventoOrganizador,
   type PapelOrganizador,
 } from "@/types/organizacao";
+import { CustomizarEventoModal } from "./customizar-evento-modal";
 
 const BARCODE = [3, 1, 2, 1, 4, 1, 1, 3, 2, 1, 1, 2, 4, 1, 2, 1, 3, 1, 1, 2];
 
@@ -81,7 +85,7 @@ interface OrganizacaoEventosSectionProps {
 }
 
 /**
- * Seção de eventos da organização (com acesso rápido para editar/customizar eventos e lotes)
+ * Seção de eventos da organização (com modal de customização rápida de capa e dados via API)
  * + atalhos de gestão no estilo ingresso com picote.
  */
 export function OrganizacaoEventosSection({
@@ -91,6 +95,7 @@ export function OrganizacaoEventosSection({
   onRetry,
   onEventoAlterado,
 }: OrganizacaoEventosSectionProps) {
+  const [eventoCustomizando, setEventoCustomizando] = useState<EventoOrganizador | null>(null);
   const podeCriar = canCreateOrEditEvent(papel);
   const eventosDestaque = eventos.slice(0, 4);
 
@@ -113,7 +118,7 @@ export function OrganizacaoEventosSection({
               Eventos da organização
             </h2>
             <p className="mt-1.5 text-sm text-hubee-750 dark:text-hubee-200">
-              Personalize informações, capas e lotes dos seus eventos ou crie um novo com o assistente de IA.
+              Troque a capa, personalize informações e lotes dos seus eventos ou crie um novo com o assistente de IA.
             </p>
           </div>
 
@@ -194,14 +199,32 @@ export function OrganizacaoEventosSection({
 
         {status === "ok" && eventosDestaque.length > 0 && (
           <div className="grid gap-4 md:grid-cols-2">
-            {eventosDestaque.map((evento) => (
-              <EventoOrganizadorCard
-                key={evento.id}
-                evento={evento}
-                papel={papel}
-                onAlterado={onEventoAlterado}
-              />
-            ))}
+            {eventosDestaque.map((evento) => {
+              const podeCustomizar = canEditEvent(papel, evento.status);
+              return (
+                <div key={evento.id} className="flex flex-col gap-2">
+                  <EventoOrganizadorCard
+                    evento={evento}
+                    papel={papel}
+                    onAlterado={onEventoAlterado}
+                  />
+                  {podeCustomizar && (
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEventoCustomizando(evento)}
+                        className="h-8 cursor-pointer rounded-full border-hubee-300 bg-hubee-100/70 px-3.5 text-xs font-semibold text-hubee-800 hover:bg-hubee-200/70 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-200 dark:hover:border-hubee-400/50 dark:hover:text-hubee-400"
+                      >
+                        <ImageUp aria-hidden="true" className="size-3.5" />
+                        Editar capa e informações
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
@@ -300,6 +323,12 @@ export function OrganizacaoEventosSection({
           ))}
         </ul>
       </section>
+
+      <CustomizarEventoModal
+        evento={eventoCustomizando}
+        onClose={() => setEventoCustomizando(null)}
+        onSalvo={onEventoAlterado}
+      />
     </>
   );
 }
