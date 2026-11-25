@@ -184,6 +184,9 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
   const { organizacao } = estadoAtual;
   const { firstLine, secondLine } = splitHeroTitle(organizacao.name);
   const descricao = organizacao.description?.trim() ?? "";
+  const coverImage = organizacao.photoUrl ?? branding.coverImage;
+  const titleColor = organizacao.titleColor ?? branding.titleColor;
+  const descriptionColor = organizacao.descriptionColor ?? branding.descriptionColor;
 
   return (
     <>
@@ -207,10 +210,10 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
         aria-labelledby="org-publica-hero-titulo"
         className="relative isolate flex min-h-[400px] items-end overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:min-h-[460px] md:items-center md:py-16 lg:px-16 lg:py-20"
       >
-        {branding.coverImage ? (
+        {coverImage ? (
           <>
             <Image
-              src={branding.coverImage}
+              src={coverImage}
               alt={`Capa de ${organizacao.name}`}
               fill
               unoptimized
@@ -242,21 +245,21 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
         <div className="flex w-full max-w-3xl flex-col items-start gap-6">
           <h1
             id="org-publica-hero-titulo"
-            style={branding.titleColor ? { color: branding.titleColor } : undefined}
+            style={titleColor ? { color: titleColor } : undefined}
             className={cn(
               display.className,
               "max-w-full text-[clamp(2.75rem,5.4vw,5rem)] leading-[0.94] tracking-tight break-words uppercase drop-shadow-sm",
             )}
           >
-            <span className={cn("block", !branding.titleColor && "text-hubee-50")}>{firstLine}</span>
-            <span className={cn("block", !branding.titleColor && "text-hubee-400")}>{secondLine}</span>
+            <span className={cn("block", !titleColor && "text-hubee-50")}>{firstLine}</span>
+            <span className={cn("block", !titleColor && "text-hubee-400")}>{secondLine}</span>
           </h1>
 
           <p
-            style={branding.descriptionColor ? { color: branding.descriptionColor } : undefined}
+            style={descriptionColor ? { color: descriptionColor } : undefined}
             className={cn(
               "max-w-xl text-base leading-relaxed md:text-lg",
-              !branding.descriptionColor && "text-hubee-100/90",
+              !descriptionColor && "text-hubee-100/90",
             )}
           >
             {descricao ||

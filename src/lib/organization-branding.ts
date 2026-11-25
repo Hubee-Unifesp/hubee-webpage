@@ -39,6 +39,13 @@ function normalizeHexColor(value: unknown): string | null {
   return /^#[0-9a-fA-F]{6}$/.test(trimmed) ? trimmed.toUpperCase() : null;
 }
 
+function isValidCoverImage(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    (value.startsWith("data:image/") || value.startsWith("https://") || value.startsWith("http://"))
+  );
+}
+
 export function validateOrganizationImageFile(file: { type: string; size: number }): string | null {
   if (!(ORG_IMAGE_ACCEPTED_TYPES as readonly string[]).includes(file.type)) {
     return "Formato inválido. Use uma imagem JPG, PNG ou WebP.";
@@ -68,9 +75,7 @@ export function loadOrganizationBranding(orgId: string): OrganizationBranding {
 
     const parsed = JSON.parse(raw) as Partial<OrganizationBranding>;
     const value: OrganizationBranding = {
-      coverImage: typeof parsed.coverImage === "string" && parsed.coverImage.startsWith("data:image/")
-        ? parsed.coverImage
-        : null,
+      coverImage: isValidCoverImage(parsed.coverImage) ? parsed.coverImage : null,
       titleColor: normalizeHexColor(parsed.titleColor),
       descriptionColor: normalizeHexColor(parsed.descriptionColor),
     };

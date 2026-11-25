@@ -89,7 +89,7 @@ describe("organization-branding", () => {
     window.localStorage.setItem(
       `hubee:org-branding:${ORG_ID}`,
       JSON.stringify({
-        coverImage: "https://nao-permitido.com/x.png",
+        coverImage: "javascript:alert(1)",
         titleColor: "azul",
         descriptionColor: "#12",
       }),

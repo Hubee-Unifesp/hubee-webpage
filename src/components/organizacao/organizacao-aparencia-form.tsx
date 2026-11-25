@@ -2,9 +2,10 @@
 
 import { useId, useRef, useState } from "react";
 import Image from "next/image";
-import { ImageUp, RotateCcw, Trash2 } from "lucide-react";
+import { Check, ImageUp, Loader2, RotateCcw, Trash2 } from "lucide-react";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { updateOrganization, uploadOrganizationPhoto } from "@/lib/api/organizations";
 import {
   ORG_IMAGE_ACCEPTED_TYPES,
   compressOrganizationImage,
@@ -12,21 +13,27 @@ import {
   type OrganizationBranding,
 } from "@/lib/organization-branding";
 import { cn } from "@/lib/utils";
+import type { Organizacao } from "@/types/organizacao";
 
 interface OrganizacaoAparenciaFormProps {
+  orgId: string;
   branding: OrganizationBranding;
   onChange: (next: OrganizationBranding) => boolean;
   onReset: () => void;
+  onOrganizationUpdated?: (organizacao: Organizacao) => void;
 }
 
 /**
  * Painel de customização visual da organização (capa da Hero e cores do título e da descrição).
- * Aplica as alterações em tempo real e salva localmente por organização até existir suporte dedicado na API.
+ * Mantém as alterações em rascunho para conferência na prévia e só persiste no backend
+ * (`PATCH /organizations/:id/photo` e `PATCH /organizations/:id`) ao clicar em "Salvar alterações".
  */
 export function OrganizacaoAparenciaForm({
+  orgId,
   branding,
   onChange,
   onReset,
+  onOrganizationUpdated,
 }: OrganizacaoAparenciaFormProps) {
   const toast = useToast();
   const coverId = useId();
@@ -34,13 +41,28 @@ export function OrganizacaoAparenciaForm({
   const descriptionColorId = useId();
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  const [draftTitleColor, setDraftTitleColor] = useState<string | null>(branding.titleColor);
+  const [draftDescriptionColor, setDraftDescriptionColor] = useState<string | null>(
+    branding.descriptionColor,
+  );
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
+  const [removeCover, setRemoveCover] = useState(false);
+
   const [coverError, setCoverError] = useState<string | null>(null);
   const [processingCover, setProcessingCover] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const displayedCover = removeCover ? null : (pendingPreviewUrl ?? branding.coverImage);
+
+  const hasPendingChanges =
+    pendingFile !== null ||
+    removeCover ||
+    draftTitleColor !== branding.titleColor ||
+    draftDescriptionColor !== branding.descriptionColor;
 
   const hasCustomizations =
-    branding.coverImage !== null ||
-    branding.titleColor !== null ||
-    branding.descriptionColor !== null;
+    displayedCover !== null || draftTitleColor !== null || draftDescriptionColor !== null;
 
   async function handleSelectCover(file: File | undefined) {
     if (!file) return;
@@ -54,13 +76,10 @@ export function OrganizacaoAparenciaForm({
     setCoverError(null);
     setProcessingCover(true);
     try {
-      const dataUrl = await compressOrganizationImage(file, 1280, 0.8);
-      const saved = onChange({ ...branding, coverImage: dataUrl });
-      if (saved) {
-        toast.success("Capa da organização atualizada!");
-      } else {
-        setCoverError("Imagem muito grande para salvar localmente. Tente um arquivo menor.");
-      }
+      const previewDataUrl = await compressOrganizationImage(file, 1280, 0.8);
+      setPendingFile(file);
+      setPendingPreviewUrl(previewDataUrl);
+      setRemoveCover(false);
     } catch {
       setCoverError("Não foi possível ler a imagem. Tente outro arquivo.");
     } finally {
@@ -71,14 +90,92 @@ export function OrganizacaoAparenciaForm({
 
   function handleRemoveCover() {
     setCoverError(null);
-    onChange({ ...branding, coverImage: null });
-    toast.success("Capa da organização removida.");
+    setPendingFile(null);
+    setPendingPreviewUrl(null);
+    setRemoveCover(branding.coverImage !== null);
   }
 
-  function handleResetAll() {
+  function handleDiscardChanges() {
     setCoverError(null);
-    onReset();
-    toast.success("Aparência restaurada para o padrão Hubee.");
+    setPendingFile(null);
+    setPendingPreviewUrl(null);
+    setRemoveCover(false);
+    setDraftTitleColor(branding.titleColor);
+    setDraftDescriptionColor(branding.descriptionColor);
+  }
+
+  function handleRestoreDefault() {
+    setCoverError(null);
+    setPendingFile(null);
+    setPendingPreviewUrl(null);
+    setRemoveCover(branding.coverImage !== null);
+    setDraftTitleColor(null);
+    setDraftDescriptionColor(null);
+  }
+
+  async function handleSave() {
+    if (!hasPendingChanges || saving) return;
+
+    setCoverError(null);
+    setSaving(true);
+    try {
+      let nextCoverImage: string | null = removeCover ? null : branding.coverImage;
+      let latestOrg: Organizacao | null = null;
+      let usedLocalCoverFallback = false;
+
+      if (pendingFile) {
+        try {
+          latestOrg = await uploadOrganizationPhoto(orgId, pendingFile);
+          nextCoverImage = latestOrg.photoUrl ?? pendingPreviewUrl;
+        } catch {
+          nextCoverImage = pendingPreviewUrl;
+          usedLocalCoverFallback = true;
+        }
+      }
+
+      const needsMetadataUpdate =
+        removeCover ||
+        draftTitleColor !== branding.titleColor ||
+        draftDescriptionColor !== branding.descriptionColor;
+
+      if (needsMetadataUpdate) {
+        try {
+          latestOrg = await updateOrganization(orgId, {
+            ...(removeCover ? { photoUrl: null } : {}),
+            titleColor: draftTitleColor,
+            descriptionColor: draftDescriptionColor,
+          });
+        } catch {
+          // Mantém salvo no cache local caso o backend esteja indisponível
+        }
+      }
+
+      if (latestOrg) {
+        onOrganizationUpdated?.(latestOrg);
+      }
+
+      if (nextCoverImage === null && draftTitleColor === null && draftDescriptionColor === null) {
+        onReset();
+      } else {
+        onChange({
+          coverImage: nextCoverImage,
+          titleColor: draftTitleColor,
+          descriptionColor: draftDescriptionColor,
+        });
+      }
+
+      setPendingFile(null);
+      setPendingPreviewUrl(null);
+      setRemoveCover(false);
+
+      if (usedLocalCoverFallback) {
+        toast.success("Cores salvas! A capa ficou salva localmente neste navegador.");
+      } else {
+        toast.success("Aparência da organização salva com sucesso!");
+      }
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -103,11 +200,12 @@ export function OrganizacaoAparenciaForm({
               >
                 Cor do título na Hero
               </label>
-              {branding.titleColor && (
+              {draftTitleColor && (
                 <button
                   type="button"
-                  onClick={() => onChange({ ...branding, titleColor: null })}
-                  className="cursor-pointer text-[11px] font-semibold text-hubee-700 hover:underline dark:text-hubee-300"
+                  disabled={saving}
+                  onClick={() => setDraftTitleColor(null)}
+                  className="cursor-pointer text-[11px] font-semibold text-hubee-700 hover:underline disabled:opacity-50 dark:text-hubee-300"
                 >
                   Padrão
                 </button>
@@ -117,14 +215,13 @@ export function OrganizacaoAparenciaForm({
               <input
                 id={titleColorId}
                 type="color"
-                value={branding.titleColor ?? "#FFFDF5"}
-                onChange={(event) =>
-                  onChange({ ...branding, titleColor: event.target.value.toUpperCase() })
-                }
-                className="size-7 cursor-pointer rounded border-0 bg-transparent p-0"
+                disabled={saving}
+                value={draftTitleColor ?? "#FFFDF5"}
+                onChange={(event) => setDraftTitleColor(event.target.value.toUpperCase())}
+                className="size-7 cursor-pointer rounded border-0 bg-transparent p-0 disabled:cursor-not-allowed"
               />
               <span className="font-mono text-xs text-hubee-750 dark:text-hubee-200">
-                {branding.titleColor ?? "Padrão Hubee"}
+                {draftTitleColor ?? "Padrão Hubee"}
               </span>
             </div>
           </div>
@@ -137,11 +234,12 @@ export function OrganizacaoAparenciaForm({
               >
                 Cor da descrição na Hero
               </label>
-              {branding.descriptionColor && (
+              {draftDescriptionColor && (
                 <button
                   type="button"
-                  onClick={() => onChange({ ...branding, descriptionColor: null })}
-                  className="cursor-pointer text-[11px] font-semibold text-hubee-700 hover:underline dark:text-hubee-300"
+                  disabled={saving}
+                  onClick={() => setDraftDescriptionColor(null)}
+                  className="cursor-pointer text-[11px] font-semibold text-hubee-700 hover:underline disabled:opacity-50 dark:text-hubee-300"
                 >
                   Padrão
                 </button>
@@ -151,14 +249,13 @@ export function OrganizacaoAparenciaForm({
               <input
                 id={descriptionColorId}
                 type="color"
-                value={branding.descriptionColor ?? "#F5F0DC"}
-                onChange={(event) =>
-                  onChange({ ...branding, descriptionColor: event.target.value.toUpperCase() })
-                }
-                className="size-7 cursor-pointer rounded border-0 bg-transparent p-0"
+                disabled={saving}
+                value={draftDescriptionColor ?? "#F5F0DC"}
+                onChange={(event) => setDraftDescriptionColor(event.target.value.toUpperCase())}
+                className="size-7 cursor-pointer rounded border-0 bg-transparent p-0 disabled:cursor-not-allowed"
               />
               <span className="font-mono text-xs text-hubee-750 dark:text-hubee-200">
-                {branding.descriptionColor ?? "Padrão Hubee"}
+                {draftDescriptionColor ?? "Padrão Hubee"}
               </span>
             </div>
           </div>
@@ -176,11 +273,12 @@ export function OrganizacaoAparenciaForm({
               Aparece no fundo da Hero principal da organização.
             </p>
           </div>
-          {branding.coverImage && (
+          {displayedCover && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
+              disabled={saving}
               onClick={handleRemoveCover}
               className="h-8 cursor-pointer gap-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 hover:text-red-800 dark:text-red-300 dark:hover:bg-red-950/50"
             >
@@ -191,9 +289,9 @@ export function OrganizacaoAparenciaForm({
         </div>
 
         <div className="relative flex h-56 w-full items-center justify-center overflow-hidden rounded-2xl border border-hubee-200 bg-hubee-900 text-xs font-medium text-hubee-200 sm:h-72 md:h-96 dark:border-hubee-50/15">
-          {branding.coverImage ? (
+          {displayedCover ? (
             <Image
-              src={branding.coverImage}
+              src={displayedCover}
               alt="Prévia da capa da organização"
               fill
               unoptimized
@@ -212,13 +310,13 @@ export function OrganizacaoAparenciaForm({
             coverError
               ? "border-red-600 text-red-700 dark:border-red-400 dark:text-red-300"
               : "border-hubee-400 text-hubee-800 hover:bg-hubee-100 dark:border-hubee-50/20 dark:text-hubee-50 dark:hover:bg-hubee-50/10",
-            processingCover && "cursor-wait opacity-60",
+            (processingCover || saving) && "cursor-wait opacity-60",
           )}
         >
           <ImageUp aria-hidden="true" className="size-4" />
           {processingCover
             ? "Processando capa..."
-            : branding.coverImage
+            : displayedCover
               ? "Trocar imagem de capa"
               : "Escolher imagem de capa"}
           <input
@@ -226,7 +324,7 @@ export function OrganizacaoAparenciaForm({
             id={coverId}
             type="file"
             accept={ORG_IMAGE_ACCEPTED_TYPES.join(",")}
-            disabled={processingCover}
+            disabled={processingCover || saving}
             onChange={(event) => void handleSelectCover(event.target.files?.[0])}
             className="sr-only"
           />
@@ -243,21 +341,54 @@ export function OrganizacaoAparenciaForm({
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hubee-200 pt-4 dark:border-hubee-50/15">
         <p className="text-xs text-hubee-750 dark:text-hubee-200">
-          As alterações visuais são aplicadas imediatamente e ficam salvas localmente neste navegador.
+          {hasPendingChanges
+            ? "Você tem alterações não salvas. Clique em Salvar alterações para aplicar na Hero."
+            : "Clique em Salvar alterações após ajustar a capa ou as cores da Hero."}
         </p>
 
-        {hasCustomizations && (
+        <div className="flex flex-wrap items-center gap-2">
+          {hasCustomizations && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={saving}
+              onClick={handleRestoreDefault}
+              className="h-9 cursor-pointer rounded-full border-hubee-300 bg-transparent px-4 text-xs font-semibold text-hubee-800 hover:bg-hubee-200/50 dark:border-hubee-50/20 dark:text-hubee-50 dark:hover:bg-hubee-50/10"
+            >
+              <RotateCcw aria-hidden="true" className="size-3.5" />
+              Restaurar padrão
+            </Button>
+          )}
+
+          {hasPendingChanges && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={saving}
+              onClick={handleDiscardChanges}
+              className="h-9 cursor-pointer rounded-full border-hubee-300 bg-transparent px-4 text-xs font-semibold text-hubee-800 hover:bg-hubee-200/50 dark:border-hubee-50/20 dark:text-hubee-50 dark:hover:bg-hubee-50/10"
+            >
+              Descartar
+            </Button>
+          )}
+
           <Button
             type="button"
-            variant="outline"
             size="sm"
-            onClick={handleResetAll}
-            className="h-9 cursor-pointer rounded-full border-hubee-300 bg-transparent px-4 text-xs font-semibold text-hubee-800 hover:bg-hubee-200/50 dark:border-hubee-50/20 dark:text-hubee-50 dark:hover:bg-hubee-50/10"
+            disabled={!hasPendingChanges || processingCover || saving}
+            onClick={() => void handleSave()}
+            className="h-9 cursor-pointer rounded-full bg-hubee-400 px-5 text-xs font-semibold text-hubee-900 hover:bg-hubee-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <RotateCcw aria-hidden="true" className="size-3.5" />
-            Restaurar padrão
+            {saving ? (
+              <Loader2 aria-hidden="true" className="size-3.5 animate-spin" />
+            ) : (
+              <Check aria-hidden="true" className="size-3.5" />
+            )}
+            {saving ? "Salvando..." : "Salvar alterações"}
           </Button>
-        )}
+        </div>
       </div>
     </div>
   );

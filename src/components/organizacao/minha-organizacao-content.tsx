@@ -224,6 +224,11 @@ export function MinhaOrganizacaoContent() {
   const podeEditarOrg = user?.role === "ADMIN" || organizacaoAtiva.level === "manage";
   const podeCriarEvento = canCreateOrEditEvent(organizacaoAtiva.papel);
   const { firstLine, secondLine } = splitHeroTitle(nomeAtual);
+  const effectiveBranding: OrganizationBranding = {
+    coverImage: branding.coverImage ?? detalhes?.photoUrl ?? null,
+    titleColor: branding.titleColor ?? detalhes?.titleColor ?? null,
+    descriptionColor: branding.descriptionColor ?? detalhes?.descriptionColor ?? null,
+  };
 
   function abrirPainel(modo: Exclude<ModoPainel, "visualizar">) {
     setModoPainel(modo);
@@ -258,10 +263,10 @@ export function MinhaOrganizacaoContent() {
         className="relative isolate flex min-h-[400px] items-end overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:min-h-[460px] md:items-center md:py-16 lg:px-16 lg:py-20"
       >
         {/* Capa personalizada no fundo da Hero ou grade de colmeia padrão */}
-        {branding.coverImage ? (
+        {effectiveBranding.coverImage ? (
           <>
             <Image
-              src={branding.coverImage}
+              src={effectiveBranding.coverImage}
               alt={`Capa de ${nomeAtual}`}
               fill
               unoptimized
@@ -324,21 +329,21 @@ export function MinhaOrganizacaoContent() {
 
           <h1
             id="minha-org-hero-titulo"
-            style={branding.titleColor ? { color: branding.titleColor } : undefined}
+            style={effectiveBranding.titleColor ? { color: effectiveBranding.titleColor } : undefined}
             className={cn(
               display.className,
               "max-w-full text-[clamp(2.75rem,5.4vw,4.75rem)] leading-[0.94] tracking-tight break-words uppercase drop-shadow-sm",
             )}
           >
-            <span className={cn("block", !branding.titleColor && "text-hubee-50")}>{firstLine}</span>
-            <span className={cn("block", !branding.titleColor && "text-hubee-400")}>{secondLine}</span>
+            <span className={cn("block", !effectiveBranding.titleColor && "text-hubee-50")}>{firstLine}</span>
+            <span className={cn("block", !effectiveBranding.titleColor && "text-hubee-400")}>{secondLine}</span>
           </h1>
 
           <p
-            style={branding.descriptionColor ? { color: branding.descriptionColor } : undefined}
+            style={effectiveBranding.descriptionColor ? { color: effectiveBranding.descriptionColor } : undefined}
             className={cn(
               "max-w-xl text-base leading-relaxed md:text-lg",
-              !branding.descriptionColor && "text-hubee-100/85",
+              !effectiveBranding.descriptionColor && "text-hubee-100/85",
             )}
           >
             {detalhesCarregando
@@ -513,9 +518,14 @@ export function MinhaOrganizacaoContent() {
               </div>
             ) : modoPainel === "aparencia" && podeEditarOrg ? (
               <OrganizacaoAparenciaForm
-                branding={branding}
+                key={organizacaoAtiva.orgId}
+                orgId={organizacaoAtiva.orgId}
+                branding={effectiveBranding}
                 onChange={handleBrandingChange}
                 onReset={handleBrandingReset}
+                onOrganizationUpdated={(atualizada) =>
+                  setDetalhesState({ orgId: atualizada.id, status: "ok", data: atualizada })
+                }
               />
             ) : detalhesErro ? (
               <ListMessage

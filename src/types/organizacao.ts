@@ -25,6 +25,9 @@ export interface Organizacao {
   id: string;
   name: string;
   description: string | null;
+  photoUrl?: string | null;
+  titleColor?: string | null;
+  descriptionColor?: string | null;
   representativeId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -40,6 +43,9 @@ export interface OrganizacaoCriarPayload {
 export interface OrganizacaoAtualizarPayload {
   name?: string;
   description?: string;
+  photoUrl?: string | null;
+  titleColor?: string | null;
+  descriptionColor?: string | null;
 }
 
 /** Evento formatado para o painel do organizador ("Meus Eventos"). */
