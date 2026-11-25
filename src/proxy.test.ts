@@ -50,6 +50,7 @@ describe("proxy (BUG-20 e BUG-25)", () => {
     "/sobre",
     "/eventos",
     "/eventos/evt-1",
+    "/organizacoes/org-1",
     "/login",
     "/cadastro",
   ])("permite passagem de rota pública %s sem sessão", (pathname) => {

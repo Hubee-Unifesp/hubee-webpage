@@ -1,30 +1,37 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { organizerHref } from "@/components/home/events/links";
+import { organizerProfileHref } from "@/components/home/events/links";
 import type { EventOrganizer as EventOrganizerData } from "@/lib/api/events";
 import { organizerInitial } from "./format";
 
-/** Bloco "Quem faz acontecer": organização realizadora e link para os eventos da organização. */
+/** Bloco "Quem faz acontecer": organização realizadora com link direto para o perfil público `/organizacoes/[id]`. */
 export function EventOrganizer({ organizer }: { organizer: EventOrganizerData }) {
+  const profileHref = organizerProfileHref(organizer.id);
+
   return (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex min-w-0 items-center gap-3">
+      <Link
+        href={profileHref}
+        className="group flex min-w-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-hubee-400"
+      >
         <span
           aria-hidden="true"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-hubee-400 font-heading text-xl font-bold text-hubee-800 md:size-12"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-hubee-400 font-display text-xl text-hubee-800 transition-transform group-hover:scale-105 md:size-12"
         >
           {organizerInitial(organizer.name)}
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-hubee-800 dark:text-hubee-50">{organizer.name}</p>
+          <p className="truncate text-sm font-semibold text-hubee-800 group-hover:underline dark:text-hubee-50">
+            {organizer.name}
+          </p>
           {organizer.description && (
             <p className="truncate text-xs text-hubee-neutral-300 dark:text-hubee-100">{organizer.description}</p>
           )}
         </div>
-      </div>
+      </Link>
 
       <Link
-        href={organizerHref(organizer.name)}
+        href={profileHref}
         className="inline-flex shrink-0 items-center gap-1 rounded-sm text-xs font-semibold text-hubee-800 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-hubee-400 dark:text-hubee-50"
       >
         Ver perfil

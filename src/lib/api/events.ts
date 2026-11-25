@@ -82,6 +82,25 @@ async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
   }
 }
 
+export async function getPublicEventsByOrganization(
+  organizerId: string,
+): Promise<EventSummary[]> {
+  const [{ data }, summaries] = await Promise.all([
+    apiClient.get<ApiEventPage | ApiEventListItem[]>("/events", {
+      params: { organizerId, status: "published", limit: 50 },
+    }),
+    apiClient
+      .get<ApiEventSummary[]>("/events/summary")
+      .then((res) => (Array.isArray(res.data) ? res.data : []))
+      .catch(() => [] as ApiEventSummary[]),
+  ]);
+
+  const summaryById = new Map(summaries.map((item) => [item.id, toEventSummary(item)]));
+  const items = Array.isArray(data) ? data : data.data;
+
+  return items.map((item) => toListItemSummary(item, summaryById.get(item.id)));
+}
+
 /**
  * Busca os eventos de uma organização vinculada à usuária logada via `GET /events?organizerId=...`.
  * Mescla `capacity` e `ticketsSold` via `GET /events/summary`. Se `capacity` ainda não vier no item,
@@ -483,6 +502,7 @@ function toListItemSummary(
     title: event.name,
     description: event.description ?? undefined,
     category: toCategory(event.category),
+    ...(event.organizerId ? { organizerId: event.organizerId } : {}),
     organizerName: event.organizerName || fallback?.organizerName || "Organização Hubee",
     venueName,
     startDate: event.startDate,

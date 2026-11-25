@@ -17,9 +17,12 @@ const BARCODE = [3, 1, 2, 1, 4, 1, 1, 3, 2, 1, 1, 2, 4, 1, 2, 1, 3, 1, 1, 2, 1, 
 
 interface OrganizacaoHeroCardProps {
   nome: string;
-  papel: PapelOrganizador;
+  papel?: PapelOrganizador;
+  badgeLabel?: string;
   totalEventos: number;
-  eventosPublicados: number;
+  eventosPublicados?: number;
+  secondaryMetricLabel?: string;
+  secondaryMetricValue?: number;
   criadaEm: string | null;
   branding?: OrganizationBranding;
   perchRef: RefObject<HTMLSpanElement | null>;
@@ -50,8 +53,11 @@ function formatCreatedYear(iso: string | null): string {
 export function OrganizacaoHeroCard({
   nome,
   papel,
+  badgeLabel,
   totalEventos,
-  eventosPublicados,
+  eventosPublicados = totalEventos,
+  secondaryMetricLabel = "Publicados",
+  secondaryMetricValue,
   criadaEm,
   branding = DEFAULT_ORGANIZATION_BRANDING,
   perchRef,
@@ -61,6 +67,8 @@ export function OrganizacaoHeroCard({
   const accentOption = getOrganizationAccentOption(branding.accent);
   const hasCover = Boolean(branding.coverImage);
   const tagline = branding.tagline.trim() || "Colmeia ativa";
+  const resolvedBadge = badgeLabel ?? (papel ? formatOrganizerRoleLabel(papel) : "Organização");
+  const resolvedSecondaryValue = secondaryMetricValue ?? eventosPublicados;
 
   return (
     <div className="relative mx-auto w-full max-w-[330px] select-none md:max-w-[350px]">
@@ -113,7 +121,7 @@ export function OrganizacaoHeroCard({
               )}
             >
               <ShieldCheck aria-hidden="true" className="size-3.5" />
-              {formatOrganizerRoleLabel(papel)}
+              {resolvedBadge}
             </span>
 
             {branding.logoImage ? (
@@ -189,9 +197,9 @@ export function OrganizacaoHeroCard({
               </p>
             </div>
             <div>
-              <span className="block text-[11px] font-medium text-hubee-750">Publicados</span>
+              <span className="block text-[11px] font-medium text-hubee-750">{secondaryMetricLabel}</span>
               <p className="mt-0.5 text-xl font-extrabold tabular-nums text-hubee-900">
-                {eventosPublicados}
+                {resolvedSecondaryValue}
               </p>
             </div>
           </div>
