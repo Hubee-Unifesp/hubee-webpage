@@ -8,16 +8,15 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
-  Building2,
   Calendar,
   CalendarDays,
+  Layers,
   Settings2,
 } from "lucide-react";
 import { categoryConfig } from "@/components/home/events/categories.config";
 import { EventCard } from "@/components/home/events/event-card";
 import { CategoryPill } from "@/components/home/events/event-media";
 import { ListMessage } from "@/components/home/events/list-states";
-import { useFlyingBee } from "@/components/home/hero-section";
 import { Button } from "@/components/ui/button";
 import { Honeycomb, type HoneycombCell } from "@/components/ui/honeycomb";
 import { useOrganizacaoAtiva } from "@/hooks/useMeusEventos";
@@ -37,7 +36,6 @@ import {
 import { cn } from "@/lib/utils";
 import type { Organizacao } from "@/types/organizacao";
 import { MinhaOrganizacaoSkeleton } from "./minha-organizacao-skeleton";
-import { OrganizacaoHeroCard } from "./organizacao-hero-card";
 
 const hiveCells: readonly HoneycombCell[] = Array.from({ length: 30 * 8 }, (_, index) => {
   const col = index % 30;
@@ -87,12 +85,7 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
   const [attempt, setAttempt] = useState(0);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<EventCategory | "all">("all");
 
-  const heroSectionRef = useRef<HTMLElement>(null);
-  const beeRef = useRef<HTMLDivElement>(null);
-  const perchRef = useRef<HTMLSpanElement | null>(null);
   const eventosSectionRef = useRef<HTMLElement>(null);
-
-  useFlyingBee(heroSectionRef, beeRef, perchRef);
 
   const getBrandingSnapshot = useCallback(() => loadOrganizationBranding(orgId), [orgId]);
   const branding = useSyncExternalStore(
@@ -157,7 +150,7 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
 
   if (estadoAtual.status === "not-found") {
     return (
-      <div className="mx-auto w-full max-w-3xl py-10">
+      <div className="w-full py-10">
         <ListMessage
           role="alert"
           variant="primary"
@@ -172,7 +165,7 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
 
   if (estadoAtual.status === "error") {
     return (
-      <div className="mx-auto w-full max-w-3xl py-10">
+      <div className="w-full py-10">
         <ListMessage
           role="alert"
           variant="primary"
@@ -195,7 +188,7 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
   return (
     <>
       {/* Breadcrumb simples de navegação */}
-      <nav aria-label="Navegação estrutural" className="mx-auto -mb-6 flex w-full max-w-6xl items-center gap-2 text-xs font-medium text-hubee-750 dark:text-hubee-200">
+      <nav aria-label="Navegação estrutural" className="-mb-6 flex w-full items-center gap-2 text-xs font-medium text-hubee-750 dark:text-hubee-200">
         <Link
           href="/eventos"
           className="inline-flex items-center gap-1 rounded-sm outline-none hover:text-hubee-900 hover:underline focus-visible:ring-2 focus-visible:ring-hubee-400 dark:hover:text-hubee-50"
@@ -209,121 +202,111 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
         </span>
       </nav>
 
-      {/* SEÇÃO 1 — HERO PÚBLICA DA ORGANIZAÇÃO */}
+      {/* SEÇÃO 1 — HERO PÚBLICA DA ORGANIZAÇÃO (foco na capa personalizada) */}
       <section
-        ref={heroSectionRef}
         aria-labelledby="org-publica-hero-titulo"
-        className="relative isolate flex min-h-[400px] items-center overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:min-h-[450px] md:py-16 lg:px-16 lg:py-20"
+        className="relative isolate flex min-h-[400px] items-end overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:min-h-[460px] md:items-center md:py-16 lg:px-16 lg:py-20"
       >
-        {branding.coverImage && (
+        {branding.coverImage ? (
           <>
             <Image
               src={branding.coverImage}
-              alt=""
+              alt={`Capa de ${organizacao.name}`}
               fill
               unoptimized
               sizes="100vw"
-              className="absolute inset-0 -z-20 object-cover opacity-30"
+              className="absolute inset-0 -z-20 object-cover object-center"
             />
             <div
               aria-hidden="true"
-              className="absolute inset-0 -z-20 bg-gradient-to-r from-hubee-900 via-hubee-900/85 to-hubee-900/65"
+              className="absolute inset-0 -z-20 bg-gradient-to-r from-hubee-900/95 via-hubee-900/75 to-hubee-900/25"
+            />
+          </>
+        ) : (
+          <>
+            <Honeycomb
+              cells={hiveCells}
+              orientation="pointy"
+              preserveAspectRatio="xMidYMid slice"
+              className="absolute inset-0 -z-10 size-full fill-none stroke-hubee-400/10 stroke-[1.5]"
+            />
+            <Honeycomb
+              cells={hiveCells}
+              orientation="pointy"
+              preserveAspectRatio="xMidYMid slice"
+              className="hero-hive-glow absolute inset-0 -z-10 size-full fill-hubee-400/[0.06] stroke-hubee-400 stroke-2"
             />
           </>
         )}
 
-        <Honeycomb
-          cells={hiveCells}
-          orientation="pointy"
-          preserveAspectRatio="xMidYMid slice"
-          className="absolute inset-0 -z-10 size-full fill-none stroke-hubee-400/10 stroke-[1.5]"
-        />
-        <Honeycomb
-          cells={hiveCells}
-          orientation="pointy"
-          preserveAspectRatio="xMidYMid slice"
-          className="hero-hive-glow absolute inset-0 -z-10 size-full fill-hubee-400/[0.06] stroke-hubee-400 stroke-2"
-        />
-
-        <div
-          ref={beeRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute top-0 left-0 z-50 -mt-7 -ml-7 size-14 will-change-transform md:-mt-9 md:-ml-9 md:size-[72px]"
-        >
-          <Image
-            src="/logo/logo-icon/LogoMono_yellow.svg"
-            alt=""
-            width={72}
-            height={72}
-            className="hero-bee size-full object-contain"
-            priority
-          />
-        </div>
-
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
-          <div className="flex min-w-0 flex-col items-start gap-6">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-hubee-400/40 bg-hubee-400/15 px-3.5 py-1 text-xs font-bold tracking-wider text-hubee-300 uppercase">
-              <Building2 aria-hidden="true" className="size-3.5" />
-              Organização na Hubee
-            </span>
-
-            <h1
-              id="org-publica-hero-titulo"
-              className={cn(
-                display.className,
-                "max-w-full text-[clamp(2.75rem,5.4vw,4.75rem)] leading-[0.94] tracking-tight break-words uppercase",
+        <div className="flex w-full max-w-3xl flex-col items-start gap-6">
+          {(branding.logoImage || branding.tagline.trim()) && (
+            <div className="flex items-center gap-3">
+              {branding.logoImage && (
+                <span className="relative size-14 shrink-0 overflow-hidden rounded-2xl border-2 border-hubee-400/60 bg-hubee-900 shadow-lg">
+                  <Image
+                    src={branding.logoImage}
+                    alt={`Logo de ${organizacao.name}`}
+                    fill
+                    unoptimized
+                    sizes="56px"
+                    className="object-cover"
+                  />
+                </span>
               )}
-            >
-              <span className="block text-hubee-50">{firstLine}</span>
-              <span className="block text-hubee-400">{secondLine}</span>
-            </h1>
-
-            <p className="max-w-xl text-base leading-relaxed text-hubee-100/85 md:text-lg">
-              {descricao ||
-                `Confira os próximos eventos e novidades organizados por ${organizacao.name} na Hubee.`}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={() =>
-                  eventosSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-                }
-                className="inline-flex h-13 cursor-pointer items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
-              >
-                Ver eventos
-                <ArrowDown aria-hidden="true" className="size-4" />
-              </button>
-
-              {pertenceAEstaOrg && (
-                <Link
-                  href="/minha-organizacao"
-                  onClick={() => selecionarOrganizacao(orgId)}
-                  className="inline-flex h-13 items-center gap-2 rounded-full border border-hubee-50/20 bg-hubee-850/70 px-5 text-sm font-semibold text-hubee-50 transition-colors hover:border-hubee-400/60 hover:text-hubee-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50"
-                >
-                  <Settings2 aria-hidden="true" className="size-4" />
-                  Gerenciar organização
-                </Link>
+              {branding.tagline.trim() && (
+                <span className="rounded-full border border-hubee-400/40 bg-hubee-900/75 px-3.5 py-1 text-xs font-bold tracking-wider text-hubee-300 uppercase backdrop-blur-xs">
+                  {branding.tagline.trim()}
+                </span>
               )}
             </div>
-          </div>
+          )}
 
-          <OrganizacaoHeroCard
-            nome={organizacao.name}
-            badgeLabel="Organização"
-            totalEventos={eventos.length}
-            secondaryMetricLabel="Categorias"
-            secondaryMetricValue={categoriasPresentes.length}
-            criadaEm={organizacao.createdAt}
-            branding={branding}
-            perchRef={perchRef}
-          />
+          <h1
+            id="org-publica-hero-titulo"
+            className={cn(
+              display.className,
+              "max-w-full text-[clamp(2.75rem,5.4vw,5rem)] leading-[0.94] tracking-tight break-words uppercase drop-shadow-sm",
+            )}
+          >
+            <span className="block text-hubee-50">{firstLine}</span>
+            <span className="block text-hubee-400">{secondLine}</span>
+          </h1>
+
+          <p className="max-w-xl text-base leading-relaxed text-hubee-100/90 md:text-lg">
+            {descricao ||
+              `Confira os próximos eventos e novidades organizados por ${organizacao.name} na Hubee.`}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() =>
+                eventosSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+              className="inline-flex h-13 cursor-pointer items-center gap-2.5 rounded-full bg-hubee-400 px-7 text-base font-semibold text-hubee-900 transition-[background-color,transform] hover:bg-hubee-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50 active:scale-[0.97]"
+            >
+              Ver eventos
+              <ArrowDown aria-hidden="true" className="size-4" />
+            </button>
+
+            {pertenceAEstaOrg && (
+              <Link
+                href="/minha-organizacao"
+                onClick={() => selecionarOrganizacao(orgId)}
+                className="inline-flex h-13 items-center gap-2 rounded-full border border-hubee-50/25 bg-hubee-900/75 px-5 text-sm font-semibold text-hubee-50 backdrop-blur-xs transition-colors hover:border-hubee-400/60 hover:text-hubee-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-hubee-400/50"
+              >
+                <Settings2 aria-hidden="true" className="size-4" />
+                Gerenciar organização
+              </Link>
+            )}
+          </div>
         </div>
       </section>
 
-      {/* SEÇÃO 2 — INFORMAÇÕES DA ORGANIZAÇÃO */}
-      <section aria-labelledby="org-publica-sobre-titulo" className="mx-auto w-full max-w-6xl">
-        <div className="rounded-[26px] border border-hubee-300/70 bg-hubee-100 p-6 text-hubee-800 shadow-sm md:p-8 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50">
+      {/* SEÇÃO 2 — INFORMAÇÕES DA ORGANIZAÇÃO (com contadores de eventos e categorias) */}
+      <section aria-labelledby="org-publica-sobre-titulo" className="w-full">
+        <div className="rounded-[32px] border border-hubee-300/70 bg-hubee-100 px-6 py-6 text-hubee-800 shadow-sm sm:px-10 md:py-8 lg:px-16 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50">
           <p className="text-xs font-bold tracking-[0.16em] text-hubee-700 uppercase dark:text-hubee-400">
             Quem faz acontecer
           </p>
@@ -337,8 +320,8 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
             Sobre a organização
           </h2>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            <div className="rounded-2xl border border-hubee-200 bg-hubee-50/80 p-4 md:col-span-2 dark:border-hubee-50/10 dark:bg-hubee-900/60">
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+            <div className="rounded-2xl border border-hubee-200 bg-hubee-50/80 p-5 lg:col-span-2 dark:border-hubee-50/10 dark:bg-hubee-900/60">
               <div className="flex items-start justify-between gap-3">
                 <h3 className="text-lg font-bold text-hubee-800 dark:text-hubee-50">
                   {organizacao.name}
@@ -373,20 +356,33 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
               )}
             </div>
 
-            <dl className="flex flex-col justify-between gap-4 rounded-2xl border border-hubee-200 bg-hubee-50/80 p-4 dark:border-hubee-50/10 dark:bg-hubee-900/60">
-              <div>
-                <dt className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
-                  <CalendarDays aria-hidden="true" className="size-3.5" />
-                  Eventos disponíveis
-                </dt>
-                <dd className="mt-1 text-2xl font-extrabold tabular-nums text-hubee-800 dark:text-hubee-50">
-                  {eventos.length}
-                </dd>
-                <p className="mt-0.5 text-xs text-hubee-750 dark:text-hubee-200">
-                  {eventos.length === 1
-                    ? "evento publicado na plataforma"
-                    : "eventos publicados na plataforma"}
-                </p>
+            <dl className="flex flex-col justify-between gap-4 rounded-2xl border border-hubee-200 bg-hubee-50/80 p-5 dark:border-hubee-50/10 dark:bg-hubee-900/60">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <dt className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
+                    <CalendarDays aria-hidden="true" className="size-3.5" />
+                    Eventos
+                  </dt>
+                  <dd className="mt-1 text-2xl font-extrabold tabular-nums text-hubee-800 dark:text-hubee-50">
+                    {eventos.length}
+                  </dd>
+                  <p className="mt-0.5 text-xs text-hubee-750 dark:text-hubee-200">
+                    {eventos.length === 1 ? "publicado" : "publicados"}
+                  </p>
+                </div>
+
+                <div>
+                  <dt className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-hubee-700 uppercase dark:text-hubee-300">
+                    <Layers aria-hidden="true" className="size-3.5" />
+                    Categorias
+                  </dt>
+                  <dd className="mt-1 text-2xl font-extrabold tabular-nums text-hubee-800 dark:text-hubee-50">
+                    {categoriasPresentes.length}
+                  </dd>
+                  <p className="mt-0.5 text-xs text-hubee-750 dark:text-hubee-200">
+                    {categoriasPresentes.length === 1 ? "categoria ativa" : "categorias ativas"}
+                  </p>
+                </div>
               </div>
 
               <div className="border-t border-hubee-200 pt-3 dark:border-hubee-50/10">
@@ -408,7 +404,7 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
         ref={eventosSectionRef}
         id="eventos-organizacao"
         aria-labelledby="org-publica-eventos-titulo"
-        className="mx-auto w-full max-w-6xl scroll-mt-24"
+        className="w-full scroll-mt-24"
       >
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>

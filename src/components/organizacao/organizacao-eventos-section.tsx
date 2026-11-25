@@ -102,7 +102,7 @@ export function OrganizacaoEventosSection({
   return (
     <>
       {/* Bloco de eventos da organização */}
-      <section aria-labelledby="org-eventos-titulo" className="mx-auto w-full max-w-6xl">
+      <section aria-labelledby="org-eventos-titulo" className="w-full">
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-bold tracking-[0.16em] text-hubee-700 uppercase dark:text-hubee-400">
@@ -230,18 +230,21 @@ export function OrganizacaoEventosSection({
       </section>
 
       {/* Bloco de atalhos da organização em formato ingresso com picote */}
-      <section aria-labelledby="org-atalhos-titulo" className="mx-auto w-full max-w-6xl">
-        <div className="mb-8 text-center">
+      <section aria-labelledby="org-atalhos-titulo" className="w-full">
+        <div className="mb-6">
+          <p className="text-xs font-bold tracking-[0.16em] text-hubee-700 uppercase dark:text-hubee-400">
+            Acesso rápido
+          </p>
           <h2
             id="org-atalhos-titulo"
             className={cn(
               display.className,
-              "text-3xl tracking-tight text-hubee-800 uppercase md:text-5xl dark:text-hubee-50",
+              "mt-1 text-3xl tracking-tight text-hubee-800 uppercase md:text-5xl dark:text-hubee-50",
             )}
           >
             Gestão da colmeia
           </h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-hubee-750 md:text-base dark:text-hubee-200">
+          <p className="mt-1.5 text-sm text-hubee-750 dark:text-hubee-200">
             Acesse rapidamente todas as áreas operacionais da sua organização.
           </p>
         </div>

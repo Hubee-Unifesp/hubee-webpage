@@ -1,6 +1,5 @@
 "use client";
 
-import type { RefObject } from "react";
 import Image from "next/image";
 import { Building2, CalendarDays, ShieldCheck } from "lucide-react";
 import { HexPattern } from "@/components/home/events/event-media";
@@ -25,7 +24,6 @@ interface OrganizacaoHeroCardProps {
   secondaryMetricValue?: number;
   criadaEm: string | null;
   branding?: OrganizationBranding;
-  perchRef: RefObject<HTMLSpanElement | null>;
 }
 
 function getInitials(nome: string): string {
@@ -60,7 +58,6 @@ export function OrganizacaoHeroCard({
   secondaryMetricValue,
   criadaEm,
   branding = DEFAULT_ORGANIZATION_BRANDING,
-  perchRef,
 }: OrganizacaoHeroCardProps) {
   const sigla = getInitials(nome);
   const codigo = formatCreatedYear(criadaEm);
@@ -76,13 +73,6 @@ export function OrganizacaoHeroCard({
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -translate-x-5 translate-y-2 -rotate-[7deg] rounded-[26px] border border-hubee-400/20 bg-hubee-850/90 shadow-2xl"
-      />
-
-      {/* Ponto de pouso da abelha interativa na quina superior esquerda do ingresso */}
-      <span
-        ref={perchRef}
-        aria-hidden="true"
-        className="pointer-events-none absolute top-2 left-3 z-20 size-1"
       />
 
       {/* Cartão-ingresso principal */}

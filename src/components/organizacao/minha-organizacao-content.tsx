@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { OrganizacaoForm } from "@/components/conta/organizacao/organizacao-form";
 import { ListMessage } from "@/components/home/events/list-states";
-import { useFlyingBee } from "@/components/home/hero-section";
 import { Button } from "@/components/ui/button";
 import { Honeycomb, type HoneycombCell } from "@/components/ui/honeycomb";
 import { useAuth } from "@/contexts/AuthContext";
@@ -112,12 +111,7 @@ export function MinhaOrganizacaoContent() {
   const [detalhesAttempt, setDetalhesAttempt] = useState(0);
   const [modoPainel, setModoPainel] = useState<ModoPainel>("visualizar");
 
-  const heroSectionRef = useRef<HTMLElement>(null);
-  const beeRef = useRef<HTMLDivElement>(null);
-  const perchRef = useRef<HTMLSpanElement>(null);
   const dadosSectionRef = useRef<HTMLElement>(null);
-
-  useFlyingBee(heroSectionRef, beeRef, perchRef);
 
   const activeOrgId = organizacaoAtiva?.orgId ?? null;
 
@@ -168,7 +162,6 @@ export function MinhaOrganizacaoContent() {
   if (!organizacaoAtiva) {
     return (
       <section
-        ref={heroSectionRef}
         aria-labelledby="org-vazia-titulo"
         className="relative isolate flex min-h-[380px] items-center overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:py-16 lg:px-16 lg:py-20"
       >
@@ -185,7 +178,7 @@ export function MinhaOrganizacaoContent() {
           className="hero-hive-glow absolute inset-0 -z-10 size-full fill-hubee-400/[0.06] stroke-hubee-400 stroke-2"
         />
 
-        <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-6">
+        <div className="flex w-full max-w-3xl flex-col items-start gap-6">
           <span className="inline-flex items-center gap-2 rounded-full border border-hubee-400/40 bg-hubee-400/15 px-3.5 py-1 text-xs font-bold tracking-wider text-hubee-300 uppercase">
             <Building2 aria-hidden="true" className="size-3.5" />
             Espaço do organizador
@@ -260,7 +253,6 @@ export function MinhaOrganizacaoContent() {
     <>
       {/* SEÇÃO 1 — HERO DA ORGANIZAÇÃO (padrão visual da Hero da Home + capa personalizada) */}
       <section
-        ref={heroSectionRef}
         aria-labelledby="minha-org-hero-titulo"
         className="relative isolate flex min-h-[420px] items-center overflow-hidden rounded-[32px] bg-hubee-900 px-6 py-12 text-hubee-50 sm:px-10 md:min-h-[470px] md:py-16 lg:px-16 lg:py-20"
       >
@@ -296,23 +288,7 @@ export function MinhaOrganizacaoContent() {
           className="hero-hive-glow absolute inset-0 -z-10 size-full fill-hubee-400/[0.06] stroke-hubee-400 stroke-2"
         />
 
-        {/* Abelha flutuante que pousa no cartão e segue o ponteiro */}
-        <div
-          ref={beeRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute top-0 left-0 z-50 -mt-7 -ml-7 size-14 will-change-transform md:-mt-9 md:-ml-9 md:size-[72px]"
-        >
-          <Image
-            src="/logo/logo-icon/LogoMono_yellow.svg"
-            alt=""
-            width={72}
-            height={72}
-            className="hero-bee size-full object-contain"
-            priority
-          />
-        </div>
-
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
+        <div className="grid w-full items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
           {/* Coluna esquerda: identidade, seletor de organização, descrição e CTAs */}
           <div className="flex min-w-0 flex-col items-start gap-6">
             <div className="flex flex-wrap items-center gap-2.5">
@@ -425,7 +401,6 @@ export function MinhaOrganizacaoContent() {
             eventosPublicados={eventosPublicados}
             criadaEm={detalhes?.createdAt ?? null}
             branding={branding}
-            perchRef={perchRef}
           />
         </div>
       </section>
@@ -435,9 +410,9 @@ export function MinhaOrganizacaoContent() {
         ref={dadosSectionRef}
         id="dados-organizacao"
         aria-labelledby="org-dados-titulo"
-        className="mx-auto w-full max-w-6xl scroll-mt-24"
+        className="w-full scroll-mt-24"
       >
-        <div className="rounded-[26px] border border-hubee-300/70 bg-hubee-100 p-6 text-hubee-800 shadow-sm md:p-8 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50">
+        <div className="rounded-[32px] border border-hubee-300/70 bg-hubee-100 px-6 py-6 text-hubee-800 shadow-sm sm:px-10 md:py-8 lg:px-16 dark:border-hubee-50/15 dark:bg-hubee-850 dark:text-hubee-50">
           <div className="flex flex-col justify-between gap-4 border-b border-hubee-200 pb-5 sm:flex-row sm:items-center dark:border-hubee-50/15">
             <div>
               <p className="text-xs font-bold tracking-[0.16em] text-hubee-700 uppercase dark:text-hubee-400">
@@ -528,7 +503,7 @@ export function MinhaOrganizacaoContent() {
 
           <div className="pt-6">
             {modoPainel === "dados" && podeEditarOrg ? (
-              <div className="max-w-2xl">
+              <div className="w-full">
                 <OrganizacaoForm
                   key={organizacaoAtiva.orgId}
                   mode={{
