@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { isSoldOut, soldRatio, type EventSummary } from "@/lib/api/events";
-import { eventHref } from "./links";
+import { eventHref, organizerProfileHref } from "./links";
 import { formatEventDate, formatPrice } from "./format";
 import { CategoryPill, EventMedia } from "./event-media";
 
@@ -39,7 +39,16 @@ export function EventCard({ event, showSalesProgress = false, headingLevel: Head
           </Link>
         </Heading>
         <p className="mt-2 truncate text-xs text-hubee-neutral-300 dark:text-hubee-100 md:mt-3">
-          {event.organizerName}
+          {event.organizerId ? (
+            <Link
+              href={organizerProfileHref(event.organizerId)}
+              className="rounded-sm outline-none hover:text-hubee-800 hover:underline focus-visible:ring-2 focus-visible:ring-hubee-400 dark:hover:text-hubee-300"
+            >
+              {event.organizerName}
+            </Link>
+          ) : (
+            event.organizerName
+          )}
         </p>
         <p className="mt-0.5 truncate text-xs text-hubee-neutral-300 dark:text-hubee-100">
           {formatEventDate(event.startDate, event.endDate)}

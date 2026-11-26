@@ -16,6 +16,7 @@ export interface EventSummary {
   title: string;
   description?: string;
   category: EventCategory;
+  organizerId?: string;
   organizerName: string;
   venueName: string;
   startDate: string;

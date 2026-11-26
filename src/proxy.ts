@@ -9,8 +9,9 @@ const PROTECTED_ROUTE_PREFIXES = [
   '/conta',
   '/meus-eventos',
   '/meus-ingressos',
+  '/minha-organizacao',
   '/notificacoes',
-  '/organizacoes',
+  '/organizacoes/nova',
 ];
 
 function matchesRoutePrefix(pathname: string, prefix: string): boolean {

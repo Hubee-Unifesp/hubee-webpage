@@ -1,4 +1,4 @@
-import { CalendarDays, ShoppingBag, Ticket, Truck, User, Users, type LucideIcon } from "lucide-react";
+import { Building2, CalendarDays, ShoppingBag, Ticket, Truck, User, Users, type LucideIcon } from "lucide-react";
 
 export interface AccountNavItem {
   href: string;
@@ -12,6 +12,13 @@ export const myTicketsNavItem: AccountNavItem = {
   href: "/meus-ingressos",
   label: "Meus ingressos",
   icon: Ticket,
+};
+
+export const myOrganizationNavItem: AccountNavItem = {
+  href: "/minha-organizacao",
+  label: "Minha organização",
+  icon: Building2,
+  organizerOnly: true,
 };
 
 export const organizerEventsNavItem: AccountNavItem = {
@@ -52,7 +59,7 @@ export const membersNavItem: AccountNavItem = {
 export function getProfileMenuItems(isOrganizer = false): readonly AccountNavItem[] {
   return [
     myTicketsNavItem,
-    ...(isOrganizer ? [organizerEventsNavItem] : []),
+    ...(isOrganizer ? [myOrganizationNavItem, organizerEventsNavItem] : []),
     ...buyerAccountNavItems,
   ];
 }
@@ -60,6 +67,7 @@ export function getProfileMenuItems(isOrganizer = false): readonly AccountNavIte
 /** Seções da conta. Usadas pelo menu mobile. */
 export const accountNavItems: readonly AccountNavItem[] = [
   myTicketsNavItem,
+  myOrganizationNavItem,
   organizerEventsNavItem,
   ...buyerAccountNavItems,
   suppliersNavItem,

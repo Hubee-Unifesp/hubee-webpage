@@ -33,6 +33,16 @@ export async function updateOrganization(
   return response.data;
 }
 
+/** Exige nível `manage` na organização (`PATCH /organizations/:id/photo`, multipart campo `file`). */
+export async function uploadOrganizationPhoto(id: string, file: File): Promise<Organizacao> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await apiClient.patch<Organizacao>(`/organizations/${id}/photo`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+}
+
 const ACTION_FAILURE: Record<OrganizationAction, string> = {
   load: "Não foi possível carregar os dados da organização.",
   create: "Não foi possível criar a organização.",

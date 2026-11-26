@@ -21,12 +21,13 @@ describe("navigation.config", () => {
       ]);
     });
 
-    it("deve manter apenas Início, Eventos e Sobre para organizador", () => {
+    it("deve incluir Organização para organizador", () => {
       const items = getNavigationItems("organizer", "/");
       expect(items).toEqual([
         { href: "/#inicio", label: "Início" },
         { href: "/eventos", label: "Eventos" },
         { href: "/sobre", label: "Sobre" },
+        { href: "/minha-organizacao", label: "Organização" },
       ]);
     });
   });
