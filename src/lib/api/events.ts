@@ -84,21 +84,29 @@ async function getTicketTypes(eventId: string): Promise<ApiTicketType[]> {
 
 export async function getPublicEventsByOrganization(
   organizerId: string,
+  organizerName?: string,
 ): Promise<EventSummary[]> {
-  const [{ data }, summaries] = await Promise.all([
-    apiClient.get<ApiEventPage | ApiEventListItem[]>("/events", {
-      params: { organizerId, status: "published", limit: 50 },
-    }),
-    apiClient
-      .get<ApiEventSummary[]>("/events/summary")
-      .then((res) => (Array.isArray(res.data) ? res.data : []))
-      .catch(() => [] as ApiEventSummary[]),
-  ]);
+  const params = { organizerId, status: "published" as const, limit: 50 };
+  let response: { data: ApiEventPage | ApiEventListItem[] };
 
-  const summaryById = new Map(summaries.map((item) => [item.id, toEventSummary(item)]));
-  const items = Array.isArray(data) ? data : data.data;
+  try {
+    response = await apiClient.get<ApiEventPage | ApiEventListItem[]>("/events", {
+      params,
+      skipAuthRedirect: true,
+    });
+  } catch (error) {
+    if (parseApiError(error).status !== 401) throw error;
+    response = await apiClient.get<ApiEventPage | ApiEventListItem[]>("/events", {
+      params,
+      skipAuthRedirect: true,
+      headers: { Authorization: "" },
+    });
+  }
 
-  return items.map((item) => toListItemSummary(item, summaryById.get(item.id)));
+  const items = Array.isArray(response.data) ? response.data : response.data.data;
+  const fallback = organizerName ? ({ organizerName } as EventSummary) : undefined;
+
+  return items.map((item) => toListItemSummary(item, fallback));
 }
 
 /**

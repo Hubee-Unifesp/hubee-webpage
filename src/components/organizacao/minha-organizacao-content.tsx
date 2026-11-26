@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -26,14 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMeusEventos } from "@/hooks/useMeusEventos";
 import { getOrganizationById } from "@/lib/api/organizations";
 import { displayFont as display } from "@/lib/fonts";
-import {
-  DEFAULT_ORGANIZATION_BRANDING,
-  loadOrganizationBranding,
-  resetOrganizationBranding,
-  saveOrganizationBranding,
-  subscribeOrganizationBranding,
-  type OrganizationBranding,
-} from "@/lib/organization-branding";
+import type { OrganizationBranding } from "@/lib/organization-branding";
 import { cn } from "@/lib/utils";
 import {
   canCreateOrEditEvent,
@@ -89,8 +82,6 @@ function formatCreatedDate(iso: string | null | undefined): string {
   });
 }
 
-const getServerBrandingSnapshot = () => DEFAULT_ORGANIZATION_BRANDING;
-
 /**
  * Página full-width `/minha-organizacao`: hub visual do organizador no padrão da Hero da Home,
  * com customização de capa/aparência da organização, edição de dados cadastrais (`PATCH /organizations/:id`),
@@ -115,17 +106,6 @@ export function MinhaOrganizacaoContent() {
   const dadosSectionRef = useRef<HTMLElement>(null);
 
   const activeOrgId = organizacaoAtiva?.orgId ?? null;
-
-  const getBrandingSnapshot = useCallback(
-    () => (activeOrgId ? loadOrganizationBranding(activeOrgId) : DEFAULT_ORGANIZATION_BRANDING),
-    [activeOrgId],
-  );
-
-  const branding = useSyncExternalStore(
-    subscribeOrganizationBranding,
-    getBrandingSnapshot,
-    getServerBrandingSnapshot,
-  );
 
   useEffect(() => {
     if (authLoading || !activeOrgId) return;
@@ -225,9 +205,9 @@ export function MinhaOrganizacaoContent() {
   const podeCriarEvento = canCreateOrEditEvent(organizacaoAtiva.papel);
   const { firstLine, secondLine } = splitHeroTitle(nomeAtual);
   const effectiveBranding: OrganizationBranding = {
-    coverImage: branding.coverImage ?? detalhes?.photoUrl ?? null,
-    titleColor: branding.titleColor ?? detalhes?.titleColor ?? null,
-    descriptionColor: branding.descriptionColor ?? detalhes?.descriptionColor ?? null,
+    coverImage: detalhes?.photoUrl ?? null,
+    titleColor: detalhes?.titleColor ?? null,
+    descriptionColor: detalhes?.descriptionColor ?? null,
   };
 
   function abrirPainel(modo: Exclude<ModoPainel, "visualizar">) {
@@ -243,16 +223,6 @@ export function MinhaOrganizacaoContent() {
   function handleSalvo(atualizada: Organizacao) {
     setDetalhesState({ orgId: atualizada.id, status: "ok", data: atualizada });
     setModoPainel("visualizar");
-  }
-
-  function handleBrandingChange(next: OrganizationBranding): boolean {
-    if (!activeOrgId) return false;
-    return saveOrganizationBranding(activeOrgId, next);
-  }
-
-  function handleBrandingReset(): void {
-    if (!activeOrgId) return;
-    resetOrganizationBranding(activeOrgId);
   }
 
   return (
@@ -503,7 +473,19 @@ export function MinhaOrganizacaoContent() {
           </div>
 
           <div className="pt-6">
-            {modoPainel === "dados" && podeEditarOrg ? (
+            {detalhesErro ? (
+              <ListMessage
+                role="alert"
+                variant="primary"
+                title="Não foi possível carregar os dados cadastrais"
+                description="Verifique sua conexão e tente novamente."
+                actionLabel="Tentar novamente"
+                onAction={() => {
+                  setDetalhesState(null);
+                  setDetalhesAttempt((value) => value + 1);
+                }}
+              />
+            ) : modoPainel === "dados" && podeEditarOrg ? (
               <div className="w-full">
                 <OrganizacaoForm
                   key={organizacaoAtiva.orgId}
@@ -517,28 +499,20 @@ export function MinhaOrganizacaoContent() {
                 />
               </div>
             ) : modoPainel === "aparencia" && podeEditarOrg ? (
-              <OrganizacaoAparenciaForm
-                key={organizacaoAtiva.orgId}
-                orgId={organizacaoAtiva.orgId}
-                branding={effectiveBranding}
-                onChange={handleBrandingChange}
-                onReset={handleBrandingReset}
-                onOrganizationUpdated={(atualizada) =>
-                  setDetalhesState({ orgId: atualizada.id, status: "ok", data: atualizada })
-                }
-              />
-            ) : detalhesErro ? (
-              <ListMessage
-                role="alert"
-                variant="primary"
-                title="Não foi possível carregar os dados cadastrais"
-                description="Verifique sua conexão e tente novamente."
-                actionLabel="Tentar novamente"
-                onAction={() => {
-                  setDetalhesState(null);
-                  setDetalhesAttempt((value) => value + 1);
-                }}
-              />
+              detalhesCarregando || !detalhes ? (
+                <div className="rounded-2xl border border-hubee-200 bg-hubee-50/80 p-6 text-sm text-hubee-750 dark:border-hubee-50/10 dark:bg-hubee-900/60 dark:text-hubee-200">
+                  Carregando aparência da organização...
+                </div>
+              ) : (
+                <OrganizacaoAparenciaForm
+                  key={`${detalhes.id}:${detalhes.updatedAt}`}
+                  orgId={organizacaoAtiva.orgId}
+                  branding={effectiveBranding}
+                  onOrganizationUpdated={(atualizada) =>
+                    setDetalhesState({ orgId: atualizada.id, status: "ok", data: atualizada })
+                  }
+                />
+              )
             ) : (
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="rounded-2xl border border-hubee-200 bg-hubee-50/80 p-4 md:col-span-2 dark:border-hubee-50/10 dark:bg-hubee-900/60">

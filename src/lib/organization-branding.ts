@@ -11,7 +11,7 @@ export const DEFAULT_ORGANIZATION_BRANDING: OrganizationBranding = {
 };
 
 export const ORG_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
-export const ORG_IMAGE_ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const ORG_IMAGE_ACCEPTED_TYPES = ["image/jpeg", "image/png"] as const;
 
 const STORAGE_PREFIX = "hubee:org-branding:";
 const BRANDING_CHANGE_EVENT = "hubee:org-branding-change";
@@ -48,7 +48,7 @@ function isValidCoverImage(value: unknown): value is string {
 
 export function validateOrganizationImageFile(file: { type: string; size: number }): string | null {
   if (!(ORG_IMAGE_ACCEPTED_TYPES as readonly string[]).includes(file.type)) {
-    return "Formato inválido. Use uma imagem JPG, PNG ou WebP.";
+    return "Formato inválido. Use uma imagem JPG ou PNG.";
   }
   if (file.size > ORG_IMAGE_MAX_BYTES) {
     return "A imagem deve ter no máximo 2MB.";

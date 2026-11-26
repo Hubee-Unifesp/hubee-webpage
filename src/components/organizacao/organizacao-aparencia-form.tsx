@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Check, ImageUp, Loader2, RotateCcw, Trash2 } from "lucide-react";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import { updateOrganization, uploadOrganizationPhoto } from "@/lib/api/organizations";
 import {
   ORG_IMAGE_ACCEPTED_TYPES,
@@ -18,21 +19,17 @@ import type { Organizacao } from "@/types/organizacao";
 interface OrganizacaoAparenciaFormProps {
   orgId: string;
   branding: OrganizationBranding;
-  onChange: (next: OrganizationBranding) => boolean;
-  onReset: () => void;
-  onOrganizationUpdated?: (organizacao: Organizacao) => void;
+  onOrganizationUpdated: (organizacao: Organizacao) => void;
 }
 
 /**
  * Painel de customização visual da organização (capa da Hero e cores do título e da descrição).
- * Mantém as alterações em rascunho para conferência na prévia e só persiste no backend
+ * Mantém as alterações em rascunho para conferência na prévia e persiste no backend
  * (`PATCH /organizations/:id/photo` e `PATCH /organizations/:id`) ao clicar em "Salvar alterações".
  */
 export function OrganizacaoAparenciaForm({
   orgId,
   branding,
-  onChange,
-  onReset,
   onOrganizationUpdated,
 }: OrganizacaoAparenciaFormProps) {
   const toast = useToast();
@@ -118,19 +115,13 @@ export function OrganizacaoAparenciaForm({
 
     setCoverError(null);
     setSaving(true);
-    try {
-      let nextCoverImage: string | null = removeCover ? null : branding.coverImage;
-      let latestOrg: Organizacao | null = null;
-      let usedLocalCoverFallback = false;
+    let latestOrg: Organizacao | null = null;
 
+    try {
       if (pendingFile) {
-        try {
-          latestOrg = await uploadOrganizationPhoto(orgId, pendingFile);
-          nextCoverImage = latestOrg.photoUrl ?? pendingPreviewUrl;
-        } catch {
-          nextCoverImage = pendingPreviewUrl;
-          usedLocalCoverFallback = true;
-        }
+        latestOrg = await uploadOrganizationPhoto(orgId, pendingFile);
+        setPendingFile(null);
+        setPendingPreviewUrl(null);
       }
 
       const needsMetadataUpdate =
@@ -139,40 +130,29 @@ export function OrganizacaoAparenciaForm({
         draftDescriptionColor !== branding.descriptionColor;
 
       if (needsMetadataUpdate) {
-        try {
-          latestOrg = await updateOrganization(orgId, {
-            ...(removeCover ? { photoUrl: null } : {}),
-            titleColor: draftTitleColor,
-            descriptionColor: draftDescriptionColor,
-          });
-        } catch {
-          // Mantém salvo no cache local caso o backend esteja indisponível
-        }
-      }
-
-      if (latestOrg) {
-        onOrganizationUpdated?.(latestOrg);
-      }
-
-      if (nextCoverImage === null && draftTitleColor === null && draftDescriptionColor === null) {
-        onReset();
-      } else {
-        onChange({
-          coverImage: nextCoverImage,
+        latestOrg = await updateOrganization(orgId, {
+          ...(removeCover ? { photoUrl: null } : {}),
           titleColor: draftTitleColor,
           descriptionColor: draftDescriptionColor,
         });
+        setRemoveCover(false);
       }
 
-      setPendingFile(null);
-      setPendingPreviewUrl(null);
-      setRemoveCover(false);
-
-      if (usedLocalCoverFallback) {
-        toast.success("Cores salvas! A capa ficou salva localmente neste navegador.");
-      } else {
-        toast.success("Aparência da organização salva com sucesso!");
+      if (latestOrg) {
+        onOrganizationUpdated(latestOrg);
       }
+
+      toast.success("Aparência da organização salva com sucesso!");
+    } catch (error) {
+      if (latestOrg) {
+        onOrganizationUpdated(latestOrg);
+      }
+      const message = getApiErrorMessage(
+        error,
+        "Não foi possível salvar a aparência da organização.",
+      );
+      setCoverError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -330,7 +310,7 @@ export function OrganizacaoAparenciaForm({
           />
         </label>
         <p className="text-[11px] text-hubee-neutral-300 dark:text-hubee-200">
-          JPG, PNG ou WebP, até 2MB (recomendado 16:9).
+          JPG ou PNG, até 2MB (recomendado 16:9).
         </p>
         {coverError && (
           <p role="alert" className="text-xs font-medium text-red-700 dark:text-red-300">

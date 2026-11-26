@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -28,11 +28,6 @@ import {
 import { parseApiError } from "@/lib/api/errors";
 import { getOrganizationById } from "@/lib/api/organizations";
 import { displayFont as display } from "@/lib/fonts";
-import {
-  DEFAULT_ORGANIZATION_BRANDING,
-  loadOrganizationBranding,
-  subscribeOrganizationBranding,
-} from "@/lib/organization-branding";
 import { cn } from "@/lib/utils";
 import type { Organizacao } from "@/types/organizacao";
 import { MinhaOrganizacaoSkeleton } from "./minha-organizacao-skeleton";
@@ -47,8 +42,6 @@ type PageFetchState =
   | { orgId: string; status: "ok"; organizacao: Organizacao; eventos: EventSummary[] }
   | { orgId: string; status: "not-found" }
   | { orgId: string; status: "error" };
-
-const getServerBrandingSnapshot = () => DEFAULT_ORGANIZATION_BRANDING;
 
 function splitHeroTitle(name: string): { firstLine: string; secondLine: string } {
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -83,26 +76,31 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
   const { organizacoes, selecionarOrganizacao } = useOrganizacaoAtiva();
   const [fetchState, setFetchState] = useState<PageFetchState | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState<EventCategory | "all">("all");
+  const [filtroCategoria, setFiltroCategoria] = useState<{
+    orgId: string;
+    categoria: EventCategory | "all";
+  }>({ orgId, categoria: "all" });
+
+  const categoriaSelecionada =
+    filtroCategoria.orgId === orgId ? filtroCategoria.categoria : "all";
 
   const eventosSectionRef = useRef<HTMLElement>(null);
-
-  const getBrandingSnapshot = useCallback(() => loadOrganizationBranding(orgId), [orgId]);
-  const branding = useSyncExternalStore(
-    subscribeOrganizationBranding,
-    getBrandingSnapshot,
-    getServerBrandingSnapshot,
-  );
 
   useEffect(() => {
     let active = true;
 
-    Promise.all([
-      getOrganizationById(orgId),
-      getPublicEventsByOrganization(orgId).catch(() => [] as EventSummary[]),
-    ])
-      .then(([organizacao, eventos]) => {
-        if (active) setFetchState({ orgId, status: "ok", organizacao, eventos });
+    Promise.all([getOrganizationById(orgId), getPublicEventsByOrganization(orgId)])
+      .then(([organizacao, listaEventos]) => {
+        if (!active) return;
+        const eventos = listaEventos.map((evento) => ({
+          ...evento,
+          organizerId: evento.organizerId ?? organizacao.id,
+          organizerName:
+            evento.organizerName && evento.organizerName !== "Organização Hubee"
+              ? evento.organizerName
+              : organizacao.name,
+        }));
+        setFetchState({ orgId, status: "ok", organizacao, eventos });
       })
       .catch((error: unknown) => {
         if (!active) return;
@@ -184,9 +182,9 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
   const { organizacao } = estadoAtual;
   const { firstLine, secondLine } = splitHeroTitle(organizacao.name);
   const descricao = organizacao.description?.trim() ?? "";
-  const coverImage = organizacao.photoUrl ?? branding.coverImage;
-  const titleColor = organizacao.titleColor ?? branding.titleColor;
-  const descriptionColor = organizacao.descriptionColor ?? branding.descriptionColor;
+  const coverImage = organizacao.photoUrl ?? null;
+  const titleColor = organizacao.titleColor ?? null;
+  const descriptionColor = organizacao.descriptionColor ?? null;
 
   return (
     <>
@@ -401,7 +399,7 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
               <button
                 type="button"
                 aria-pressed={categoriaSelecionada === "all"}
-                onClick={() => setCategoriaSelecionada("all")}
+                onClick={() => setFiltroCategoria({ orgId, categoria: "all" })}
                 className={cn(
                   "h-8 cursor-pointer rounded-full border px-3.5 text-xs font-semibold transition-colors",
                   categoriaSelecionada === "all"
@@ -416,7 +414,7 @@ export function OrganizacaoPublicaContent({ orgId }: { orgId: string }) {
                   key={category}
                   type="button"
                   aria-pressed={categoriaSelecionada === category}
-                  onClick={() => setCategoriaSelecionada(category)}
+                  onClick={() => setFiltroCategoria({ orgId, categoria: category })}
                   className={cn(
                     "h-8 cursor-pointer rounded-full border px-3.5 text-xs font-semibold transition-colors",
                     categoriaSelecionada === category

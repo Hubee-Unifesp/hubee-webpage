@@ -55,8 +55,8 @@ describe("organization-branding", () => {
   it("valida formato e tamanho das imagens da organização", () => {
     expect(validateOrganizationImageFile({ type: "image/jpeg", size: 1024 })).toBeNull();
     expect(validateOrganizationImageFile({ type: "image/png", size: ORG_IMAGE_MAX_BYTES })).toBeNull();
-    expect(validateOrganizationImageFile({ type: "image/webp", size: 500 })).toBeNull();
 
+    expect(validateOrganizationImageFile({ type: "image/webp", size: 500 })).toMatch(/JPG ou PNG/);
     expect(validateOrganizationImageFile({ type: "image/gif", size: 100 })).toMatch(/Formato inválido/);
     expect(
       validateOrganizationImageFile({ type: "image/png", size: ORG_IMAGE_MAX_BYTES + 1 }),
