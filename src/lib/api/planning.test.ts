@@ -13,7 +13,11 @@ vi.mock("./apiClient", () => ({
 
 import {
   createDespesa,
+  createParcela,
   deleteDespesa,
+  deleteParcela,
+  getParcelas,
+  updateParcela,
   getDespesas,
   getEventoPlanejamento,
   updateDespesa,
@@ -101,5 +105,37 @@ describe("planning api", () => {
       venueName: "Espaço Hubee",
       expectedAudience: 300,
     });
+  });
+
+  it("usa as rotas aninhadas de parcelas e o cronograma do evento", async () => {
+    const apiParcela = {
+      id: "p1",
+      expenseId: "d1",
+      expenseDescription: "Som",
+      expenseGroup: "fixed",
+      expenseCategory: "Estrutura",
+      supplierName: null,
+      dueDate: "2026-11-10T15:00:00.000Z",
+      amount: "400.00",
+      status: "pendente",
+      paidBy: null,
+      paymentMethod: null,
+    };
+    getMock.mockResolvedValue({ data: [apiParcela] });
+    postMock.mockResolvedValue({ data: apiParcela });
+    patchMock.mockResolvedValue({ data: { ...apiParcela, status: "pago" } });
+    deleteMock.mockResolvedValue({});
+    const payload = { dueDate: apiParcela.dueDate, amount: 400, status: "pendente" as const, paidBy: null, paymentMethod: null };
+
+    const [parcela] = await getParcelas("e1");
+    await createParcela("e1", "d1", payload);
+    await updateParcela("e1", "d1", "p1", { status: "pago" });
+    await deleteParcela("e1", "d1", "p1");
+
+    expect(parcela.amount).toBe(400);
+    expect(getMock).toHaveBeenCalledWith("/events/e1/installments");
+    expect(postMock).toHaveBeenCalledWith("/events/e1/expenses/d1/installments", payload);
+    expect(patchMock).toHaveBeenCalledWith("/events/e1/expenses/d1/installments/p1", { status: "pago" });
+    expect(deleteMock).toHaveBeenCalledWith("/events/e1/expenses/d1/installments/p1");
   });
 });

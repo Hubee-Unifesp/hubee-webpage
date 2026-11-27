@@ -9,11 +9,19 @@ import { usePlanejamentoEvento } from "@/hooks/usePlanejamentoEvento";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 import type { DespesaPlanejamento, DespesaPlanejamentoPayload, GrupoDespesa } from "@/types/planejamento";
+import { CronogramaPagamentos } from "./cronograma-pagamentos";
 import { DespesaFormModal, type NovaDespesaContexto } from "./despesa-form-modal";
 import { DespesasLista, type AbaDespesas } from "./despesas-lista";
 import { botaoPrimarioClassName, painelClassName, textoSecundarioClassName } from "./estilos";
 import { ExcluirDespesaModal } from "./excluir-despesa-modal";
 import { formatarNumero, type FiltroDespesas } from "./planejamento.data";
+
+type VisaoPlanejamento = "orcamento" | "cronograma";
+
+const VISOES: readonly { id: VisaoPlanejamento; rotulo: string }[] = [
+  { id: "orcamento", rotulo: "Orçamento" },
+  { id: "cronograma", rotulo: "Cronograma" },
+];
 
 interface PlanejamentoEventoProps {
   eventoId: string;
@@ -125,6 +133,7 @@ export function PlanejamentoEvento({ eventoId }: PlanejamentoEventoProps) {
   const [emEdicao, setEmEdicao] = useState<DespesaPlanejamento | null>(null);
   const [contexto, setContexto] = useState<NovaDespesaContexto>({ grupo: "fixed" });
   const [emExclusao, setEmExclusao] = useState<DespesaPlanejamento | null>(null);
+  const [visao, setVisao] = useState<VisaoPlanejamento>("orcamento");
 
   const despesas = useMemo(() => dados?.despesas ?? [], [dados]);
   const categoriasExistentes = useMemo(() => [...new Set(despesas.map((despesa) => despesa.category))], [despesas]);
@@ -208,24 +217,53 @@ export function PlanejamentoEvento({ eventoId }: PlanejamentoEventoProps) {
         </p>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <DespesasLista
-          ref={listaRef}
-          className="lg:col-span-3"
-          despesas={despesas}
-          totais={totais}
-          aba={aba}
-          filtro={filtro}
-          busca={busca}
-          onAbaChange={setAba}
-          onFiltroChange={setFiltro}
-          onBuscaChange={setBusca}
-          onAdicionar={abrirCriacao}
-          onEditar={abrirEdicao}
-          onExcluir={setEmExclusao}
-          onAlternarCotado={(id, quoted) => alterarNaLinha(id, { quoted })}
-          onAlternarPago={(id, pago) => alterarNaLinha(id, { paymentStatus: pago ? "pago" : "pendente" })}
-        />
+      <div className="flex flex-col gap-4">
+        <div role="tablist" aria-label="Visões do planejamento" className="flex gap-1 self-start rounded-lg bg-hubee-neutral-50/60 p-1 dark:bg-white/[0.05]">
+          {VISOES.map(({ id, rotulo }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              id={`visao-${id}`}
+              aria-selected={visao === id}
+              aria-controls={`painel-${id}`}
+              onClick={() => setVisao(id)}
+              className={cn(
+                "h-8 cursor-pointer rounded-md px-3 text-sm font-semibold outline-none focus-visible:ring-3 focus-visible:ring-hubee-800",
+                visao === id
+                  ? "bg-white text-hubee-800 shadow-sm dark:bg-hubee-400 dark:text-hubee-800"
+                  : "text-hubee-neutral-300 hover:text-hubee-800 dark:text-hubee-neutral-200 dark:hover:text-hubee-50",
+              )}
+            >
+              {rotulo}
+            </button>
+          ))}
+        </div>
+        <div role="tabpanel" id={`painel-${visao}`} aria-labelledby={`visao-${visao}`} className="grid min-w-0 gap-4 lg:grid-cols-3">
+          {visao === "orcamento" ? (
+            <DespesasLista
+              ref={listaRef}
+              className="lg:col-span-3"
+              despesas={despesas}
+              totais={totais}
+              aba={aba}
+              filtro={filtro}
+              busca={busca}
+              onAbaChange={setAba}
+              onFiltroChange={setFiltro}
+              onBuscaChange={setBusca}
+              onAdicionar={abrirCriacao}
+              onEditar={abrirEdicao}
+              onExcluir={setEmExclusao}
+              onAlternarCotado={(id, quoted) => alterarNaLinha(id, { quoted })}
+              onAlternarPago={(id, pago) => alterarNaLinha(id, { paymentStatus: pago ? "pago" : "pendente" })}
+            />
+          ) : (
+            <div className="min-w-0 lg:col-span-3">
+              <CronogramaPagamentos eventoId={eventoId} dataEvento={evento.startDate} despesas={despesas} />
+            </div>
+          )}
+        </div>
       </div>
 
       <DespesaFormModal

@@ -4,6 +4,8 @@ import type {
   DespesaPlanejamentoPayload,
   EventoPlanejamento,
   GrupoDespesa,
+  ParcelaDespesa,
+  ParcelaPayload,
   StatusPagamentoDespesa,
 } from "@/types/planejamento";
 
@@ -96,4 +98,54 @@ export async function getEventoPlanejamento(eventoId: string): Promise<EventoPla
     venueName: evento.venue?.name ?? "Local a definir",
     expectedAudience: resumo.expectedAudience ?? null,
   };
+}
+
+export interface ApiParcela extends Omit<ParcelaDespesa, "amount"> {
+  amount: number | string;
+}
+
+export function toParcelaDespesa(parcela: ApiParcela): ParcelaDespesa {
+  return {
+    id: parcela.id,
+    expenseId: parcela.expenseId,
+    expenseDescription: parcela.expenseDescription,
+    expenseGroup: parcela.expenseGroup,
+    expenseCategory: parcela.expenseCategory,
+    supplierName: parcela.supplierName ?? null,
+    dueDate: parcela.dueDate,
+    amount: Number(parcela.amount),
+    status: parcela.status,
+    paidBy: parcela.paidBy ?? null,
+    paymentMethod: parcela.paymentMethod ?? null,
+  };
+}
+
+const parcelasUrl = (eventoId: string, despesaId: string) => `${despesasUrl(eventoId)}/${despesaId}/installments`;
+
+export async function getParcelas(eventoId: string): Promise<ParcelaDespesa[]> {
+  const { data } = await apiClient.get<ApiParcela[]>(`/events/${eventoId}/installments`);
+  return data.map(toParcelaDespesa);
+}
+
+export async function createParcela(
+  eventoId: string,
+  despesaId: string,
+  payload: ParcelaPayload,
+): Promise<ParcelaDespesa> {
+  const { data } = await apiClient.post<ApiParcela>(parcelasUrl(eventoId, despesaId), payload);
+  return toParcelaDespesa(data);
+}
+
+export async function updateParcela(
+  eventoId: string,
+  despesaId: string,
+  parcelaId: string,
+  payload: Partial<ParcelaPayload>,
+): Promise<ParcelaDespesa> {
+  const { data } = await apiClient.patch<ApiParcela>(`${parcelasUrl(eventoId, despesaId)}/${parcelaId}`, payload);
+  return toParcelaDespesa(data);
+}
+
+export async function deleteParcela(eventoId: string, despesaId: string, parcelaId: string): Promise<void> {
+  await apiClient.delete(`${parcelasUrl(eventoId, despesaId)}/${parcelaId}`);
 }
