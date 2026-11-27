@@ -3,7 +3,6 @@ import type {
   GrupoDespesa,
   IndicadoresPublico,
   LotePlanejamento,
-  ResumoPlanejamento,
   TotaisDespesas,
 } from "@/types/planejamento";
 
@@ -80,35 +79,47 @@ export function agruparPorCategoria(despesas: readonly DespesaPlanejamento[], gr
   }));
 }
 
-function ordemDoLote(lote: LotePlanejamento): number {
-  return lote.salesStartDate ? new Date(lote.salesStartDate).getTime() : Number.NEGATIVE_INFINITY;
+function plannedQuantity(lote: LotePlanejamento): number {
+  return Math.max(0, lote.quantity);
 }
 
 export function distribuirPublico(lotes: readonly LotePlanejamento[], publico: number): number[] {
-  const quantidades = lotes.map((lote) => lote.quantity);
-  if (lotes.length === 0) return quantidades;
+  const quantidades = lotes.map(() => 0);
+  let restante = Math.max(0, publico);
+  const tirar = (index: number) => {
+    const quantidade = Math.min(plannedQuantity(lotes[index]), restante);
+    restante -= quantidade;
+    quantidades[index] = quantidade;
+  };
 
-  const ordem = lotes
-    .map((lote, index) => ({ lote, index }))
-    .sort((a, b) => ordemDoLote(a.lote) - ordemDoLote(b.lote) || a.lote.price - b.lote.price)
-    .map(({ index }) => index);
-
-  const planejado = quantidades.reduce((soma, quantidade) => soma + quantidade, 0);
-  let diferenca = publico - planejado;
-  const ultimo = ordem[ordem.length - 1];
-
-  if (diferenca > 0) {
-    quantidades[ultimo] += diferenca;
-    return quantidades;
-  }
-
-  for (let posicao = ordem.length - 1; posicao >= 0 && diferenca < 0; posicao -= 1) {
-    const index = ordem[posicao];
-    const removido = Math.min(quantidades[index], -diferenca);
-    quantidades[index] -= removido;
-    diferenca += removido;
-  }
+  lotes.forEach((lote, index) => {
+    if (!lote.sequential) tirar(index);
+  });
+  let ultimoDaFila = -1;
+  lotes.forEach((lote, index) => {
+    if (!lote.sequential) return;
+    tirar(index);
+    ultimoDaFila = index;
+  });
+  if (restante > 0 && ultimoDaFila >= 0) quantidades[ultimoDaFila] += restante;
   return quantidades;
+}
+
+const emCentavos = (valor: number) => Math.round(valor * 100);
+
+export function loteDoEmpate(lotes: readonly LotePlanejamento[], despesaTotal: number): LotePlanejamento | null {
+  const despesaCentavos = emCentavos(despesaTotal);
+  if (despesaCentavos <= 0) return null;
+
+  const ordem = [...lotes.filter((lote) => !lote.sequential), ...lotes.filter((lote) => lote.sequential)];
+  let receitaCentavos = 0;
+  for (const lote of ordem) {
+    receitaCentavos += emCentavos(lote.price) * plannedQuantity(lote);
+    if (receitaCentavos >= despesaCentavos) return lote;
+  }
+
+  const ultimo = lotes.filter((lote) => lote.sequential).at(-1);
+  return ultimo && ultimo.price > 0 ? ultimo : null;
 }
 
 export function calcularIndicadores(
@@ -116,45 +127,46 @@ export function calcularIndicadores(
   despesaTotal: number,
   publico: number,
 ): IndicadoresPublico {
+  const custoPorPessoa = publico > 0 ? arredondar(despesaTotal / publico) : null;
+  if (lotes.length === 0 || publico <= 0) {
+    return {
+      audience: publico,
+      revenue: null,
+      averageTicket: null,
+      breakEven: null,
+      costPerPerson: custoPorPessoa,
+      profit: null,
+      breakEvenBatch: null,
+    };
+  }
+
   const quantidades = distribuirPublico(lotes, publico);
-  const ingressos = quantidades.reduce((soma, quantidade) => soma + quantidade, 0);
-  const receita = lotes.reduce((soma, lote, index) => soma + lote.price * quantidades[index], 0);
-  const ticketMedio = ingressos > 0 ? receita / ingressos : null;
+  const receitaCentavos = lotes.reduce((soma, lote, index) => soma + emCentavos(lote.price) * quantidades[index], 0);
+  const ticketMedio = receitaCentavos / 100 / publico;
+  const breakEven = ticketMedio > 0 ? despesaTotal / ticketMedio : null;
 
   return {
     audience: publico,
-    revenue: arredondar(receita),
-    averageTicket: ticketMedio === null ? null : arredondar(ticketMedio),
-    breakEven: ticketMedio ? arredondar(despesaTotal / ticketMedio) : null,
-    costPerPerson: publico > 0 ? arredondar(despesaTotal / publico) : null,
-    profit: arredondar(receita - despesaTotal),
+    revenue: receitaCentavos / 100,
+    averageTicket: arredondar(ticketMedio),
+    breakEven: breakEven === null ? null : arredondar(breakEven),
+    costPerPerson: custoPorPessoa,
+    profit: (receitaCentavos - emCentavos(despesaTotal)) / 100,
+    breakEvenBatch: breakEven === null ? null : (loteDoEmpate(lotes, despesaTotal)?.batch ?? null),
   };
 }
 
-export function calcularResumo(
-  despesas: readonly DespesaPlanejamento[],
+export function cenariosDePublico(
   lotes: readonly LotePlanejamento[],
-  publicoEsperado: number | null,
+  despesaTotal: number,
+  base: number,
   passo: number = PASSO_CENARIO_PADRAO,
-  quantidadeCenarios: number = QUANTIDADE_CENARIOS,
-): ResumoPlanejamento {
-  const totais = totalizarDespesas(despesas);
-  const ingressosPlanejados = lotes.reduce((soma, lote) => soma + lote.quantity, 0);
-  const temBase = lotes.length > 0 && publicoEsperado !== null && publicoEsperado > 0;
-
-  if (!temBase) {
-    return { despesas: totais, ingressosPlanejados, atual: null, cenarios: [] };
-  }
-
-  const cenarios = Array.from({ length: quantidadeCenarios }, (_, index) =>
-    calcularIndicadores(lotes, totais.total, publicoEsperado + index * passo),
-  );
-  return { despesas: totais, ingressosPlanejados, atual: cenarios[0], cenarios };
-}
-
-export function publicoParaLucro(resumo: ResumoPlanejamento): number | null {
-  const breakEven = resumo.atual?.breakEven;
-  return breakEven === null || breakEven === undefined ? null : Math.ceil(breakEven);
+  quantidade: number = QUANTIDADE_CENARIOS,
+): IndicadoresPublico[] {
+  const meio = Math.floor(quantidade / 2);
+  return Array.from({ length: quantidade }, (_, index) => base + (index - meio) * passo)
+    .filter((publico) => publico > 0)
+    .map((publico) => calcularIndicadores(lotes, despesaTotal, publico));
 }
 
 const formatadorMoeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -193,21 +205,13 @@ export interface SegmentoLote {
 
 export function segmentosDeLotes(lotes: readonly LotePlanejamento[], publico: number): SegmentoLote[] {
   const quantidades = distribuirPublico(lotes, publico);
-  const ordem = lotes
-    .map((lote, index) => ({ lote, quantidade: quantidades[index] }))
-    .sort((a, b) => ordemDoLote(a.lote) - ordemDoLote(b.lote) || a.lote.price - b.lote.price)
-    .filter(({ quantidade }) => quantidade > 0);
-
   let inicio = 0;
-  return ordem.map(({ lote, quantidade }) => {
-    const segmento = { lote, inicio, fim: inicio + quantidade };
-    inicio += quantidade;
-    return segmento;
+  return lotes.flatMap((lote, index) => {
+    if (quantidades[index] <= 0) return [];
+    const segmento = { lote, inicio, fim: inicio + quantidades[index] };
+    inicio = segmento.fim;
+    return [segmento];
   });
-}
-
-export function loteDoIngresso(segmentos: readonly SegmentoLote[], ingresso: number): LotePlanejamento | null {
-  return segmentos.find((segmento) => ingresso > segmento.inicio && ingresso <= segmento.fim)?.lote ?? null;
 }
 
 export type FiltroDespesas = "todas" | "a-pagar" | "sem-cotacao";
