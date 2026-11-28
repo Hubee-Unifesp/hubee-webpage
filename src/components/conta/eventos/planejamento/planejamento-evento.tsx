@@ -11,9 +11,11 @@ import { cn } from "@/lib/utils";
 import type { DespesaPlanejamento, DespesaPlanejamentoPayload, GrupoDespesa } from "@/types/planejamento";
 import { DespesaFormModal, type NovaDespesaContexto } from "./despesa-form-modal";
 import { DespesasLista, type AbaDespesas } from "./despesas-lista";
+import { DestinoDinheiro } from "./destino-dinheiro";
 import { botaoPrimarioClassName, painelClassName, textoSecundarioClassName } from "./estilos";
 import { ExcluirDespesaModal } from "./excluir-despesa-modal";
 import { formatarNumero, type FiltroDespesas } from "./planejamento.data";
+import { PontoEquilibrio } from "./ponto-equilibrio";
 
 interface PlanejamentoEventoProps {
   eventoId: string;
@@ -174,6 +176,22 @@ export function PlanejamentoEvento({ eventoId }: PlanejamentoEventoProps) {
     setFormAberto(false);
   }
 
+  function filtrarPendencias(novo: FiltroDespesas) {
+    setAba("todos");
+    setBusca("");
+    setFiltro(novo);
+    listaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function definirEsperado(publico: number) {
+    try {
+      await planejamento.definirPublicoEsperado(publico);
+      toast.success(`Público esperado agora é ${formatarNumero(publico)} pessoas.`);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Não foi possível salvar o público esperado."));
+    }
+  }
+
   async function excluir(despesa: DespesaPlanejamento) {
     try {
       await planejamento.excluirDespesa(despesa.id);
@@ -209,6 +227,19 @@ export function PlanejamentoEvento({ eventoId }: PlanejamentoEventoProps) {
       </header>
 
       <div className="grid gap-4 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
+          <PontoEquilibrio
+            eventoId={eventoId}
+            lotes={dados.lotes}
+            segmentos={planejamento.segmentos}
+            simulacao={planejamento.simulacao}
+            despesaTotal={totais.total}
+            publicoEsperado={evento.expectedAudience}
+            onPublicoChange={planejamento.setPublicoSimulado}
+            onDefinirEsperado={definirEsperado}
+          />
+        </div>
+        <DestinoDinheiro despesas={despesas} totais={totais} onFiltrar={filtrarPendencias} />
         <DespesasLista
           ref={listaRef}
           className="lg:col-span-3"

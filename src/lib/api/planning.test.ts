@@ -15,8 +15,9 @@ import {
   createDespesa,
   deleteDespesa,
   getDespesas,
-  getEventoPlanejamento,
+  getPlanejamentoEvento,
   updateDespesa,
+  updatePublicoEsperado,
   type ApiDespesa,
 } from "./planning";
 
@@ -78,10 +79,17 @@ describe("planning api", () => {
     expect(deleteMock).toHaveBeenCalledWith("/events/e1/expenses/d1");
   });
 
-  it("monta o evento do planejamento com o local e o público esperado do resumo", async () => {
+  it("monta o evento e os lotes do planejamento a partir do resumo", async () => {
     getMock.mockImplementation(async (url: string) =>
       url.endsWith("/planning/summary")
-        ? { data: { expectedAudience: 300 } }
+        ? {
+            data: {
+              expectedAudience: 300,
+              tickets: {
+                lots: [{ id: "l1", batch: "1º Lote", price: "50.00", quantity: 85, modality: "inteira", sequential: true }],
+              },
+            },
+          }
         : {
             data: {
               id: "e1",
@@ -93,13 +101,24 @@ describe("planning api", () => {
           },
     );
 
-    await expect(getEventoPlanejamento("e1")).resolves.toEqual({
-      id: "e1",
-      name: "Codeniver",
-      startDate: "2026-12-01T20:00:00Z",
-      endDate: "2026-12-02T03:00:00Z",
-      venueName: "Espaço Hubee",
-      expectedAudience: 300,
+    await expect(getPlanejamentoEvento("e1")).resolves.toEqual({
+      evento: {
+        id: "e1",
+        name: "Codeniver",
+        startDate: "2026-12-01T20:00:00Z",
+        endDate: "2026-12-02T03:00:00Z",
+        venueName: "Espaço Hubee",
+        expectedAudience: 300,
+      },
+      lotes: [{ id: "l1", batch: "1º Lote", price: 50, quantity: 85, modality: "inteira", sequential: true }],
     });
+  });
+
+  it("salva o público esperado no evento", async () => {
+    patchMock.mockResolvedValue({});
+
+    await updatePublicoEsperado("e1", 320);
+
+    expect(patchMock).toHaveBeenCalledWith("/events/e1", { expectedAudience: 320 });
   });
 });
