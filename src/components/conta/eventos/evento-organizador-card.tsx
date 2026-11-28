@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Ban, Copy, ExternalLink, MoreHorizontal, Pencil, Send, Ticket } from "lucide-react";
+import { Ban, Calculator, Copy, ExternalLink, MoreHorizontal, Pencil, Send, Ticket } from "lucide-react";
 import { CategoryPill, EventMedia } from "@/components/home/events/event-media";
 import { formatEventDate, formatPrice } from "@/components/home/events/format";
 import { useToast } from "@/components/toast";
@@ -206,6 +206,12 @@ export function EventoOrganizadorCard({ evento, papel, onAlterado }: EventoOrgan
                         <Link href={`${editarHref}?etapa=lotes`}>
                           <Ticket aria-hidden="true" />
                           Gerenciar lotes
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href={`/meus-eventos/${evento.id}/planejamento`}>
+                          <Calculator aria-hidden="true" />
+                          Planejamento
                         </Link>
                       </DropdownMenuItem>
                     </>
