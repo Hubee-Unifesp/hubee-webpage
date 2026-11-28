@@ -76,3 +76,25 @@ export interface IndicadoresPublico {
   profit: number | null;
   breakEvenBatch: string | null;
 }
+
+export interface ParcelaDespesa {
+  id: string;
+  expenseId: string;
+  expenseDescription: string;
+  expenseGroup: GrupoDespesa;
+  expenseCategory: string;
+  supplierName: string | null;
+  dueDate: string;
+  amount: number;
+  status: StatusPagamentoDespesa;
+  paidBy: string | null;
+  paymentMethod: string | null;
+}
+
+export interface ParcelaPayload {
+  dueDate: string;
+  amount: number;
+  status: StatusPagamentoDespesa;
+  paidBy: string | null;
+  paymentMethod: string | null;
+}
