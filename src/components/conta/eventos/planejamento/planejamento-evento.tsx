@@ -12,9 +12,11 @@ import type { DespesaPlanejamento, DespesaPlanejamentoPayload, GrupoDespesa } fr
 import { CronogramaPagamentos } from "./cronograma-pagamentos";
 import { DespesaFormModal, type NovaDespesaContexto } from "./despesa-form-modal";
 import { DespesasLista, type AbaDespesas } from "./despesas-lista";
+import { DestinoDinheiro } from "./destino-dinheiro";
 import { botaoPrimarioClassName, painelClassName, textoSecundarioClassName } from "./estilos";
 import { ExcluirDespesaModal } from "./excluir-despesa-modal";
 import { formatarNumero, type FiltroDespesas } from "./planejamento.data";
+import { PontoEquilibrio } from "./ponto-equilibrio";
 
 type VisaoPlanejamento = "orcamento" | "cronograma";
 
@@ -183,6 +185,22 @@ export function PlanejamentoEvento({ eventoId }: PlanejamentoEventoProps) {
     setFormAberto(false);
   }
 
+  function filtrarPendencias(novo: FiltroDespesas) {
+    setAba("todos");
+    setBusca("");
+    setFiltro(novo);
+    listaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function definirEsperado(publico: number) {
+    try {
+      await planejamento.definirPublicoEsperado(publico);
+      toast.success(`Público esperado agora é ${formatarNumero(publico)} pessoas.`);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Não foi possível salvar o público esperado."));
+    }
+  }
+
   async function excluir(despesa: DespesaPlanejamento) {
     try {
       await planejamento.excluirDespesa(despesa.id);
@@ -241,23 +259,38 @@ export function PlanejamentoEvento({ eventoId }: PlanejamentoEventoProps) {
         </div>
         <div role="tabpanel" id={`painel-${visao}`} aria-labelledby={`visao-${visao}`} className="grid min-w-0 gap-4 lg:grid-cols-3">
           {visao === "orcamento" ? (
-            <DespesasLista
-              ref={listaRef}
-              className="lg:col-span-3"
-              despesas={despesas}
-              totais={totais}
-              aba={aba}
-              filtro={filtro}
-              busca={busca}
-              onAbaChange={setAba}
-              onFiltroChange={setFiltro}
-              onBuscaChange={setBusca}
-              onAdicionar={abrirCriacao}
-              onEditar={abrirEdicao}
-              onExcluir={setEmExclusao}
-              onAlternarCotado={(id, quoted) => alterarNaLinha(id, { quoted })}
-              onAlternarPago={(id, pago) => alterarNaLinha(id, { paymentStatus: pago ? "pago" : "pendente" })}
-            />
+            <>
+              <div className="min-w-0 lg:col-span-2">
+                <PontoEquilibrio
+                  eventoId={eventoId}
+                  lotes={dados.lotes}
+                  segmentos={planejamento.segmentos}
+                  simulacao={planejamento.simulacao}
+                  despesaTotal={totais.total}
+                  publicoEsperado={evento.expectedAudience}
+                  onPublicoChange={planejamento.setPublicoSimulado}
+                  onDefinirEsperado={definirEsperado}
+                />
+              </div>
+              <DestinoDinheiro despesas={despesas} totais={totais} onFiltrar={filtrarPendencias} />
+              <DespesasLista
+                ref={listaRef}
+                className="lg:col-span-3"
+                despesas={despesas}
+                totais={totais}
+                aba={aba}
+                filtro={filtro}
+                busca={busca}
+                onAbaChange={setAba}
+                onFiltroChange={setFiltro}
+                onBuscaChange={setBusca}
+                onAdicionar={abrirCriacao}
+                onEditar={abrirEdicao}
+                onExcluir={setEmExclusao}
+                onAlternarCotado={(id, quoted) => alterarNaLinha(id, { quoted })}
+                onAlternarPago={(id, pago) => alterarNaLinha(id, { paymentStatus: pago ? "pago" : "pendente" })}
+              />
+            </>
           ) : (
             <div className="min-w-0 lg:col-span-3">
               <CronogramaPagamentos eventoId={eventoId} dataEvento={evento.startDate} despesas={despesas} />

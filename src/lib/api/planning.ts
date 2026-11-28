@@ -6,6 +6,8 @@ import type {
   GrupoDespesa,
   ParcelaDespesa,
   ParcelaPayload,
+  LotePlanejamento,
+  ModalidadeLotePlanejamento,
   StatusPagamentoDespesa,
 } from "@/types/planejamento";
 
@@ -34,8 +36,23 @@ interface ApiEventoPlanejamento {
   venue?: { name: string } | null;
 }
 
-interface ApiResumoPublico {
+interface ApiLoteResumo {
+  id: string;
+  batch: string;
+  price: number | string;
+  quantity: number;
+  modality: ModalidadeLotePlanejamento;
+  sequential: boolean;
+}
+
+interface ApiResumoPlanejamento {
   expectedAudience: number | null;
+  tickets: { lots: ApiLoteResumo[] };
+}
+
+export interface PlanejamentoEventoApi {
+  evento: EventoPlanejamento;
+  lotes: LotePlanejamento[];
 }
 
 export function toDespesaPlanejamento(despesa: ApiDespesa): DespesaPlanejamento {
@@ -85,18 +102,28 @@ export async function deleteDespesa(eventoId: string, despesaId: string): Promis
   await apiClient.delete(`${despesasUrl(eventoId)}/${despesaId}`);
 }
 
-export async function getEventoPlanejamento(eventoId: string): Promise<EventoPlanejamento> {
+export async function getPlanejamentoEvento(eventoId: string): Promise<PlanejamentoEventoApi> {
   const [{ data: evento }, { data: resumo }] = await Promise.all([
     apiClient.get<ApiEventoPlanejamento>(`/events/${eventoId}`),
-    apiClient.get<ApiResumoPublico>(`/events/${eventoId}/planning/summary`),
+    apiClient.get<ApiResumoPlanejamento>(`/events/${eventoId}/planning/summary`),
   ]);
   return {
-    id: evento.id,
-    name: evento.name,
-    startDate: evento.startDate,
-    endDate: evento.endDate,
-    venueName: evento.venue?.name ?? "Local a definir",
-    expectedAudience: resumo.expectedAudience ?? null,
+    evento: {
+      id: evento.id,
+      name: evento.name,
+      startDate: evento.startDate,
+      endDate: evento.endDate,
+      venueName: evento.venue?.name ?? "Local a definir",
+      expectedAudience: resumo.expectedAudience ?? null,
+    },
+    lotes: (resumo.tickets?.lots ?? []).map((lote) => ({
+      id: lote.id,
+      batch: lote.batch,
+      price: Number(lote.price),
+      quantity: lote.quantity,
+      modality: lote.modality,
+      sequential: lote.sequential,
+    })),
   };
 }
 
@@ -148,4 +175,8 @@ export async function updateParcela(
 
 export async function deleteParcela(eventoId: string, despesaId: string, parcelaId: string): Promise<void> {
   await apiClient.delete(`${parcelasUrl(eventoId, despesaId)}/${parcelaId}`);
+}
+
+export async function updatePublicoEsperado(eventoId: string, expectedAudience: number | null): Promise<void> {
+  await apiClient.patch(`/events/${eventoId}`, { expectedAudience });
 }

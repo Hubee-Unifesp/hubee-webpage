@@ -32,12 +32,15 @@ export interface DespesaPlanejamentoPayload {
   notes: string | null;
 }
 
+export type ModalidadeLotePlanejamento = "inteira" | "meia" | "estudante" | "vip" | "cortesia";
+
 export interface LotePlanejamento {
   id: string;
   batch: string;
   price: number;
   quantity: number;
-  salesStartDate: string | null;
+  modality: ModalidadeLotePlanejamento;
+  sequential: boolean;
 }
 
 export interface EventoPlanejamento {
@@ -66,18 +69,12 @@ export interface TotaisDespesas {
 
 export interface IndicadoresPublico {
   audience: number;
-  revenue: number;
+  revenue: number | null;
   averageTicket: number | null;
   breakEven: number | null;
   costPerPerson: number | null;
-  profit: number;
-}
-
-export interface ResumoPlanejamento {
-  despesas: TotaisDespesas;
-  ingressosPlanejados: number;
-  atual: IndicadoresPublico | null;
-  cenarios: IndicadoresPublico[];
+  profit: number | null;
+  breakEvenBatch: string | null;
 }
 
 export interface ParcelaDespesa {

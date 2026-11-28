@@ -35,13 +35,13 @@ export const EVENTO_MOCK: EventoPlanejamento = {
 };
 
 export const LOTES_MOCK: readonly LotePlanejamento[] = [
-  { id: "l-promo", batch: "Promocional", price: 45, quantity: 10, salesStartDate: "2026-10-13T18:00:00-03:00" },
-  { id: "l-bateria", batch: "Bateria", price: 50, quantity: 40, salesStartDate: "2026-10-13T18:00:00-03:00" },
-  { id: "l-trabalha", batch: "Trabalha", price: 45, quantity: 0, salesStartDate: "2026-10-13T18:00:00-03:00" },
-  { id: "l-leve3", batch: "Leve 3 pague 145", price: 48.33, quantity: 30, salesStartDate: "2026-10-13T18:00:00-03:00" },
-  { id: "l-1", batch: "1º Lote", price: 50, quantity: 85, salesStartDate: "2026-10-14T00:00:00-03:00" },
-  { id: "l-2", batch: "2º Lote", price: 55, quantity: 105, salesStartDate: "2026-10-27T00:00:00-03:00" },
-  { id: "l-3", batch: "3º Lote", price: 60, quantity: 30, salesStartDate: "2026-11-10T00:00:00-03:00" },
+  { id: "l-promo", batch: "Promocional", price: 45, quantity: 10, modality: "inteira", sequential: true },
+  { id: "l-bateria", batch: "Bateria", price: 50, quantity: 40, modality: "inteira", sequential: true },
+  { id: "l-trabalha", batch: "Trabalha", price: 45, quantity: 0, modality: "inteira", sequential: true },
+  { id: "l-leve3", batch: "Leve 3 pague 145", price: 48.33, quantity: 30, modality: "inteira", sequential: true },
+  { id: "l-1", batch: "1º Lote", price: 50, quantity: 85, modality: "inteira", sequential: true },
+  { id: "l-2", batch: "2º Lote", price: 55, quantity: 105, modality: "inteira", sequential: true },
+  { id: "l-3", batch: "3º Lote", price: 60, quantity: 30, modality: "inteira", sequential: true },
 ];
 
 interface LinhaMock {

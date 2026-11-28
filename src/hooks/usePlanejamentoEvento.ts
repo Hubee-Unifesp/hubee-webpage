@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { totalizarDespesas } from "@/components/conta/eventos/planejamento/planejamento.data";
+import {
+  calcularIndicadores,
+  segmentosDeLotes,
+  totalizarDespesas,
+} from "@/components/conta/eventos/planejamento/planejamento.data";
 import { parseApiError } from "@/lib/api/errors";
 import {
   createDespesa,
   deleteDespesa,
   getDespesas,
-  getEventoPlanejamento,
+  getPlanejamentoEvento,
   updateDespesa,
+  updatePublicoEsperado,
 } from "@/lib/api/planning";
 import { getSuppliers } from "@/lib/api/suppliers";
 import type {
@@ -14,12 +19,14 @@ import type {
   DespesaPlanejamentoPayload,
   EventoPlanejamento,
   FornecedorPlanejamento,
+  LotePlanejamento,
 } from "@/types/planejamento";
 
 export type StatusPlanejamento = "carregando" | "pronto" | "erro" | "sem-acesso";
 
 interface DadosPlanejamento {
   evento: EventoPlanejamento;
+  lotes: LotePlanejamento[];
   despesas: DespesaPlanejamento[];
   fornecedores: FornecedorPlanejamento[];
 }
@@ -46,15 +53,18 @@ async function carregarFornecedores(): Promise<FornecedorPlanejamento[]> {
 export function usePlanejamentoEvento(eventoId: string) {
   const [estado, setEstado] = useState<EstadoPlanejamento>(carregando);
   const [tentativa, setTentativa] = useState(0);
+  const [publicoSimulado, setPublicoSimulado] = useState(0);
 
   useEffect(() => {
     let ativo = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- volta ao carregando ao tentar de novo
     setEstado(carregando);
 
-    Promise.all([getEventoPlanejamento(eventoId), getDespesas(eventoId), carregarFornecedores()])
-      .then(([evento, despesas, fornecedores]) => {
-        if (ativo) setEstado({ status: "pronto", dados: { evento, despesas, fornecedores } });
+    Promise.all([getPlanejamentoEvento(eventoId), getDespesas(eventoId), carregarFornecedores()])
+      .then(([{ evento, lotes }, despesas, fornecedores]) => {
+        if (!ativo) return;
+        setEstado({ status: "pronto", dados: { evento, lotes, despesas, fornecedores } });
+        setPublicoSimulado(evento.expectedAudience ?? 0);
       })
       .catch((error: unknown) => {
         if (!ativo) return;
@@ -117,13 +127,37 @@ export function usePlanejamentoEvento(eventoId: string) {
     [eventoId, substituir],
   );
 
+  const definirPublicoEsperado = useCallback(
+    async (expectedAudience: number) => {
+      await updatePublicoEsperado(eventoId, expectedAudience);
+      setEstado((atual) =>
+        atual.status === "pronto"
+          ? { ...atual, dados: { ...atual.dados, evento: { ...atual.dados.evento, expectedAudience } } }
+          : atual,
+      );
+      setPublicoSimulado(expectedAudience);
+    },
+    [eventoId],
+  );
+
   const despesas = estado.dados?.despesas;
+  const lotes = estado.dados?.lotes;
   const totais = useMemo(() => totalizarDespesas(despesas ?? []), [despesas]);
+  const simulacao = useMemo(
+    () => calcularIndicadores(lotes ?? [], totais.total, publicoSimulado),
+    [lotes, totais.total, publicoSimulado],
+  );
+  const segmentos = useMemo(() => segmentosDeLotes(lotes ?? [], publicoSimulado), [lotes, publicoSimulado]);
 
   return {
     status: estado.status,
     dados: estado.dados,
     totais,
+    simulacao,
+    segmentos,
+    publicoSimulado,
+    setPublicoSimulado,
+    definirPublicoEsperado,
     tentarDeNovo,
     criarDespesa,
     editarDespesa,
